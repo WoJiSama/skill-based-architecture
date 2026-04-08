@@ -1,7 +1,6 @@
 name: skill-based-architecture
 version: "1.11"
 author: shiqi
-# Plain Markdown + YAML; works with any of these agent runtimes
 compatibility:
   - cursor
   - claude
@@ -31,11 +30,12 @@ triggers:
   - User requests skill-based architecture or rule consolidation
 
 files:
-  - SKILL.md        # Skill entry: when to use, target structure, core principles
-  - WORKFLOW.md      # Migration procedure: 8 phases + quick start scaffold
-  - REFERENCE.md     # Layout, official-template relation, activation verification, anti-patterns
-  - TEMPLATES.md     # Minimal starter plus full templates for update-rules.md, fix-bug.md, and maintain-docs.md
-  - EXAMPLES.md      # 16 before/after scenarios
+  - SKILL.md       # Skill entry: when to use, target structure, core principles
+  - WORKFLOW.md    # Migration procedure: 8 phases + quick start scaffold
+  - REFERENCE.md   # Layout, templates, activation verification, anti-patterns
+  - TEMPLATES.md   # Minimal starter + full templates for update-rules, fix-bug, maintain-docs
+  - EXAMPLES.md    # 16 before/after scenarios
+  - README.md      # Bilingual overview for humans (EN + ZH)
 
 compatible_tools:
   - cursor
