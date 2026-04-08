@@ -1,0 +1,48 @@
+name: skill-based-architecture
+version: "1.11"
+author: shiqi
+# Plain Markdown + YAML; works with any of these agent runtimes
+compatibility:
+  - cursor
+  - claude
+  - codex
+  - openclaw
+description: >
+  This skill should be used when the user asks to "organize the project rules",
+  "clean up scattered documentation", "refactor project rules",
+  "consolidate scattered rules", "create skill-based architecture",
+  "restructure skill documentation", or "migrate rules to skills directory".
+  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across
+  multiple entry files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.),
+  documentation feels hard to navigate or maintain, or the user requests
+  rule consolidation or documentation cleanup.
+
+entry: SKILL.md
+
+tags:
+  - architecture
+  - documentation
+  - rules
+  - meta-skill
+
+triggers:
+  - SKILL.md exceeds ~150 lines
+  - Project rules scattered across AGENTS.md, .cursor/rules/, CLAUDE.md, etc.
+  - User requests skill-based architecture or rule consolidation
+
+files:
+  - SKILL.md        # Skill entry: when to use, target structure, core principles
+  - WORKFLOW.md      # Migration procedure: 8 phases + quick start scaffold
+  - REFERENCE.md     # Layout, official-template relation, activation verification, anti-patterns
+  - TEMPLATES.md     # Minimal starter plus full templates for update-rules.md, fix-bug.md, and maintain-docs.md
+  - EXAMPLES.md      # 16 before/after scenarios
+
+compatible_tools:
+  - cursor
+  - claude
+  - codex
+  - openclaw
+
+install:
+  user_level: ~/.cursor/skills/skill-based-architecture/
+  project_level: .cursor/skills/skill-based-architecture/
