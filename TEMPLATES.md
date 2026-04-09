@@ -102,7 +102,16 @@ Before recording a potential new piece of knowledge, ask:
 - Pitfall, architecture note, lifecycle gotcha, source index → `references/`
 - Ordered task step or completion check → `workflows/`
 - Task routing changed → `SKILL.md`
-- Entry routing changed → thin shells
+- Entry routing changed → thin shells (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
+
+### Recording Destination (user-initiated recording)
+
+When the user explicitly asks to "record this" or "remember this", decide the destination first:
+
+- **Project-level knowledge** (would help a different agent on this project) → `skills/<name>/references/`, `rules/`, or `workflows/`
+- **Personal preference** (only relevant to this specific user) → agent's own memory system (e.g. `~/.claude/.../memory/`)
+
+Default to skill docs. Most explicit recording requests during development are project-scoped.
 
 For UI / interaction / layering / host-compatibility issues:
 

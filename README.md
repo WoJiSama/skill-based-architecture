@@ -255,9 +255,25 @@ Incremental migration is supported — migrate in rounds without blocking daily 
 | **Claude Code** | Reads `CLAUDE.md` at repo root | `CLAUDE.md` | Yes |
 | **Codex CLI** | Reads `AGENTS.md` + `.codex/instructions.md` | Both files | Yes |
 | **Windsurf** | Reads `.windsurf/rules/` | `.windsurf/rules/*.md` | Yes |
+| **Gemini CLI** | Reads `GEMINI.md` at repo root (+ parent/child dirs) | `GEMINI.md` | Yes |
 | **Other agents** | Reads `AGENTS.md` | `AGENTS.md` | Yes |
 
 All entry files **must** contain inline routing tables — natural-language-only instructions get lost during context summarization.
+
+---
+
+## Recording Destination Guide
+
+When the user asks to "record this" or "remember this", the agent must decide where to store it. Many AI tools have their own memory systems (e.g., Claude's `~/.claude/projects/.../memory/`) that auto-load each session — these compete with the skill's documentation structure.
+
+**Decision test:** "Would a different agent or person on this project benefit from this?"
+
+| Answer | Destination | Examples |
+|---|---|---|
+| **Yes** | `skills/<name>/references/`, `rules/`, or `workflows/` | Technical patterns, conventions, pitfalls |
+| **No** | Agent's own memory system | Personal preferences, communication style |
+
+**Default to skill docs.** Most "record this" requests during development are technical and project-scoped.
 
 ---
 
@@ -635,6 +651,7 @@ mkdir -p "skills/$NAME/rules" "skills/$NAME/workflows" "skills/$NAME/references"
 | **Claude Code** | 读取仓库根目录 `CLAUDE.md` | `CLAUDE.md` | 是 |
 | **Codex CLI** | 读取 `AGENTS.md` + `.codex/instructions.md` | 两个文件都需要 | 是 |
 | **Windsurf** | 读取 `.windsurf/rules/` | `.windsurf/rules/*.md` | 是 |
+| **Gemini CLI** | 读取仓库根目录 `GEMINI.md`（+ 父/子目录） | `GEMINI.md` | 是 |
 | **其他 Agent** | 读取 `AGENTS.md` | `AGENTS.md` | 是 |
 
 ---

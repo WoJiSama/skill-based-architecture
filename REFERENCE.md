@@ -219,6 +219,7 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 
 - Before declaring any non-trivial task complete → run Task Closure Protocol (see `workflows/update-rules.md`)
 - Skip only for: formatting-only, comment-only, dependency-version-only, or behavior-preserving refactors
+- When user asks to "record/save/remember" something → apply Recording Destination Guide: project-level knowledge goes to `skills/<name>/` docs, personal preferences go to agent memory
 ```
 
 **Why inline routing instead of just "Scan skills/"?** The "Scan skills/*/SKILL.md" instruction is natural language that gets lost during context summarization. The inline routing table embeds the essential task→file mapping directly, so the agent retains actionable routing even after summary truncation.
@@ -296,6 +297,28 @@ trigger: always
 <!-- Note: Auto-Triggers section is optional for Windsurf -->
 ```
 
+### GEMINI.md
+
+Gemini CLI reads `GEMINI.md` at the repo root (configurable via `.gemini/settings.json`). It also scans parent directories and subdirectories for additional `GEMINI.md` files, concatenating all discovered context. Place the thin shell at the repo root.
+
+```md
+# GEMINI.md
+
+<!-- Paste common body here (routing + auto-triggers) -->
+```
+
+### .gemini/ Directory Note
+
+`.gemini/` holds Gemini CLI configuration (`settings.json`, `.env`), not rule content. Context files (`GEMINI.md`) live at the repo root. If you need Gemini to also read `AGENTS.md`, configure it in `.gemini/settings.json`:
+
+```json
+{
+  "context": {
+    "fileName": ["GEMINI.md", "AGENTS.md"]
+  }
+}
+```
+
 ### .claude/ Directory Note
 
 `.claude/` in Claude Code primarily holds `settings.json` (permissions) and `commands/` (custom slash commands), not rule content. Place all instructions in the root `CLAUDE.md` (thin shell pointing to the skill). If any instruction-like files exist in `.claude/`, follow the thin-shell principle:
@@ -316,6 +339,7 @@ See root `CLAUDE.md` for entry point.
 | **Claude Code** | Reads `CLAUDE.md` at repo root | `CLAUDE.md` | Yes |
 | **Codex CLI** | Reads `AGENTS.md` + `.codex/instructions.md` | Both files | Yes |
 | **Windsurf** | Reads `.windsurf/rules/` | `.windsurf/rules/*.md` | Yes |
+| **Gemini CLI** | Reads `GEMINI.md` at repo root (+ parent/child dirs) | `GEMINI.md` | Yes |
 | **Other agents** | Reads `AGENTS.md` | `AGENTS.md` | Yes |
 
 **All entries must contain inline routing tables** — natural-language-only instructions ("Scan skills/") get lost during context summarization in long conversations.
@@ -373,9 +397,24 @@ Use the lightest useful destination:
 - Pitfall, lifecycle gotcha, architecture note, source index → `references/`
 - Ordered task step or completion check → `workflows/`
 - Task routing or always-read set changed → `SKILL.md`
-- Tool entry routing changed → thin shells (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.cursor/rules/*.mdc`)
+- Tool entry routing changed → thin shells (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
 
 Prefer appending to an existing file over creating a new one. Create a new file only when the topic is distinct enough to stay readable on its own.
+
+## Recording Destination Guide
+
+When the user explicitly asks to "record this", "remember this", or "save this for later", the agent must decide where to store the knowledge. Many AI tools (Claude Code, Gemini CLI) have their own memory systems (e.g., `~/.claude/projects/.../memory/`) that auto-load each session. These compete with the skill's documentation structure.
+
+**Decision test:** "Would a different agent or person working on this same project benefit from this knowledge?"
+
+| Answer | Destination | Examples |
+|---|---|---|
+| **Yes** — project-level knowledge | `skills/<name>/references/`, `rules/`, or `workflows/` | Technical patterns, conventions, pitfalls, architecture notes |
+| **No** — personal/user-level knowledge | Agent's own memory system (`~/.claude/.../memory/`, etc.) | Communication preferences, personal shortcuts, user-specific context |
+
+**Default to skill docs.** In practice, most "record this" requests during development are technical and project-scoped. The agent's own memory should only be used for content that is truly personal and would not help another contributor.
+
+Apply the same recording threshold and generalization rule as AAR-initiated recordings — the destination changes, but the quality bar does not.
 
 ## Generalization Rule
 

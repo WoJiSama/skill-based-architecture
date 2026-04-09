@@ -138,6 +138,7 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 ## Auto-Triggers
 
 - Before declaring any non-trivial task complete → run Task Closure Protocol (see `workflows/update-rules.md`)
+- When user asks to "record/save/remember" something → project-level knowledge goes to `skills/` docs, personal preferences go to agent memory
 SHELL
 
 cat > CLAUDE.md << 'SHELL'
@@ -156,6 +157,7 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 ## Auto-Triggers
 
 - Before declaring any non-trivial task complete → run Task Closure Protocol (see `workflows/update-rules.md`)
+- When user asks to "record/save/remember" something → project-level knowledge goes to `skills/` docs, personal preferences go to agent memory
 SHELL
 
 cat > CODEX.md << 'SHELL'
@@ -170,6 +172,25 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 | Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
 | TODO task | `rules/<x>.md` | `workflows/<y>.md` |
 | Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+SHELL
+
+cat > GEMINI.md << 'SHELL'
+# GEMINI.md
+
+Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
+
+## Quick Routing (survives context truncation)
+
+| Task | Required reads | Workflow |
+|------|---------------|----------|
+| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
+| TODO task | `rules/<x>.md` | `workflows/<y>.md` |
+| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+
+## Auto-Triggers
+
+- Before declaring any non-trivial task complete → run Task Closure Protocol (see `workflows/update-rules.md`)
+- When user asks to "record/save/remember" something → project-level knowledge goes to `skills/` docs, personal preferences go to agent memory
 SHELL
 
 mkdir -p .codex
@@ -339,6 +360,7 @@ Update root entries. Each must contain an **inline routing table** — not just 
 - **AGENTS.md** — project summary + inline routing table
 - **CLAUDE.md** — inline routing table + pointer to formal skill
 - **CODEX.md** / **.codex/instructions.md** — inline routing table + pointer to formal skill
+- **GEMINI.md** — inline routing table + pointer to formal skill
 - **.cursor/rules/*.mdc** — `alwaysApply: true` + pointer to formal skill + inline routing table
 
 An inline routing table looks like:

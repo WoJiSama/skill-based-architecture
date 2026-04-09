@@ -42,7 +42,7 @@ skills/<name>/
 └── docs/             # Optional: prompts, reports, external-facing material
 ```
 
-Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.cursor/rules/*.mdc`, `.codex/`) → thin shells with inline routing tables.
+Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`, `.codex/`) → thin shells with inline routing tables.
 `.cursor/skills/<name>/SKILL.md` → Cursor registration entry (required for discovery). See [REFERENCE.md](REFERENCE.md) for templates.
 
 ## Core Principles
@@ -50,7 +50,7 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.cursor/rules/*.mdc`, `.cod
 1. **Single concise entry** — `SKILL.md` ≤ 100 lines; it navigates, not exhausts
 2. **One skill folder** — all formal docs under `skills/<name>/`, not scattered at repo root
 3. **Rules ≠ Flows** — `rules/` for constraints, `workflows/` for procedures; never mix
-4. **Thin shells with inline routing** — `.cursor/`, `.claude/`, `.codex/`, `AGENTS.md`, `CLAUDE.md`, `CODEX.md` only route to the skill, **but must embed an inline routing table** (task → required reads → workflow), not just "go read SKILL.md"
+4. **Thin shells with inline routing** — `.cursor/`, `.claude/`, `.codex/`, `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md` only route to the skill, **but must embed an inline routing table** (task → required reads → workflow), not just "go read SKILL.md"
 5. **Cursor registration entry** — when the formal skill lives at `skills/<name>/`, a registration entry **must** be created at `.cursor/skills/<name>/SKILL.md` (Cursor's agent_skill discovery only scans `.cursor/skills/`)
 6. **Official minimum, local structure** — keep the official minimum contract clear: `name` identifies the skill, `description` explains what it does and when to use it; this skill adds project-scale structure only when that minimum shape stops being enough
 7. **Description = trigger condition** — the `description` field in frontmatter is how the Agent decides whether to activate a skill; write it as a trigger condition with explicit quoted phrases, not a passive summary (see [REFERENCE.md § Description as Trigger Condition](REFERENCE.md#description-as-trigger-condition))
