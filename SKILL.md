@@ -75,6 +75,7 @@ These are the most costly mistakes when using this architecture. Each has caused
 4. **Stored but not activated** — Costly pitfall recorded in `references/` but not surfaced in any workflow checklist or SKILL.md routing → future agents still miss it
 5. **Task Closure Protocol skipped** — Agent considers itself "done" after main work, skips the 30-second AAR scan → lessons not captured; use Task Closure Protocol to make AAR a completion gate, not an optional add-on
 6. **Project-specific records** — Lessons written as project narratives ("in our product module, we found…") instead of reusable knowledge → useless outside current context; apply generalization rule before recording
+7. **No SessionStart hook on long sessions** — `/clear` or `/compact` silently drops SKILL.md from context; agent loses all routing and protocol awareness without the user noticing → install SessionStart hook if your harness supports it (see [REFERENCE.md § SessionStart Hook](REFERENCE.md#sessionstart-hook-optional))
 
 ## Content Classification
 
@@ -93,7 +94,7 @@ For repos with multiple skills, coexistence rules, monorepo guidance, and when-t
 
 ## Resources
 
-- [WORKFLOW.md](WORKFLOW.md) — Migration procedure (Quick Start + 8 phases)
+- [WORKFLOW.md](WORKFLOW.md) — Migration procedure (Quick Start + 9 phases)
 - [REFERENCE.md](REFERENCE.md) — Templates, decision guides, anti-patterns, troubleshooting
 - [TEMPLATES.md](TEMPLATES.md) — Starter templates + meta-workflow templates
 - [EXAMPLES.md](EXAMPLES.md) — 16 before/after scenarios

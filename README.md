@@ -6,6 +6,12 @@
 
 ---
 
+## Community support
+
+Learn AI on LinuxDO — [LinuxDO](https://linux.do/)
+
+---
+
 ## Why This Exists
 
 AI coding agents (Cursor, Claude Code, Codex, Windsurf, etc.) rely on project documentation to understand rules, conventions, and workflows. But as projects grow, that documentation inevitably becomes a mess:
@@ -147,6 +153,19 @@ A costly pitfall recorded only in `references/` is **not fully captured** — fu
 - Add a completion check in the relevant `workflows/*.md`
 - Update `SKILL.md` Common Tasks routing to point at the reference
 - If the lesson is a stable constraint, promote it to `rules/`
+
+---
+
+## When NOT to Use This
+
+Not every project needs this architecture. Skip it if:
+
+- **Short-lived solo project (< 2 weeks)** — no recurring tasks, no rules worth capturing
+- **Total rule content < 50 lines** — a single `CLAUDE.md` or `.cursorrules` file is enough
+- **Single harness only** — you only use one AI tool and don't need cross-tool compatibility
+- **No team sharing** — you're the only person using AI agents on this codebase, and it's small enough to keep in your head
+
+In these cases, start with a plain `CLAUDE.md` or `.cursor/rules/workflow.mdc`. You can always migrate to the full architecture later when the project grows — [WORKFLOW.md](WORKFLOW.md) has a Quick Start path for exactly that upgrade.
 
 ---
 
@@ -482,6 +501,12 @@ The recording threshold (2/3: repeatable + costly + not obvious) filters out low
 **[English](#skill-based-architecture)** | 中文
 
 > 一个 meta-skill，用于将过长的单文件 Skill 或散落各处的项目规则，重构为结构清晰的 `skills/<name>/` 目录 —— 让 AI Agent 每次只读需要的内容。
+
+---
+
+## 社区支持
+
+学 AI，上 L 站 — [LinuxDO](https://linux.do/)
 
 ---
 

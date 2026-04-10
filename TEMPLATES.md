@@ -192,6 +192,8 @@ Examples:
 | Our UserService.createUser method needs a duplicate check first | Uniqueness validation must happen before entity creation — the DB constraint is the last line of defense, not the first |
 | The OrderController date parameter uses yyyy-MM-dd format | API date parameters use ISO 8601 format (`yyyy-MM-dd` or `yyyy-MM-ddTHH:mm:ssZ`); validate format at the controller entry layer |
 | admin-dashboard page loads slowly because of missing pagination | List endpoints must support pagination; unpaginated full-table queries become performance bottlenecks as data grows |
+| Our auth context needs a Provider wrapper at the root | Authentication state must initialize at the app root; child components consume via context/provider pattern. Initializing auth deeper causes race conditions on protected routes |
+| CI breaks because deploy.sh runs before build finishes | Deployment pipelines must include an explicit build step before deploy — never assume the artifact already exists. Missing build gates cause silent deploy of stale code |
 
 ## Learn from Mistakes
 

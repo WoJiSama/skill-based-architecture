@@ -1,0 +1,360 @@
+#!/usr/bin/env bash
+# smoke-test.sh — Fully automated post-migration verification
+# Usage: bash smoke-test.sh <skill-name>
+# Example: bash smoke-test.sh my-project
+#
+# Zero manual input required. Parses SKILL.md Common Tasks as the source of truth.
+# Supports both English and Chinese (中文) section names.
+# Exit code: 0 = all pass, 1 = failures found.
+
+set -euo pipefail
+
+# ── Args ──────────────────────────────────────────────────────────────
+NAME="${1:-}"
+if [[ -z "$NAME" ]]; then
+  echo "Usage: bash smoke-test.sh <skill-name>"
+  echo "Example: bash smoke-test.sh my-project"
+  exit 1
+fi
+
+SKILL_DIR="skills/$NAME"
+SKILL_MD="$SKILL_DIR/SKILL.md"
+CURSOR_ENTRY=".cursor/skills/$NAME/SKILL.md"
+
+PASS=0
+FAIL=0
+WARN=0
+
+pass() { ((PASS++)); echo "  ✅ $1"; }
+fail() { ((FAIL++)); echo "  ❌ $1"; }
+warn() { ((WARN++)); echo "  ⚠️  $1"; }
+
+# ── 1. Structural Checks ─────────────────────────────────────────────
+echo ""
+echo "═══ 1. Structural Checks ═══"
+
+# 1a. Core files exist (gotchas/pitfalls is flexible)
+for f in "$SKILL_MD" \
+         "$SKILL_DIR/rules/project-rules.md" \
+         "$SKILL_DIR/rules/coding-standards.md" \
+         "$SKILL_DIR/workflows/update-rules.md" \
+         "$SKILL_DIR/workflows/fix-bug.md" \
+         "$SKILL_DIR/workflows/maintain-docs.md"; do
+  if [[ -f "$f" ]]; then
+    pass "$f exists"
+  else
+    fail "$f missing"
+  fi
+done
+
+# gotchas: check for gotchas.md OR any pitfalls file in references/
+if [[ -f "$SKILL_DIR/references/gotchas.md" ]]; then
+  pass "$SKILL_DIR/references/gotchas.md exists"
+else
+  GOTCHA_FILE=$(find "$SKILL_DIR/references" -maxdepth 1 -type f \( -name '*pitfall*' -o -name '*gotcha*' \) 2>/dev/null | head -1)
+  if [[ -n "$GOTCHA_FILE" ]]; then
+    pass "gotchas/pitfalls reference found: $(basename "$GOTCHA_FILE")"
+  else
+    fail "$SKILL_DIR/references/gotchas.md (or equivalent pitfalls file) missing"
+  fi
+fi
+
+# 1b. Cursor registration entry
+if [[ -f "$CURSOR_ENTRY" ]]; then
+  pass "Cursor entry $CURSOR_ENTRY exists"
+else
+  fail "Cursor entry $CURSOR_ENTRY missing (Cursor will never discover this skill)"
+fi
+
+# 1c. Thin shells exist and contain routing tables
+# Support both English (| Task) and Chinese (| 任务) table headers
+has_routing_table() {
+  local file="$1"
+  grep -q '^|' "$file" 2>/dev/null
+}
+
+for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
+  if [[ ! -f "$shell" ]]; then
+    fail "$shell missing"
+  elif has_routing_table "$shell"; then
+    pass "$shell exists with routing table"
+  else
+    fail "$shell exists but has no routing table (no '|' table rows found)"
+  fi
+done
+
+# .codex/instructions.md
+if [[ -f ".codex/instructions.md" ]]; then
+  if has_routing_table ".codex/instructions.md"; then
+    pass ".codex/instructions.md exists with routing table"
+  else
+    fail ".codex/instructions.md exists but no routing table"
+  fi
+else
+  fail ".codex/instructions.md missing"
+fi
+
+# .cursor/rules/*.mdc
+MDC_COUNT=$(find .cursor/rules -name '*.mdc' 2>/dev/null | wc -l | tr -d ' ')
+if [[ "$MDC_COUNT" -gt 0 ]]; then
+  pass ".cursor/rules/ has $MDC_COUNT .mdc file(s)"
+else
+  fail ".cursor/rules/ has no .mdc files"
+fi
+
+# ── 2. Line Count Budgets ─────────────────────────────────────────────
+echo ""
+echo "═══ 2. Line Count Budgets ═══"
+
+check_lines() {
+  local file="$1" max="$2" label="$3"
+  if [[ ! -f "$file" ]]; then return; fi
+  local lines
+  lines=$(wc -l < "$file" | tr -d ' ')
+  if [[ "$lines" -le "$max" ]]; then
+    pass "$label: $lines lines (≤ $max)"
+  else
+    fail "$label: $lines lines (exceeds $max limit)"
+  fi
+}
+
+check_lines "$SKILL_MD" 100 "SKILL.md"
+for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
+  check_lines "$shell" 60 "$shell (thin shell)"
+done
+check_lines "$CURSOR_ENTRY" 60 "Cursor entry"
+
+# ── 3. Placeholder Residue ────────────────────────────────────────────
+echo ""
+echo "═══ 3. Placeholder Residue ═══"
+
+# 3a. {{...}} placeholders should all be replaced
+# Exclude JSX/code patterns like styles={{ }}, className={{ }}, etc.
+PLACEHOLDER_HITS=$(grep -rn '{{' "$SKILL_DIR" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor 2>/dev/null \
+  | grep -v 'node_modules' \
+  | grep -v '/scripts/' \
+  | grep -v '={{' \
+  | grep -v '{{ *}}' \
+  | grep -v 'styles={{' \
+  | grep -v 'style={{' \
+  | grep -v 'className={{' \
+  || true)
+if [[ -z "$PLACEHOLDER_HITS" ]]; then
+  pass "No {{...}} placeholders remaining"
+else
+  fail "Unresolved {{...}} placeholders found:"
+  echo "$PLACEHOLDER_HITS" | head -20 | sed 's/^/       /'
+fi
+
+# 3b. <!-- FILL: --> markers should all be replaced
+FILL_HITS=$(grep -rn 'FILL:' "$SKILL_DIR" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor 2>/dev/null | grep -v 'node_modules' | grep -v '/scripts/' || true)
+if [[ -z "$FILL_HITS" ]]; then
+  pass "No <!-- FILL: --> markers remaining"
+else
+  fail "Unresolved FILL markers found ($(echo "$FILL_HITS" | wc -l | tr -d ' ') hits):"
+  echo "$FILL_HITS" | head -20 | sed 's/^/       /'
+fi
+
+# ── 4. SKILL.md Content Quality ───────────────────────────────────────
+echo ""
+echo "═══ 4. SKILL.md Content Quality ═══"
+
+if [[ -f "$SKILL_MD" ]]; then
+  # 4a. Has frontmatter with name and description
+  if head -5 "$SKILL_MD" | grep -q '^---'; then
+    pass "SKILL.md has YAML frontmatter"
+  else
+    fail "SKILL.md missing YAML frontmatter"
+  fi
+
+  # 4b. description is ≥ 20 words
+  # Extract YAML description: multi-line value (stops at next top-level key or ---)
+  DESC=$(awk '
+    /^description:/ { found=1; sub(/^description:[[:space:]]*>?[[:space:]]*/, ""); if ($0 != "") print; next }
+    found && /^[a-z].*:/ { exit }
+    found && /^---/ { exit }
+    found { print }
+  ' "$SKILL_MD" | tr -s ' \n' ' ')
+  WORD_COUNT=$(echo "$DESC" | wc -w | tr -d ' ')
+  if [[ "$WORD_COUNT" -ge 20 ]]; then
+    pass "description is $WORD_COUNT words (≥ 20)"
+  else
+    fail "description is only $WORD_COUNT words (need ≥ 20 for reliable activation)"
+  fi
+
+  # 4c. description has quoted trigger phrases
+  TRIGGER_COUNT=$(echo "$DESC" | grep -o '"[^"]*"' | wc -l | tr -d ' ')
+  if [[ "$TRIGGER_COUNT" -ge 2 ]]; then
+    pass "description has $TRIGGER_COUNT quoted trigger phrases (≥ 2)"
+  else
+    fail "description has only $TRIGGER_COUNT quoted trigger phrases (need ≥ 2)"
+  fi
+
+  # 4d. Has Always Read section (English or Chinese)
+  if grep -qE '## (Always Read|必读)' "$SKILL_MD"; then
+    pass "SKILL.md has Always Read / 必读 section"
+  else
+    fail "SKILL.md missing Always Read / 必读 section"
+  fi
+
+  # 4e. Has Common Tasks section (English or Chinese)
+  if grep -qE '## (Common Tasks|常见任务)' "$SKILL_MD"; then
+    pass "SKILL.md has Common Tasks / 常见任务 section"
+  else
+    fail "SKILL.md missing Common Tasks / 常见任务 section"
+  fi
+
+  # 4f. Has Known Gotchas section (English or Chinese, flexible matching)
+  if grep -qiE '## .*(Gotcha|Known|坑|Pitfall)' "$SKILL_MD"; then
+    pass "SKILL.md has Known Gotchas / 坑点 section"
+  else
+    warn "SKILL.md missing Known Gotchas section (acceptable for fresh migration, should grow via AAR)"
+  fi
+fi
+
+# ── 5. Routing Completeness ──────────────────────────────────────────
+echo ""
+echo "═══ 5. Routing Completeness (auto-parsed from Common Tasks) ═══"
+
+if [[ -f "$SKILL_MD" ]]; then
+  # Extract file references from Common Tasks / 常见任务 section
+  IN_COMMON_TASKS=false
+  REFERENCED_FILES=()
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^##[[:space:]]+(Common[[:space:]]+Tasks|常见任务) ]]; then
+      IN_COMMON_TASKS=true
+      continue
+    fi
+    if $IN_COMMON_TASKS && [[ "$line" =~ ^## ]]; then
+      break
+    fi
+    if $IN_COMMON_TASKS; then
+      # Extract backtick-quoted relative paths (rules/, workflows/, references/)
+      while [[ "$line" =~ \`((rules|workflows|references)/[^\`]+)\` ]]; do
+        ref="${BASH_REMATCH[1]}"
+        REFERENCED_FILES+=("$ref")
+        line="${line#*\`$ref\`}"
+      done
+    fi
+  done < "$SKILL_MD"
+
+  # Deduplicate (handle empty array gracefully)
+  if [[ ${#REFERENCED_FILES[@]} -eq 0 ]]; then
+    warn "No file references found in Common Tasks (section may be empty or use non-standard format)"
+  else
+    UNIQUE_FILES=($(printf '%s\n' "${REFERENCED_FILES[@]}" | sort -u))
+
+    echo "  Found ${#UNIQUE_FILES[@]} unique file references in Common Tasks:"
+    for ref in "${UNIQUE_FILES[@]}"; do
+      full_path="$SKILL_DIR/$ref"
+      # Skip wildcard patterns like rules/*.md
+      if [[ "$ref" == *'*'* ]]; then
+        pass "  $ref (wildcard pattern, skipping existence check)"
+        continue
+      fi
+      if [[ -f "$full_path" ]]; then
+        pass "  $ref exists"
+      else
+        fail "  $ref referenced in Common Tasks but file missing at $full_path"
+      fi
+    done
+  fi
+
+  # Also check Always Read / 必读 references
+  echo ""
+  echo "  Always Read / 必读 references:"
+  IN_ALWAYS_READ=false
+  FOUND_ALWAYS_READ=false
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^##[[:space:]]+(Always[[:space:]]+Read|必读) ]]; then
+      IN_ALWAYS_READ=true
+      continue
+    fi
+    if $IN_ALWAYS_READ && [[ "$line" =~ ^## ]]; then
+      break
+    fi
+    if $IN_ALWAYS_READ; then
+      while [[ "$line" =~ \`((rules|workflows|references)/[^\`]+)\` ]]; do
+        ref="${BASH_REMATCH[1]}"
+        FOUND_ALWAYS_READ=true
+        full_path="$SKILL_DIR/$ref"
+        if [[ -f "$full_path" ]]; then
+          pass "  $ref exists"
+        else
+          fail "  $ref in Always Read but file missing at $full_path"
+        fi
+        line="${line#*\`$ref\`}"
+      done
+    fi
+  done < "$SKILL_MD"
+  if ! $FOUND_ALWAYS_READ; then
+    warn "  No file references found in Always Read section"
+  fi
+fi
+
+# ── 6. Description Consistency ────────────────────────────────────────
+echo ""
+echo "═══ 6. Description Consistency ═══"
+
+if [[ -f "$SKILL_MD" ]] && [[ -f "$CURSOR_ENTRY" ]]; then
+  # Extract description from both files using awk for reliable YAML parsing
+  extract_desc() {
+    awk '
+      /^description:/ { found=1; sub(/^description:[[:space:]]*>?[[:space:]]*/, ""); if ($0 != "") print; next }
+      found && /^[a-z].*:/ { exit }
+      found && /^---/ { exit }
+      found { print }
+    ' "$1" | tr -s ' \n' ' ' | sed 's/^ *//;s/ *$//'
+  }
+  DESC_FORMAL=$(extract_desc "$SKILL_MD")
+  DESC_CURSOR=$(extract_desc "$CURSOR_ENTRY")
+
+  if [[ "$DESC_FORMAL" == "$DESC_CURSOR" ]]; then
+    pass "description matches between SKILL.md and Cursor entry"
+  else
+    fail "description MISMATCH between SKILL.md and Cursor entry"
+    echo "       Formal: ${DESC_FORMAL:0:80}..."
+    echo "       Cursor: ${DESC_CURSOR:0:80}..."
+  fi
+fi
+
+# ── 7. Shell Routing Table Consistency ────────────────────────────────
+echo ""
+echo "═══ 7. Shell Routing Consistency ═══"
+
+# Check that all shells reference the same set of tasks
+SHELL_FILES=(AGENTS.md CLAUDE.md CODEX.md GEMINI.md)
+PREV_TASKS=""
+PREV_SHELL=""
+for shell in "${SHELL_FILES[@]}"; do
+  if [[ ! -f "$shell" ]]; then continue; fi
+  # Extract task column from routing table (first column after | )
+  # Skip header rows (containing "Task" or "任务" or "---")
+  TASKS=$(grep '^|' "$shell" | grep -v '^| Task' | grep -v '任务类型' | grep -v '^|---' | awk -F'|' '{print $2}' | tr -d ' ' | sort)
+  if [[ -z "$PREV_TASKS" ]]; then
+    PREV_TASKS="$TASKS"
+    PREV_SHELL="$shell"
+    continue
+  fi
+  if [[ "$TASKS" == "$PREV_TASKS" ]]; then
+    pass "$shell routing table matches $PREV_SHELL"
+  else
+    warn "$shell routing table differs from $PREV_SHELL (may be intentional)"
+  fi
+done
+
+# ── Summary ───────────────────────────────────────────────────────────
+echo ""
+echo "═══════════════════════════════════════"
+echo "  Results: ✅ $PASS passed  ❌ $FAIL failed  ⚠️  $WARN warnings"
+echo "═══════════════════════════════════════"
+
+if [[ "$FAIL" -gt 0 ]]; then
+  echo ""
+  echo "  Fix the ❌ items above, then re-run: bash smoke-test.sh $NAME"
+  exit 1
+else
+  echo ""
+  echo "  All checks passed! Skill '$NAME' is ready."
+  exit 0
+fi

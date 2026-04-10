@@ -4,7 +4,7 @@ Step-by-step procedure for restructuring a long SKILL.md or scattered rules into
 
 ## Quick Start
 
-For small-to-medium projects, run the scaffold and fill in content. Skip the full 8-phase process.
+For small-to-medium projects, run the scaffold and fill in content. Skip the full 9-phase process.
 
 ### Which path should I take?
 
@@ -18,7 +18,7 @@ Answer these questions to decide:
 |---------|------|
 | All No | **Minimal single SKILL.md** — use the [minimal starter template](TEMPLATES.md) |
 | 1 Yes, others No | **Quick Start scaffold** below — run the script, fill TODOs |
-| 2+ Yes | **Full 8-phase migration** — follow Phase 1–8 below |
+| 2+ Yes | **Full 9-phase migration** — follow Phase 1–9 below |
 
 If the project has only one small skill, no duplicated entry files, and no growing rule/reference sprawl yet, **do not force the full architecture immediately**. Start with a single well-written `SKILL.md` using the minimal starter template in [TEMPLATES.md](TEMPLATES.md), and upgrade only when one of the conditions above becomes true.
 
@@ -73,19 +73,23 @@ grep -rn 'FILL:' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .c
 
 Every hit is mandatory. A skill with unfilled FILL markers will silently fail to activate (agents read generic trigger phrases and never match user intent).
 
-**Step 3 — Verify.** After all FILLs are resolved:
+**Step 3 — Verify.** After all FILLs are resolved, run the automated smoke test:
 
 ```bash
-# Must return zero lines (all FILL markers gone)
-grep -rn 'FILL:' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor
+# Fully automated — checks structure, routing, placeholders, line budgets, and description quality
+bash "skills/$NAME/scripts/smoke-test.sh" "$NAME"
 
-# Must return zero lines (all {{…}} placeholders gone)
-grep -rn '{{' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor
+# (Optional) Test skill trigger rate — checks if your description actually activates the skill
+bash "skills/$NAME/scripts/test-trigger.sh" "$NAME"
 ```
+
+`smoke-test.sh` covers everything: file existence, line count budgets, placeholder/FILL residue, description word count and trigger phrases, routing completeness (parses Common Tasks and verifies every referenced file exists), description consistency between SKILL.md and Cursor entry, and shell routing table consistency. Zero manual input needed.
+
+`test-trigger.sh` generates test prompts from your Common Tasks, then either runs them through `claude -p` (if CLI is available) or falls back to static analysis of your description coverage. This is most useful for Cursor users since Cursor relies on description-based semantic matching.
 
 Then run the Phase 8 checklist below to confirm everything is wired up.
 
-For complex migrations (large projects, heavily scattered rules), follow the full Phase 1–8 process:
+For complex migrations (large projects, heavily scattered rules), follow the full Phase 1–9 process:
 
 ---
 
@@ -236,6 +240,8 @@ This table survives context truncation because it is embedded directly in the en
 
 ## Phase 8: Verify
 
+A standalone copyable checklist is available at [`templates/checklists/post-migration.md`](templates/checklists/post-migration.md). The sections below are the inline reference.
+
 ### Structural Checks
 
 - [ ] `skills/<name>/SKILL.md` exists and is ≤ 100 lines
@@ -297,7 +303,7 @@ Take its answer literally and fold it into the workflow text. The subagent's own
 - Any captured rationalizations added to the Rationalizations table verbatim
 - Final re-run: under maximum pressure, the subagent runs the Task Closure Protocol and cites the relevant rule/workflow
 
-**Optional but recommended:** install `templates/hooks/session-start` so Task Closure Protocol is re-injected on `/clear` and `/compact`. Context compression is itself a pressure source — the hook treats it as one.
+**Recommended:** install `templates/hooks/session-start` so SKILL.md and Task Closure Protocol are re-injected on `/clear` and `/compact`. Context compression is itself a pressure source — without the hook, a single `/compact` can silently disable all routing and protocol enforcement.
 
 ## Ongoing Maintenance
 
@@ -309,7 +315,7 @@ After initial migration, two mechanisms keep the documentation healthy over time
 
 ## Incremental Migration
 
-Not every project can migrate all 8 phases in one pass. A phased approach:
+Not every project can migrate all 9 phases in one pass. A phased approach:
 
 1. **Round 1 — Structure + Rules**: Create `skills/<name>/`, write `SKILL.md`, extract rules only
 2. **Round 2 — Workflows**: Extract workflows; update `SKILL.md` task entries

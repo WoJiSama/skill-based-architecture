@@ -10,7 +10,10 @@ templates/
 │   ├── SKILL.md
 │   ├── rules/{project-rules,coding-standards}.md
 │   ├── workflows/{update-rules,fix-bug,maintain-docs,subagent-driven}.md
-│   └── references/gotchas.md
+│   ├── references/gotchas.md
+│   └── scripts/              → automated verification (lives inside the skill)
+│       ├── smoke-test.sh     (fully automated structural + routing checks)
+│       └── test-trigger.sh   (description trigger rate testing)
 ├── shells/                   → becomes repo-root entry files
 │   ├── AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md
 │   ├── .codex/instructions.md
@@ -20,6 +23,8 @@ templates/
 │   ├── session-start         (bash, per-harness JSON branching)
 │   ├── hooks.json            (Claude Code config)
 │   └── hooks-cursor.json     (Cursor config)
+├── checklists/               → copyable verification checklists
+│   └── post-migration.md     (run after Phase 8 to verify everything)
 └── protocol-blocks/          → drop-in Task Closure reinforcement
     ├── rationalizations-table.md
     ├── red-flags-stop.md

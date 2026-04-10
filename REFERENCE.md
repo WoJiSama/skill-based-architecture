@@ -170,6 +170,17 @@ A growing skill may need to fission into independent skills. Evaluate when:
 
 All three Yes → split into separate skills under `skills/`. Move shared rules to `skills/shared/`.
 
+**When to rebuild a skill from scratch:**
+
+Sometimes a skill has drifted so far that patching it costs more than starting over. Evaluate rebuild when 2+ of these are true:
+
+1. **> 30% of rules outdated or contradictory** — rules conflict with each other or describe removed features
+2. **Common Tasks routing is fictional** — 3+ routes point to workflows/files that no longer match real project work
+3. **Thin shells and SKILL.md have drifted apart** — routing tables disagree across entry files and manual re-alignment keeps failing
+4. **Repeated agent errors trace back to "confusing rules"** — the last 5+ agent mistakes were caused by the rules themselves being unclear, not by missing rules
+
+Rebuild path: `cp -R templates/skill/. skills/<name>/` to get a fresh skeleton, then manually migrate only the rules and gotchas that are still valid. Do not copy-paste the old structure — re-evaluate each piece through the recording threshold before including it.
+
 ## .cursor/skills/\<name\>/SKILL.md Registration Entry Template
 
 **Required for Cursor discovery.** Cursor's agent_skill mechanism only scans `.cursor/skills/`. If the formal skill lives at `skills/<name>/`, this registration entry is mandatory — without it the skill is invisible to Cursor.
@@ -365,7 +376,7 @@ The script branches on `$CLAUDE_HARNESS` / `$SESSION_HARNESS` and emits the JSON
 | Cursor | `{"additional_context": ...}` |
 | Copilot CLI / Gemini / OpenCode | `{"additionalContext": ...}` |
 
-Marked optional because not every harness supports SessionStart hooks. Install it only if your primary harness does and context compression is actually costing you skill activation.
+**Recommended** for any harness that supports SessionStart hooks (Claude Code, Cursor). Context compression after `/clear` or `/compact` silently drops SKILL.md from context — the hook is the only defense against this. Skip only if your harness does not support SessionStart hooks or your sessions are consistently short enough that compression never triggers.
 
 ## Meta-Workflow Templates
 
