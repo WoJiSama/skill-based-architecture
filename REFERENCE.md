@@ -340,9 +340,32 @@ See root `CLAUDE.md` for entry point.
 | **Codex CLI** | Reads `AGENTS.md` + `.codex/instructions.md` | Both files | Yes |
 | **Windsurf** | Reads `.windsurf/rules/` | `.windsurf/rules/*.md` | Yes |
 | **Gemini CLI** | Reads `GEMINI.md` at repo root (+ parent/child dirs) | `GEMINI.md` | Yes |
+| **Copilot CLI** | Reads `AGENTS.md` | `AGENTS.md` (shared shell) | Yes |
+| **OpenCode** | Reads `AGENTS.md` | `AGENTS.md` (shared shell) | Yes |
 | **Other agents** | Reads `AGENTS.md` | `AGENTS.md` | Yes |
 
 **All entries must contain inline routing tables** — natural-language-only instructions ("Scan skills/") get lost during context summarization in long conversations.
+
+Pre-built shells for every harness above ship under [`templates/shells/`](templates/shells/) — downstream projects should `cp -R` the tree rather than regenerate the files inline.
+
+## SessionStart Hook (Optional)
+
+Context compression (`/clear`, `/compact`) drops previously-loaded skill content from the active window. A `SessionStart` hook re-injects `SKILL.md` on each fresh session or compaction boundary, turning context loss into a self-healing event rather than a silent failure mode.
+
+The upstream ships a ready-to-copy hook at [`templates/hooks/session-start`](templates/hooks/session-start) plus two config shims:
+
+- [`templates/hooks/hooks.json`](templates/hooks/hooks.json) — Claude Code config (`startup|clear|compact` matcher)
+- [`templates/hooks/hooks-cursor.json`](templates/hooks/hooks-cursor.json) — Cursor config (same script, different env var)
+
+The script branches on `$CLAUDE_HARNESS` / `$SESSION_HARNESS` and emits the JSON shape each harness expects:
+
+| Harness | JSON shape |
+|---|---|
+| Claude Code | `{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":...}}` |
+| Cursor | `{"additional_context": ...}` |
+| Copilot CLI / Gemini / OpenCode | `{"additionalContext": ...}` |
+
+Marked optional because not every harness supports SessionStart hooks. Install it only if your primary harness does and context compression is actually costing you skill activation.
 
 ## Meta-Workflow Templates
 

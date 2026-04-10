@@ -61,6 +61,7 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 12. **Self-maintenance** — line counts signal evaluation, not automatic action; split only when topics are separable, merge only when fragments belong together
 13. **Activation over storage** — a costly, task-relevant pitfall is not considered "captured" if it only lives deep in `references/`; it must also surface in the task path that should prevent the mistake next time (workflow checklist, task routing, or a concise rule summary)
 14. **Token efficiency** — Always-read files stay minimal (2–3 core rules); domain files are read only when task-routed via Common Tasks
+15. **Protocol reinforcement via Rationalizations Table** — the Task Closure Protocol is vulnerable to "just this once" erosion under pressure; maintain a Rationalizations to Reject table capturing verbatim excuses from pressure-test failures and their rebuttals (see [TEMPLATES.md § Rationalizations to Reject](TEMPLATES.md#rationalizations-to-reject) and [WORKFLOW.md § Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill))
 
 **What counts as a behavior change?** Not only business logic or data flow changes. It also includes interaction changes, schema / renderer behavior changes, styling conventions that change outcomes, overlay / layering / z-index behavior, and host-compatibility changes that future agents could still misjudge without guidance.
 

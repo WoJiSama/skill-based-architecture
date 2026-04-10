@@ -1,0 +1,12 @@
+{
+  "_comment": "Claude Code session-start hook. Copy to .claude/hooks.json and adjust SKILL_PATH if needed.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "command": "bash templates/hooks/session-start",
+        "async": false
+      }
+    ]
+  }
+}

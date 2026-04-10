@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# session-start — re-inject the {{NAME}} skill at startup/clear/compact.
+# Adapted from obra/superpowers (hooks/session-start) with attribution.
+#
+# The agent's context is summarized on /clear and /compact; without this hook,
+# the SKILL.md routing table and Task Closure Protocol can drift out of memory.
+# This hook reads the formal SKILL.md and emits it back into the agent's
+# context window in the JSON shape each harness expects.
+#
+# Install (Claude Code):  copy templates/hooks/hooks.json into .claude/
+# Install (Cursor):       copy templates/hooks/hooks-cursor.json into .cursor/
+# Install (other):        call this script from your harness's session-start hook
+
+set -euo pipefail
+
+SKILL_PATH="${SKILL_PATH:-skills/{{NAME}}/SKILL.md}"
+HARNESS="${CLAUDE_HARNESS:-${SESSION_HARNESS:-claude}}"
+
+if [[ ! -f "$SKILL_PATH" ]]; then
+  # Fail silently — do not break the session if the skill is missing
+  exit 0
+fi
+
+# JSON-escape the skill body
+SKILL_BODY=$(python3 -c '
+import json, sys
+with open(sys.argv[1], "r") as f:
+    print(json.dumps(f.read()))
+' "$SKILL_PATH")
+
+case "$HARNESS" in
+  cursor)
+    printf '{"additional_context": %s}\n' "$SKILL_BODY"
+    ;;
+  claude|claude-code)
+    printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":%s}}\n' "$SKILL_BODY"
+    ;;
+  copilot|opencode|gemini|*)
+    printf '{"additionalContext": %s}\n' "$SKILL_BODY"
+    ;;
+esac

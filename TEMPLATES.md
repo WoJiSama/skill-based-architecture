@@ -71,6 +71,31 @@ A task is NOT complete until all three steps are done:
 
 No workflow may declare completion without step 2. This is mandatory, not an optional add-on.
 
+### Rationalizations to Reject
+
+When the Agent feels the urge to skip the AAR, these are the common excuses and their rebuttals. Every row was captured from a real pressure-test failure (see [WORKFLOW.md § Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)) — do not argue with them, just refuse.
+
+| Rationalization | Reality |
+|---|---|
+| "This task was small — AAR is overkill" | Small tasks are where lessons hide. The 4-question scan takes 30 seconds; skipping is slower than doing |
+| "I'll run AAR at the end of the session" | You will forget. The scan must happen at task closure, not batched |
+| "Nothing new happened, just a routine fix" | If nothing new happened, the scan returns "no" on all four questions in 30 seconds. Do it anyway |
+| "The user is in a hurry" | The protocol exists *because* hurry produces the worst pitfalls. Pressure is a reason to run AAR, not skip it |
+| "I already know this lesson, don't need to record" | Recording is for future agents, not past you. Current knowledge is not durable across context boundaries |
+| "This is covered by the existing rules" | Then the scan returns "no" in 10 seconds. Faster to run it than argue about it |
+
+### Red Flags — STOP
+
+If the Agent catches itself thinking any of the following, stop and run the full protocol:
+
+- "Just this once" — every skip erodes the protocol
+- "I'll fix it in the next task" — the next task will have its own closure
+- "Nobody will know I skipped" — the next pitfall will
+- "The AAR is for big changes" — scope does not determine value; novelty does
+- "This is overhead, not work" — Task Closure *is* the task; anything that ships without it is half-done
+
+> Reusable versions of these blocks live in [`templates/protocol-blocks/`](templates/protocol-blocks/) — drop them into any project workflow that needs reinforcement.
+
 ## After-Action Review
 
 The 30-second scan from step 2 of the Task Closure Protocol.

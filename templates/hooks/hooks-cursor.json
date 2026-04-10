@@ -1,0 +1,12 @@
+{
+  "_comment": "Cursor session-start hook. Copy to .cursor/hooks.json. CLAUDE_HARNESS=cursor switches the JSON shape.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "command": "CLAUDE_HARNESS=cursor bash templates/hooks/session-start",
+        "async": false
+      }
+    ]
+  }
+}

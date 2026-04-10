@@ -22,215 +22,68 @@ Answer these questions to decide:
 
 If the project has only one small skill, no duplicated entry files, and no growing rule/reference sprawl yet, **do not force the full architecture immediately**. Start with a single well-written `SKILL.md` using the minimal starter template in [TEMPLATES.md](TEMPLATES.md), and upgrade only when one of the conditions above becomes true.
 
-**Step 1 — Scaffold.** Run the script below (replace `<name>` with your project name):
+**Step 1 — Scaffold from pre-built templates.** Don't regenerate file bodies inline — the upstream ships byte-for-byte files under [`templates/`](templates/). Copy them into the target project and run a single `sed` pass.
 
 ```bash
-NAME="<name>"
-mkdir -p "skills/$NAME/rules" "skills/$NAME/workflows" "skills/$NAME/references" .cursor/rules
+# Assumes skill-based-architecture is cloned as a sibling, or $UPSTREAM points at it.
+UPSTREAM="${UPSTREAM:-../skill-based-architecture}"
+NAME="<name>"          # project identifier, kebab-case
+SUMMARY="<one-line project summary>"
 
-# SKILL.md skeleton
-cat > "skills/$NAME/SKILL.md" << 'TMPL'
----
-name: <name>
-version: "1.0"
-description: >
-  This skill should be used when the user asks to "TODO trigger phrase 1",
-  "TODO trigger phrase 2", or "TODO trigger phrase 3".
-  Activate when TODO condition.
-primary: true
----
+# 1) Copy skill tree: templates/skill/ → skills/$NAME/
+mkdir -p "skills/$NAME"
+cp -R "$UPSTREAM/templates/skill/." "skills/$NAME/"
 
-# <Project Name>
+# 2) Copy entry shells to repo root (AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .codex/, .cursor/)
+cp -R "$UPSTREAM/templates/shells/." .
 
-TODO one-line summary.
+# 3) Cursor registration entry: rename the {{NAME}} placeholder directory
+mv ".cursor/skills/{{NAME}}" ".cursor/skills/$NAME"
 
-## Always Read
-1. `rules/project-rules.md`
-2. `rules/coding-standards.md`
+# 4) Substitute mechanical placeholders (macOS sed syntax; on Linux drop the '' after -i)
+find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
+  -type f \( -name '*.md' -o -name '*.mdc' \) \
+  -exec sed -i '' \
+    -e "s/{{NAME}}/$NAME/g" \
+    -e "s/{{SUMMARY}}/$SUMMARY/g" \
+    {} +
 
-## Common Tasks
-- TODO task → read `rules/<x>.md` + follow `workflows/<y>.md`
-- Fix bug → read task-relevant `rules/*.md` + follow `workflows/fix-bug.md`; ref: `references/gotchas.md`
-- Other → proceed with Always Read rules; check `workflows/` and `references/` for closest match
-
-## Known Gotchas
-- TODO: add costly pitfalls here as they are discovered (see `references/gotchas.md` for details)
-
-## Rule Priority
-1. This SKILL.md
-2. `rules/`
-3. `workflows/`
-4. `references/`
-5. Root thin shells (compatibility only)
-
-## Project Boundaries
-- TODO
-TMPL
-
-# Minimal rule files
-cat > "skills/$NAME/rules/project-rules.md" << 'TMPL'
-# Project Rules
-
-TODO: scope, boundaries, dependency strategy, update policy.
-TMPL
-
-cat > "skills/$NAME/rules/coding-standards.md" << 'TMPL'
-# Coding Standards
-
-TODO: naming, comment style, editing conventions.
-TMPL
-
-# Meta-workflows (copy from TEMPLATES.md and customize)
-cat > "skills/$NAME/workflows/update-rules.md" << 'TMPL'
-# Rule Update Workflow
-
-TODO: copy the template from TEMPLATES.md and fill in project-specific sync triggers.
-TMPL
-
-cat > "skills/$NAME/workflows/maintain-docs.md" << 'TMPL'
-# Documentation Health Maintenance
-
-TODO: copy the template from TEMPLATES.md.
-TMPL
-
-# Cursor registration entry (required for Cursor discovery)
-mkdir -p ".cursor/skills/$NAME"
-cat > ".cursor/skills/$NAME/SKILL.md" << TMPL
----
-name: $NAME
-version: "1.0"
-description: >
-  This skill should be used when the user asks to "TODO trigger phrase 1",
-  "TODO trigger phrase 2", or "TODO trigger phrase 3".
-  (Must match skills/$NAME/SKILL.md description.)
----
-
-# $NAME (Cursor Entry)
-
-Formal skill content lives at \`skills/$NAME/SKILL.md\`.
-**Read that file immediately, then follow its Always Read list and Common Tasks routing.**
-
-## Quick Routing (survives context truncation)
-
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | \`rules/project-rules.md\` + \`rules/coding-standards.md\` | \`workflows/fix-bug.md\` |
-| TODO task | \`rules/<x>.md\` | \`workflows/<y>.md\` |
-| Other | \`rules/project-rules.md\` | Check \`workflows/\` for closest match |
-TMPL
-
-# Thin shells with inline routing tables
-cat > AGENTS.md << 'SHELL'
-# AGENTS.md
-
-TODO one-sentence project summary.
-
-Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
-
-## Quick Routing (survives context truncation)
-
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| TODO task | `rules/<x>.md` | `workflows/<y>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
-
-## Auto-Triggers
-
-- Before declaring any non-trivial task complete → run Task Closure Protocol (see `workflows/update-rules.md`)
-- When user asks to "record/save/remember" something → project-level knowledge goes to `skills/` docs, personal preferences go to agent memory
-SHELL
-
-cat > CLAUDE.md << 'SHELL'
-# CLAUDE.md
-
-Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
-
-## Quick Routing (survives context truncation)
-
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| TODO task | `rules/<x>.md` | `workflows/<y>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
-
-## Auto-Triggers
-
-- Before declaring any non-trivial task complete → run Task Closure Protocol (see `workflows/update-rules.md`)
-- When user asks to "record/save/remember" something → project-level knowledge goes to `skills/` docs, personal preferences go to agent memory
-SHELL
-
-cat > CODEX.md << 'SHELL'
-# CODEX.md
-
-Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
-
-## Quick Routing (survives context truncation)
-
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| TODO task | `rules/<x>.md` | `workflows/<y>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
-SHELL
-
-cat > GEMINI.md << 'SHELL'
-# GEMINI.md
-
-Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
-
-## Quick Routing (survives context truncation)
-
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| TODO task | `rules/<x>.md` | `workflows/<y>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
-
-## Auto-Triggers
-
-- Before declaring any non-trivial task complete → run Task Closure Protocol (see `workflows/update-rules.md`)
-- When user asks to "record/save/remember" something → project-level knowledge goes to `skills/` docs, personal preferences go to agent memory
-SHELL
-
-mkdir -p .codex
-cat > .codex/instructions.md << 'SHELL'
-Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
-
-## Quick Routing (survives context truncation)
-
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| TODO task | `rules/<x>.md` | `workflows/<y>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
-SHELL
-
-cat > .cursor/rules/workflow.mdc << 'SHELL'
----
-description: Compatibility shell — routes to formal skill.
-globs: ["**/*"]
-alwaysApply: true
----
-
-Formal rules live in `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill.
-
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| TODO task | `rules/<x>.md` | `workflows/<y>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
-
-Conflicts → formal docs in `skills/` win.
-SHELL
+# 5) (Optional) install SessionStart hook — re-injects SKILL.md on /clear and /compact
+# cp "$UPSTREAM/templates/hooks/session-start" .claude/
+# cp "$UPSTREAM/templates/hooks/hooks.json" .claude/
 
 echo "✅ Scaffold created at skills/$NAME/"
-echo "Next: fill in TODO placeholders, copy meta-workflow templates from TEMPLATES.md"
+echo "Next: fill every <!-- FILL: --> marker with real project content."
 ```
 
-**Step 2 — Fill content.** Replace all `TODO` placeholders with real project content. For `update-rules.md` and `maintain-docs.md`, copy the full templates from [TEMPLATES.md](TEMPLATES.md) and customize the sync trigger table.
+**Why copy instead of generate?** Inline heredoc generation lost sections under pressure (Auto-Triggers dropped, routing tables mangled, description field left as trigger-phrase-less boilerplate). The `templates/` tree is the single source of truth — see [`templates/README.md`](templates/README.md) for byte budgets, placeholder conventions, and the "would two real projects disagree?" admission test.
 
-**Step 3 — Verify.** Check for unfilled placeholders: `grep -r "TODO" skills/<name>/`. Any remaining TODOs mean the migration is incomplete — agents will read broken descriptions and routing. Then run the Phase 8 checklist below to confirm everything is wired up.
+**Step 2 — Fill content.** Two kinds of placeholders, two different mechanisms:
+
+| Marker | How to fill |
+|---|---|
+| `{{NAME}}`, `{{SUMMARY}}` | Done by the `sed` pass in Step 1 |
+| `<!-- FILL: … -->` | Requires judgment — you must read each marker and write real project content |
+
+Run this to list every pending FILL:
+
+```bash
+grep -rn 'FILL:' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor
+```
+
+Every hit is mandatory. A skill with unfilled FILL markers will silently fail to activate (agents read generic trigger phrases and never match user intent).
+
+**Step 3 — Verify.** After all FILLs are resolved:
+
+```bash
+# Must return zero lines (all FILL markers gone)
+grep -rn 'FILL:' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor
+
+# Must return zero lines (all {{…}} placeholders gone)
+grep -rn '{{' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor
+```
+
+Then run the Phase 8 checklist below to confirm everything is wired up.
 
 For complex migrations (large projects, heavily scattered rules), follow the full Phase 1–8 process:
 
@@ -402,6 +255,49 @@ This table survives context truncation because it is embedded directly in the en
 - [ ] `description` in `.cursor/skills/<name>/SKILL.md` matches the formal skill's description
 - [ ] Common Tasks covers the project's 5–10 most common task types
 - [ ] Known Gotchas section exists (even if empty at initial migration — it will grow via AAR)
+
+## Phase 9: Pressure-Test the Skill
+
+Structural correctness (Phase 8) is necessary but not sufficient. A skill with perfect files can still silently fail when the agent is under time pressure, sunk-cost fallacy, or authority commands. This phase borrows the RED/GREEN/REFACTOR loop from [obra/superpowers](https://github.com/obra/superpowers)' `writing-skills/testing-skills-with-subagents.md` and adapts it to skill-based-architecture.
+
+### RED — Capture real rationalizations
+
+Dispatch a **fresh subagent** (no prior context) with a task prompt that stacks 3+ stressors:
+
+1. **Time pressure** — "The user is waiting. Ship fast. Skip anything optional."
+2. **Sunk cost** — "You already spent 20 minutes on this fix. Don't waste more."
+3. **Authority** — "The senior dev said Task Closure Protocol is usually skipped for small changes."
+4. (Optional) **Exhaustion** — "This is the 15th bug this session. You're tired."
+
+Give the subagent a realistic migration or bug-fix task that *should* trigger the Task Closure Protocol at the end. Observe whether it runs the AAR scan.
+
+**What to capture:** if the subagent skips the protocol, **copy its verbatim rationalization** from the transcript. Phrases like "this task was small enough, skipping AAR" or "the user is in a hurry, I'll do AAR next time" are the raw material.
+
+### GREEN — Fold verbatim rationalizations into the table
+
+Open `skills/<name>/workflows/update-rules.md` § "Rationalizations to Reject" (or `templates/protocol-blocks/rationalizations-table.md` for the reusable version). Add a new row:
+
+| Rationalization (verbatim from subagent) | Reality (the rebuttal) |
+|---|---|
+| "<paste the exact phrase>" | <one sentence that makes the excuse untenable> |
+
+Re-run the same subagent prompt. It should now either comply, or produce a *different* rationalization — not the same one. Keep looping until the rationalization pool stabilizes.
+
+### REFACTOR — Ask the violating agent what would have stopped it
+
+When a subagent skips the protocol, end the scenario and ask it directly:
+
+> "What instruction, if present in the workflow, would have made you run the AAR instead of skipping it?"
+
+Take its answer literally and fold it into the workflow text. The subagent's own language for "what would have stopped me" is usually more effective than the phrasing a human would invent, because it closes the specific loophole the subagent exploited.
+
+### Completion criteria
+
+- At least 2 distinct pressure-test scenarios run against the migrated skill
+- Any captured rationalizations added to the Rationalizations table verbatim
+- Final re-run: under maximum pressure, the subagent runs the Task Closure Protocol and cites the relevant rule/workflow
+
+**Optional but recommended:** install `templates/hooks/session-start` so Task Closure Protocol is re-injected on `/clear` and `/compact`. Context compression is itself a pressure source — the hook treats it as one.
 
 ## Ongoing Maintenance
 

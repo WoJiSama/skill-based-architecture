@@ -193,16 +193,33 @@ Once installed, activate with any of these:
 
 ### Scaffold a New Project
 
-After activation, the agent generates a full directory structure. Run the Quick Start from `WORKFLOW.md`:
+After activation, the agent scaffolds from the pre-built [`templates/`](templates/) tree — **copy, don't regenerate**. See `WORKFLOW.md` Quick Start for the full command, but in essence:
 
 ```bash
+UPSTREAM="${UPSTREAM:-../skill-based-architecture}"
 NAME="my-project"
-mkdir -p "skills/$NAME/rules" "skills/$NAME/workflows" "skills/$NAME/references"
-# Generates: SKILL.md, rule templates, workflow templates,
-# Cursor registration entry, thin shells for all tools
+SUMMARY="one-line project summary"
+mkdir -p "skills/$NAME"
+cp -R "$UPSTREAM/templates/skill/." "skills/$NAME/"
+cp -R "$UPSTREAM/templates/shells/." .
+mv ".cursor/skills/{{NAME}}" ".cursor/skills/$NAME"
+find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
+  -type f \( -name '*.md' -o -name '*.mdc' \) \
+  -exec sed -i '' -e "s/{{NAME}}/$NAME/g" -e "s/{{SUMMARY}}/$SUMMARY/g" {} +
 ```
 
-Fill in the `TODO` placeholders and verify with `grep -r "TODO" skills/<name>/`.
+Then fill every `<!-- FILL: -->` marker (list them with `grep -rn 'FILL:' skills/$NAME`). Each FILL is mandatory — leaving them unresolved causes silent skill-activation failures.
+
+### Pre-built Templates
+
+The [`templates/`](templates/) directory is the single source of truth for scaffold content:
+
+- `templates/skill/` → becomes `skills/<name>/` (SKILL.md, rules stubs, workflow bodies, empty gotchas seed)
+- `templates/shells/` → thin shells for every harness (AGENTS, CLAUDE, CODEX, GEMINI, `.codex/`, `.cursor/`)
+- `templates/hooks/` → optional `SessionStart` hook that re-injects SKILL.md on `/clear` and `/compact`
+- `templates/protocol-blocks/` → drop-in Task Closure Protocol reinforcement (Rationalizations table, Red Flags, Iron Law header)
+
+Copy these instead of asking the agent to regenerate files inline — inline generation drops sections under pressure. See [`templates/README.md`](templates/README.md) for byte budgets and the "would two real projects disagree?" admission test, and [`templates/ANTI-TEMPLATES.md`](templates/ANTI-TEMPLATES.md) for content we intentionally do **not** pre-build.
 
 ---
 
@@ -604,15 +621,33 @@ git clone https://github.com/WoJiSama/skill-based-architecture.git \
 
 ### 快速脚手架
 
-激活后，Agent 为项目生成完整目录结构。运行 `WORKFLOW.md` 中的 Quick Start：
+激活后，Agent 从预制的 [`templates/`](templates/) 目录**复制**脚手架——**不要让 Agent 实时再生文件**。完整命令见 `WORKFLOW.md` Quick Start，核心步骤：
 
 ```bash
+UPSTREAM="${UPSTREAM:-../skill-based-architecture}"
 NAME="my-project"
-mkdir -p "skills/$NAME/rules" "skills/$NAME/workflows" "skills/$NAME/references"
-# 自动生成 SKILL.md、规则模板、工作流模板、Cursor 注册入口、所有薄壳文件
+SUMMARY="一句话项目简介"
+mkdir -p "skills/$NAME"
+cp -R "$UPSTREAM/templates/skill/." "skills/$NAME/"
+cp -R "$UPSTREAM/templates/shells/." .
+mv ".cursor/skills/{{NAME}}" ".cursor/skills/$NAME"
+find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
+  -type f \( -name '*.md' -o -name '*.mdc' \) \
+  -exec sed -i '' -e "s/{{NAME}}/$NAME/g" -e "s/{{SUMMARY}}/$SUMMARY/g" {} +
 ```
 
-填写 `TODO` 占位符，然后用 `grep -r "TODO" skills/<name>/` 验证。
+然后逐个填写 `<!-- FILL: -->` 标记（用 `grep -rn 'FILL:' skills/$NAME` 列出全部）。每一处 FILL 都是必填项——留空会导致技能激活静默失败。
+
+### 预制模板目录
+
+[`templates/`](templates/) 是脚手架内容的唯一权威来源：
+
+- `templates/skill/` → 复制为 `skills/<name>/`（SKILL.md、规则 stub、工作流正文、空的 gotchas 种子）
+- `templates/shells/` → 所有 harness 的薄壳（AGENTS、CLAUDE、CODEX、GEMINI、`.codex/`、`.cursor/`）
+- `templates/hooks/` → 可选的 `SessionStart` hook，在 `/clear` 和 `/compact` 时重新注入 SKILL.md
+- `templates/protocol-blocks/` → Task Closure Protocol 强化块（Rationalizations 表、Red Flags、Iron Law 标题）
+
+**复制而不是再生**——Agent 在压力场景下会漏段落。详见 [`templates/README.md`](templates/README.md) 的字节预算和"两个真实项目会不同意吗"准入测试，以及 [`templates/ANTI-TEMPLATES.md`](templates/ANTI-TEMPLATES.md) 中**拒绝预制**的内容清单。
 
 ---
 
