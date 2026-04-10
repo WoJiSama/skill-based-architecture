@@ -6,6 +6,12 @@
 
 ---
 
+## Community support
+
+Learn AI on LinuxDO — [LinuxDO](https://linux.do/)
+
+---
+
 ## Why This Exists
 
 AI coding agents (Cursor, Claude Code, Codex, Windsurf, etc.) rely on project documentation to understand rules, conventions, and workflows. But as projects grow, that documentation inevitably becomes a mess:
@@ -482,6 +488,12 @@ The recording threshold (2/3: repeatable + costly + not obvious) filters out low
 **[English](#skill-based-architecture)** | 中文
 
 > 一个 meta-skill，用于将过长的单文件 Skill 或散落各处的项目规则，重构为结构清晰的 `skills/<name>/` 目录 —— 让 AI Agent 每次只读需要的内容。
+
+---
+
+## 社区支持
+
+学 AI，上 L 站 — [LinuxDO](https://linux.do/)
 
 ---
 
