@@ -41,6 +41,7 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 | "The user is in a hurry" | The protocol exists *because* hurry produces the worst pitfalls. Pressure is a reason to run AAR, not skip it |
 | "I already know this lesson, don't need to record" | Recording is for future agents, not past you. Current knowledge is not durable |
 | "This is covered by the existing rules" | Then the scan returns "no" in 10 seconds. Faster to run it than argue about it |
+| "I already read SKILL.md for the previous task" | The new task may match a different route. Context compresses silently. Re-read costs seconds; skipping costs hours of wrong-direction work |
 
 ### Red Flags — STOP if you catch yourself thinking any of these
 

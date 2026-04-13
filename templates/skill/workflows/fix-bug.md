@@ -1,11 +1,14 @@
 # Fix Bug Workflow
 
+## Mandatory Pre-Step (cannot skip)
+
+**Re-run `SKILL.md` § Session Discipline before starting.** Re-match this bug against Common Tasks, re-read all required files for that route. No exceptions — see SKILL.md for why.
+
 ## Read First
 
-1. `rules/project-rules.md`
-2. `rules/coding-standards.md`
-3. Task-relevant `rules/*.md`
-4. Task-relevant `references/*.md` (especially `references/gotchas.md`)
+1. Re-open `SKILL.md` → match this bug to a Common Tasks route
+2. Read **all** files listed for that route (not just the ones you remember)
+3. Read task-relevant `references/*.md` (especially `references/gotchas.md`)
 
 ## Steps
 

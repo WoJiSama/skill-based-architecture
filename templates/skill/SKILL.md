@@ -23,6 +23,14 @@ These files apply to every task. Read them first:
 
 <!-- FILL: keep to 2–3 files max. Domain-specific rules do NOT go here. -->
 
+## Session Discipline
+
+**Every new task — even the second or third in the same session — must re-read this SKILL.md, re-match the route below, and re-read all files listed for that route.**
+
+- "I already read it earlier" is not valid. Context compresses silently; the new task may match a different route; partial memory is worse than no memory.
+- Re-read costs seconds. Skipping costs hours of wrong-direction work.
+- This applies to ALL task types, not just bug fixes.
+
 ## Common Tasks
 
 Each entry lists the exact files to read — don't read files not listed for your task:

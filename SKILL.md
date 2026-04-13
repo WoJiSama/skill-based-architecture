@@ -76,6 +76,7 @@ These are the most costly mistakes when using this architecture. Each has caused
 5. **Task Closure Protocol skipped** — Agent considers itself "done" after main work, skips the 30-second AAR scan → lessons not captured; use Task Closure Protocol to make AAR a completion gate, not an optional add-on
 6. **Project-specific records** — Lessons written as project narratives ("in our product module, we found…") instead of reusable knowledge → useless outside current context; apply generalization rule before recording
 7. **No SessionStart hook on long sessions** — `/clear` or `/compact` silently drops SKILL.md from context; agent loses all routing and protocol awareness without the user noticing → install SessionStart hook if your harness supports it (see [REFERENCE.md § SessionStart Hook](REFERENCE.md#sessionstart-hook-optional))
+8. **Route skipping in multi-task sessions** — Agent reads SKILL.md for the first task, then skips re-reading for subsequent tasks in the same session ("I already know the rules"). New tasks may match different routes; context may have been compressed. Result: agent works from partial/stale memory, misses critical rules, debugs in wrong direction for hours → SKILL.md template now includes Session Discipline section; all shells include re-read trigger
 
 ## Content Classification
 

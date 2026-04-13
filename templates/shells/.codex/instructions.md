@@ -9,4 +9,6 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 | <!-- FILL: task --> | <!-- FILL: `rules/<x>.md` --> | <!-- FILL: `workflows/<y>.md` --> |
 | Other | `rules/project-rules.md` | Check `workflows/` for closest match |
 
+**New task in same session** → re-read `skills/{{NAME}}/SKILL.md`, re-match Common Tasks route, re-read all required files. "I already read it" is not valid — context compresses, routes differ.
+
 Conflicts → formal docs in `skills/{{NAME}}/` win.
