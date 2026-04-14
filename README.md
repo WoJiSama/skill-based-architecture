@@ -2,7 +2,17 @@
 
 **English** | [中文](README.zh-CN.md)
 
-> A meta-skill that transforms oversized single-file skills and scattered project rules into a clean, modular `skills/<name>/` directory — so AI agents read only what they need, every time.
+> A **meta-skill that produces skills.** Point it at any codebase and it distills the project's rules, workflows, and hard-won lessons into a dedicated `skills/<name>/` directory — a **project skill** that becomes the single source of truth every AI agent (Cursor, Claude Code, Codex, Windsurf, Gemini) consults before every task.
+
+**The output is the point.** What you get is not just a tidier docs folder — it is *the skill that understands your project best*: routable, self-maintaining, lesson-capturing, and triggered automatically when the task matches.
+
+```
+your project  ──►  skill-based-architecture  ──►  skills/<your-project>/   ◄── the skill that knows your project best
+                       (meta-skill)                ├── SKILL.md  (router, ≤100 lines)
+                                                   ├── rules/    (what is always true)
+                                                   ├── workflows/(how to do things)
+                                                   └── references/gotchas.md  (costly lessons)
+```
 
 ---
 

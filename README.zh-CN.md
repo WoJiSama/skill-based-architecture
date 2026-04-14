@@ -2,13 +2,23 @@
 
 [English](README.md) | **中文**
 
-> 一个 meta-skill，用于将过长的单文件 Skill 或散落各处的项目规则，重构为结构清晰的 `skills/<name>/` 目录 —— 让 AI Agent 每次只读需要的内容。
+> 一个**生产 skill 的 meta-skill**。把它对准任何代码库，它会把这个项目的规则、流程、踩坑经验**炼化**进一个专属的 `skills/<name>/` 目录 —— 一个**项目 skill**,成为所有 AI Agent(Cursor、Claude Code、Codex、Windsurf、Gemini)在每次任务前查阅的唯一权威来源。
+
+**重点是产物本身。** 你得到的不是一个更整洁的文档文件夹,而是 **最懂你这个项目的那个 skill**:可路由、可自维护、能自动捕获经验、匹配任务时自动触发。
+
+```
+你的项目  ──►  skill-based-architecture  ──►  skills/<你的项目>/   ◄── 最懂这个项目的 skill
+                    (meta-skill)               ├── SKILL.md   (路由器,≤100 行)
+                                                ├── rules/     (始终成立的约束)
+                                                ├── workflows/ (怎么做一件事)
+                                                └── references/gotchas.md  (高代价的坑)
+```
 
 ---
 
 ## 社区支持
 
-学 AI，上 L 站 — [LinuxDO](https://linux.do/)
+学 AI,上 L 站 — [LinuxDO](https://linux.do/)
 
 ---
 
