@@ -104,6 +104,14 @@ description: >
   or API authentication flows.
 ```
 
+### Session Discipline
+
+Every new task — even the second or third in the same session — must re-read SKILL.md, re-match the Common Tasks routing table, and re-read all files listed for that route.
+
+> "I already read it earlier" is not valid. Context compresses silently; the new task may match a different route; partial memory is worse than no memory. Re-read costs seconds. Skipping costs hours of wrong-direction work.
+
+This rule is enforced at three levels: SKILL.md itself, each workflow's mandatory pre-step, and the re-read trigger embedded in all thin shells (the last defense after context compression).
+
 ### Task Closure Protocol
 
 Every non-trivial task runs a mandatory 30-second After-Action Review before completion:
@@ -234,6 +242,7 @@ Then fill every `<!-- FILL: -->` marker (list them with `grep -rn 'FILL:' skills
 The [`templates/`](templates/) directory is the single source of truth for scaffold content:
 
 - `templates/skill/` → becomes `skills/<name>/` (SKILL.md, rules stubs, workflow bodies, empty gotchas seed)
+- `templates/skill/scripts/` → `smoke-test.sh` (48-check automated verifier) + `test-trigger.sh` (description trigger rate tester) — auto-copied into `skills/<name>/scripts/` by the scaffold step
 - `templates/shells/` → thin shells for every harness (AGENTS, CLAUDE, CODEX, GEMINI, `.codex/`, `.cursor/`)
 - `templates/hooks/` → optional `SessionStart` hook that re-injects SKILL.md on `/clear` and `/compact`
 - `templates/protocol-blocks/` → drop-in Task Closure Protocol reinforcement (Rationalizations table, Red Flags, Iron Law header)
@@ -250,9 +259,9 @@ Copy these instead of asking the agent to regenerate files inline — inline gen
 |-----------|------|
 | Total rules < 150 lines, no duplication, no recurring pitfalls | **Minimal single SKILL.md** — use the starter template |
 | Rules > 150 lines but no duplication | **Quick Start scaffold** — run the script, fill TODOs |
-| Rules > 150 lines AND duplicated across files | **Full 8-phase migration** |
+| Rules > 150 lines AND duplicated across files | **Full 9-phase migration** |
 
-### Full Migration (8 Phases)
+### Full Migration (9 Phases)
 
 | Phase | What Happens |
 |-------|-------------|
@@ -263,7 +272,8 @@ Copy these instead of asking the agent to regenerate files inline — inline gen
 | **5. Extract Workflows** | Create dedicated workflow files + required meta-workflows (update-rules, maintain-docs) |
 | **6. Extract References** | Move architecture overviews, gotchas, source indexes into `references/` |
 | **7. Create Entry Points** | Cursor registration entry + thin shells for all tools with inline routing tables |
-| **8. Verify** | Structural checks + activation checks (description quality, routing coverage) |
+| **8. Verify** | Run automated `smoke-test.sh` (48 checks) — structural, routing, placeholder, activation, and description quality |
+| **9. Pressure-Test** | Dispatch subagents under time/sunk-cost/authority stressors; fold verbatim rationalizations into the Rationalizations table |
 
 Incremental migration is supported — migrate in rounds without blocking daily work.
 
@@ -402,12 +412,13 @@ skills/
 | 4 | **Thin shells with inline routing** | Entry files embed routing tables that survive context summarization |
 | 5 | **Description = trigger condition** | Explicit activation phrases, not passive summaries |
 | 6 | **Two-layer routing** | Always Read (2-3 files) + Common Tasks (task-specific reads) |
-| 7 | **Task Closure Protocol** | AAR is part of task completion, not an optional extra |
-| 8 | **Recording threshold** | 2/3 criteria (repeatable + costly + not obvious) before recording |
-| 9 | **Generalization rule** | Records must be reusable knowledge, not project-specific narratives |
-| 10 | **Activation over storage** | Pitfalls must appear in the task path, not just in reference files |
-| 11 | **Self-maintaining** | Line counts signal evaluation; split only when topics are separable |
-| 12 | **Start minimal, grow structured** | Use the minimal template first; upgrade when rules sprawl |
+| 7 | **Session Discipline** | Every new task in the same session must re-read SKILL.md and re-match routing; "I already read it" is not valid |
+| 8 | **Task Closure Protocol** | AAR is part of task completion, not an optional extra |
+| 9 | **Recording threshold** | 2/3 criteria (repeatable + costly + not obvious) before recording |
+| 10 | **Generalization rule** | Records must be reusable knowledge, not project-specific narratives |
+| 11 | **Activation over storage** | Pitfalls must appear in the task path, not just in reference files |
+| 12 | **Self-maintaining** | Line counts signal evaluation; split only when topics are separable |
+| 13 | **Start minimal, grow structured** | Use the minimal template first; upgrade when rules sprawl |
 
 ---
 
@@ -416,7 +427,7 @@ skills/
 | File | Content | Lines |
 |------|---------|-------|
 | [SKILL.md](SKILL.md) | Skill entry: when to use, target structure, core principles, common pitfalls | ~99 |
-| [WORKFLOW.md](WORKFLOW.md) | Migration guide: decision tree, quick-start scaffold, full 8-phase process, incremental migration | ~406 |
+| [WORKFLOW.md](WORKFLOW.md) | Migration guide: decision tree, quick-start scaffold, full 9-phase process, incremental migration | ~330 |
 | [REFERENCE.md](REFERENCE.md) | Templates, thin shell patterns, description guidelines, anti-patterns, troubleshooting, CI validation | ~580 |
 | [TEMPLATES.md](TEMPLATES.md) | Minimal starter template, update-rules.md, fix-bug.md, maintain-docs.md meta-workflow templates | ~372 |
 | [EXAMPLES.md](EXAMPLES.md) | 16 before/after scenarios: migration, evolution, activation, edge cases, AAR, multi-skill | ~752 |
@@ -435,6 +446,7 @@ These are the most costly mistakes when using this architecture. Each has caused
 | **Vague description** | Skill exists but agent never activates it | Write >= 20 words with >= 2 quoted trigger phrases |
 | **Stored but not activated** | Pitfall in `references/` but not in any workflow | Also surface in workflow checklist or SKILL.md routing |
 | **Task Closure skipped** | Lessons not captured; same mistakes repeat | Use Task Closure Protocol as completion gate |
+| **Route skipping in multi-task sessions** | Agent reads SKILL.md for task 1, skips re-reading for task 2 ("I already know the rules"), works from partial/stale memory for hours | Session Discipline rule in SKILL.md + re-read trigger in all thin shells |
 | **Project-specific records** | Useless outside current context | Apply generalization rule before recording |
 
 ---
@@ -454,7 +466,7 @@ These are the most costly mistakes when using this architecture. Each has caused
 
 ## Version History
 
-Current: **v1.11**
+Current: **v1.12**
 
 | Version | Highlights |
 |---------|------------|
@@ -470,6 +482,7 @@ Current: **v1.11**
 | v1.9 | Official minimal template alignment, minimal starter template, boundary examples |
 | v1.10 | Behavior-change closure loops, UI/interaction/z-index triggers, AAR miss examples |
 | v1.11 | Task Closure Protocol, generalization rule for records, thin shell template DRY |
+| v1.12 | Session Discipline (re-read SKILL.md for every new task in same session); automated `smoke-test.sh` (48 checks) + `test-trigger.sh` inside `templates/skill/scripts/`; Phase 9 pressure-test added to migration workflow |
 
 ---
 
@@ -572,6 +585,14 @@ SKILL.md 使用两层系统，而非把所有文档一股脑塞给 Agent：
 
 `description` 字段不是被动描述 —— 它决定 Agent 在运行时是否激活这个 Skill。
 
+### 会话纪律（Session Discipline）
+
+同一会话中的每个新任务——哪怕是第二个、第三个任务——都必须重新读 SKILL.md、重新匹配常见任务路由表、重新读该路由要求的所有文件。
+
+> "我刚才已经读过了"不是跳过的理由。上下文会被静默压缩；新任务可能匹配不同的路由；部分记忆比没有记忆更危险。重读只需几秒，跳过则可能浪费数小时的错误方向工作。
+
+该规则在三个层面强制执行：SKILL.md 本身、每个工作流的硬性前置步骤、以及所有薄壳中嵌入的重读触发器（上下文压缩后的最后防线）。
+
 ### Task Closure Protocol
 
 每个非平凡任务在完成前必须执行 30 秒复盘：
@@ -668,6 +689,7 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 [`templates/`](templates/) 是脚手架内容的唯一权威来源：
 
 - `templates/skill/` → 复制为 `skills/<name>/`（SKILL.md、规则 stub、工作流正文、空的 gotchas 种子）
+- `templates/skill/scripts/` → `smoke-test.sh`（48 项自动化核查）+ `test-trigger.sh`（description 触发率测试）—— 脚手架步骤自动复制到 `skills/<name>/scripts/`
 - `templates/shells/` → 所有 harness 的薄壳（AGENTS、CLAUDE、CODEX、GEMINI、`.codex/`、`.cursor/`）
 - `templates/hooks/` → 可选的 `SessionStart` hook，在 `/clear` 和 `/compact` 时重新注入 SKILL.md
 - `templates/protocol-blocks/` → Task Closure Protocol 强化块（Rationalizations 表、Red Flags、Iron Law 标题）
@@ -684,9 +706,9 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 |------|------|
 | 规则总量 < 150 行，无重复，无反复踩坑 | **最小单文件 SKILL.md** —— 用起步模板 |
 | 规则 > 150 行但无重复 | **快速脚手架** —— 运行脚本，填 TODO |
-| 规则 > 150 行且跨文件重复 | **完整 8 阶段迁移** |
+| 规则 > 150 行且跨文件重复 | **完整 9 阶段迁移** |
 
-### 完整迁移（8 阶段）
+### 完整迁移（9 阶段）
 
 | 阶段 | 做什么 |
 |------|--------|
@@ -697,7 +719,8 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 | **5. 提取工作流** | 创建专用工作流文件 + 必需的元工作流 |
 | **6. 提取引用** | 架构概述、坑点、索引移入 `references/` |
 | **7. 创建入口** | Cursor 注册入口 + 所有工具的薄壳（含内联路由表） |
-| **8. 验证** | 结构检查 + 激活检查 |
+| **8. 验证** | 运行自动化 `smoke-test.sh`（48 项核查）—— 结构、路由、占位符、激活、description 质量 |
+| **9. 压力测试** | 向子 agent 施加时间/沉没成本/权威压力，将逐字合理化借口折叠入 Rationalizations 表 |
 
 支持增量迁移 —— 分轮次迁移，不阻塞日常工作。
 
@@ -726,12 +749,13 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 | 4 | **薄壳含内联路由表** | 入口文件嵌入路由表，对抗上下文压缩 |
 | 5 | **Description = 触发条件** | 写明确的触发短语，不写被动摘要 |
 | 6 | **两层路由** | Always Read（2-3 个文件）+ Common Tasks（按任务路由） |
-| 7 | **Task Closure Protocol** | AAR 是任务完成的门槛，不是可选附加 |
-| 8 | **录入标准** | 可重复 + 代价高 + 代码不可见，至少 2/3 才录入 |
-| 9 | **泛化规则** | 记录必须是可复用知识，不是项目叙事 |
-| 10 | **激活优于存储** | 陷阱必须出现在任务路径上，不能只埋在 references/ |
-| 11 | **自维护** | 行数超标触发评估，话题可分离才拆分 |
-| 12 | **从小开始，按需扩展** | 先用最小模板，规则膨胀时再升级 |
+| 7 | **会话纪律** | 同一会话的每个新任务都必须重读 SKILL.md 并重匹配路由；"我刚才读过了"不成立 |
+| 8 | **Task Closure Protocol** | AAR 是任务完成的门槛，不是可选附加 |
+| 9 | **录入标准** | 可重复 + 代价高 + 代码不可见，至少 2/3 才录入 |
+| 10 | **泛化规则** | 记录必须是可复用知识，不是项目叙事 |
+| 11 | **激活优于存储** | 陷阱必须出现在任务路径上，不能只埋在 references/ |
+| 12 | **自维护** | 行数超标触发评估，话题可分离才拆分 |
+| 13 | **从小开始，按需扩展** | 先用最小模板，规则膨胀时再升级 |
 
 ---
 
@@ -740,7 +764,7 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 | 文件 | 内容 |
 |------|------|
 | [SKILL.md](SKILL.md) | Skill 入口：使用时机、目标结构、核心原则、常见陷阱 |
-| [WORKFLOW.md](WORKFLOW.md) | 迁移指南：决策树、快速脚手架、完整 8 阶段流程、增量迁移 |
+| [WORKFLOW.md](WORKFLOW.md) | 迁移指南：决策树、快速脚手架、完整 9 阶段流程、增量迁移 |
 | [REFERENCE.md](REFERENCE.md) | 模板、薄壳模式、description 指南、反模式、故障排查、CI 验证 |
 | [TEMPLATES.md](TEMPLATES.md) | 起步模板 + 元工作流模板（update-rules、fix-bug、maintain-docs） |
 | [EXAMPLES.md](EXAMPLES.md) | 16 个前后对比案例：迁移、进化、激活、边界场景、AAR、多 Skill |
@@ -757,13 +781,14 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 | **Description 太模糊** | Skill 存在但 Agent 永远不激活 | 写 >= 20 词，含 >= 2 个引用触发短语 |
 | **存储但未激活** | 坑点在 references/ 但不在任何工作流中 | 同时在工作流检查清单或路由中呈现 |
 | **跳过 Task Closure** | 教训未捕获，同样错误反复 | 把 AAR 作为完成门槛 |
+| **多任务会话路由跳过** | Agent 为第一个任务读 SKILL.md，第二个任务跳过（"我已经知道规则了"），用残缺记忆工作数小时 | SKILL.md 中的会话纪律规则 + 所有薄壳中的重读触发器 |
 | **记录太项目化** | 脱离当前上下文就无用 | 录入前应用泛化规则 |
 
 ---
 
 ## 版本历史
 
-当前版本：**v1.11**
+当前版本：**v1.12**
 
 | 版本 | 要点 |
 |------|------|
@@ -779,6 +804,7 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 | v1.9 | 官方最小模板对齐、最小起步模板、边界示例 |
 | v1.10 | 行为变更闭环、UI/交互/z-index 触发器、AAR 遗漏示例 |
 | v1.11 | Task Closure Protocol、记录泛化规则、薄壳模板 DRY |
+| v1.12 | 会话纪律（同一会话每个新任务必须重读 SKILL.md）；自动化 `smoke-test.sh`（48 项）+ `test-trigger.sh` 放入 `templates/skill/scripts/`；迁移工作流新增第 9 阶段压力测试 |
 
 ---
 

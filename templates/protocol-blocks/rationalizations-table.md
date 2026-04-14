@@ -12,6 +12,8 @@ Drop this block into any project workflow that enforces Task Closure Protocol, A
 | "This is covered by the existing rules" | Then the scan returns "no" in 10 seconds. Faster to run it than argue about it |
 | "It's faster to just do these 3 subtasks inline than dispatch subagents" | True for 1 task, false for 3+. The main context pollution cost compounds across tasks — by task 3 you're debugging the context, not the code. See `workflows/subagent-driven.md` |
 | "The worker almost got it right, I'll patch the last 10% in the main context" | Inline patching re-pollutes exactly the context subagent dispatch was meant to protect. Re-dispatch with a tighter contract |
+| "I already read SKILL.md for the previous task" | The new task may match a different route. Context compresses silently. Re-read costs seconds; skipping costs hours of wrong-direction work |
+| "User said 'record this' — I'll also archive the full session as YYYY-MM-DD-session-notes.md in `references/`" | "Record" means extract a **generalized, reusable lesson** into `rules/` or `references/<topic>.md`. Dated session narratives belong in `git log` / `CHANGELOG`, never in `references/`. `references/` rejects date-named narrative files — they violate the generalization rule (project-specific story, not reusable knowledge) and the activation rule (no routing path will ever read them) |
 
 <!-- FILL: add project-specific rows captured from Phase 9 pressure tests. Every row must be a verbatim rationalization the agent produced, not a hypothetical. -->
 

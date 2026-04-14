@@ -1,6 +1,5 @@
 ---
 name: skill-based-architecture
-version: "1.11"
 description: >
   This skill should be used when the user asks to "organize the project rules",
   "clean up scattered documentation", "refactor project rules",

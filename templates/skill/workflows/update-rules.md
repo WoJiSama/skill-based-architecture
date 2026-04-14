@@ -42,6 +42,7 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 | "I already know this lesson, don't need to record" | Recording is for future agents, not past you. Current knowledge is not durable |
 | "This is covered by the existing rules" | Then the scan returns "no" in 10 seconds. Faster to run it than argue about it |
 | "I already read SKILL.md for the previous task" | The new task may match a different route. Context compresses silently. Re-read costs seconds; skipping costs hours of wrong-direction work |
+| "User said 'record this' — I'll also archive the full session as YYYY-MM-DD-session-notes.md in `references/`" | "Record" means extract a **generalized, reusable lesson** into `rules/` or `references/<topic>.md`. Dated session narratives belong in `git log` / `CHANGELOG`, never in `references/`. `references/` rejects date-named narrative files — they violate the generalization rule (project-specific story, not reusable knowledge) and the activation rule (no routing path will ever read them) |
 
 ### Red Flags — STOP if you catch yourself thinking any of these
 

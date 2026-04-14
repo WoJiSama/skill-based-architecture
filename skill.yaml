@@ -1,5 +1,4 @@
 name: skill-based-architecture
-version: "1.11"
 author: shiqi
 compatibility:
   - cursor
@@ -32,7 +31,7 @@ triggers:
 
 files:
   - SKILL.md       # Skill entry: when to use, target structure, core principles
-  - WORKFLOW.md    # Migration procedure: 8 phases + quick start scaffold
+  - WORKFLOW.md    # Migration procedure: 9 phases + quick start scaffold
   - REFERENCE.md   # Layout, templates, activation verification, anti-patterns
   - TEMPLATES.md   # Minimal starter + full templates for update-rules, fix-bug, maintain-docs
   - EXAMPLES.md    # 16 before/after scenarios
