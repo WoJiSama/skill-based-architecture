@@ -51,6 +51,22 @@ Skill-Based Architecture provides a **structural pattern** for organizing AI age
 
 ---
 
+## Where This Fits — Prompt / Context / Harness
+
+Agent reliability lives on three layers. This skill is **not** a silver bullet — it covers one-and-a-half of them, and being explicit about that prevents misuse.
+
+| Layer | Solves | What this skill provides |
+|---|---|---|
+| **Prompt** | How to phrase the task | Indirect — via `description` as trigger condition |
+| **Context** | How to deliver info to the model | **Primary focus** — routing, Always Read, thin shells, progressive disclosure |
+| **Harness** | How the surrounding system keeps execution stable | **Partial** — Session Discipline + Rationalizations Table + optional SessionStart hook = a minimal harness for *context re-injection across long sessions* |
+
+**When an agent feels unstable, the root cause is rarely the model.** Run the four-primitive audit: does the system have **state** tracking, node-level **validation**, **orchestration** with checkpoints, and **recovery** paths? Three "no"s = harness problem, not model problem. Prompt re-tuning cannot patch a missing harness.
+
+This skill does **not** cover tool-execution recovery, long-chain checkpoint/resume, or multi-agent orchestration — those are project-specific engineering that must live in each project's own `rules/` or `workflows/`, not in this meta-skill's templates. Full discussion and out-of-scope list in [references/layout.md § Positioning](references/layout.md#positioning-prompt--context--harness).
+
+---
+
 ## Target Structure
 
 ```
@@ -171,6 +187,18 @@ A costly pitfall recorded only in `references/` is **not fully captured** — fu
 - Add a completion check in the relevant `workflows/*.md`
 - Update `SKILL.md` Common Tasks routing to point at the reference
 - If the lesson is a stable constraint, promote it to `rules/`
+
+### Checkpoint-Based Migration Recovery
+
+A 9-phase migration can crash mid-flight — `/compact` fires, the shell exits during `sed`, a laptop reboots. Restarting from Phase 1 is tempting but **amplifies pollution**: a half-completed Phase 5 leaves `{{NAME}}` stubs that a Phase 3 rerun cannot see, and a subsequent Phase 8 passes on a broken tree.
+
+The recovery primitives (see [WORKFLOW.md § Resuming From a Failed Phase](WORKFLOW.md#resuming-from-a-failed-phase)):
+
+- **`.migration-state`** — single-line checkpoint file (`phase=N`), written after each phase passes its per-phase validator
+- **Per-phase validation** — `bash smoke-test.sh <name> --phase N` runs only the subset of checks relevant to phase N, so mid-flight validation is meaningful (not just the all-or-nothing final sweep)
+- **`templates/migration/resume.sh`** — one command that detects the current phase (via checkpoint file or artifact signatures), warns on placeholder residue, and prints the next action
+
+Together these close the "state / validation / recovery" gap called out in [references/layout.md § Positioning — Prompt / Context / Harness](references/layout.md#positioning-prompt--context--harness).
 
 ---
 
@@ -438,9 +466,11 @@ skills/
 |------|---------|-------|
 | [SKILL.md](SKILL.md) | Skill entry: when to use, target structure, core principles, common pitfalls | ~99 |
 | [WORKFLOW.md](WORKFLOW.md) | Migration guide: decision tree, quick-start scaffold, full 9-phase process, incremental migration | ~330 |
-| [REFERENCE.md](REFERENCE.md) | Templates, thin shell patterns, description guidelines, anti-patterns, troubleshooting, CI validation | ~580 |
-| [TEMPLATES.md](TEMPLATES.md) | Minimal starter template, update-rules.md, fix-bug.md, maintain-docs.md meta-workflow templates | ~372 |
-| [EXAMPLES.md](EXAMPLES.md) | 16 before/after scenarios: migration, evolution, activation, edge cases, AAR, multi-skill | ~752 |
+| [REFERENCE.md](REFERENCE.md) | Stub + index — redirects to [`references/`](references/) (layout, thin-shells, protocols, conventions) | ~20 |
+| [references/](references/) | Templates, thin shells, protocols, conventions — split across 4 topic files | ~690 |
+| [TEMPLATES-GUIDE.md](TEMPLATES-GUIDE.md) | Minimal starter template, update-rules.md, fix-bug.md, maintain-docs.md meta-workflow templates | ~372 |
+| [EXAMPLES.md](EXAMPLES.md) | Stub + index — redirects to [`examples/`](examples/) (migration, project-types, self-evolution) | ~20 |
+| [examples/](examples/) | 16 before/after scenarios, split by topic across 3 files | ~720 |
 | [skill.yaml](skill.yaml) | Machine-readable metadata for tool discovery | ~45 |
 
 ---

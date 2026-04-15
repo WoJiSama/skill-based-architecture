@@ -32,9 +32,11 @@ triggers:
 files:
   - SKILL.md       # Skill entry: when to use, target structure, core principles
   - WORKFLOW.md    # Migration procedure: 9 phases + quick start scaffold
-  - REFERENCE.md   # Layout, templates, activation verification, anti-patterns
-  - TEMPLATES.md   # Minimal starter + full templates for update-rules, fix-bug, maintain-docs
-  - EXAMPLES.md    # 16 before/after scenarios
+  - REFERENCE.md   # Stub + index, redirects to references/
+  - references/    # Layout, thin-shells, protocols, conventions split by topic
+  - TEMPLATES-GUIDE.md   # Minimal starter + full templates for update-rules, fix-bug, maintain-docs
+  - EXAMPLES.md    # Stub + index, redirects to examples/
+  - examples/      # 16 before/after scenarios split by topic (migration / project-types / self-evolution)
   - README.md      # Bilingual overview for humans (EN + ZH)
 
 compatible_tools:

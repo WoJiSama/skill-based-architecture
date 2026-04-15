@@ -1,21 +1,85 @@
 #!/usr/bin/env bash
 # smoke-test.sh — Fully automated post-migration verification
-# Usage: bash smoke-test.sh <skill-name>
+# Usage: bash smoke-test.sh <skill-name> [--phase N]
 # Example: bash smoke-test.sh my-project
+#          bash smoke-test.sh my-project --phase 4   # run only Phase 4 subset
 #
 # Zero manual input required. Parses SKILL.md Common Tasks as the source of truth.
 # Supports both English and Chinese (中文) section names.
 # Exit code: 0 = all pass, 1 = failures found.
+#
+# --phase N runs the subset of checks relevant to WORKFLOW.md Phase N. See
+# `WORKFLOW.md § Resuming From a Failed Phase` for the phase→section mapping.
+# Without --phase, all sections run (equivalent to Phase 8 full verify).
 
 set -euo pipefail
 
 # ── Args ──────────────────────────────────────────────────────────────
 NAME="${1:-}"
+PHASE=""
+shift || true
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --phase) PHASE="$2"; shift 2 ;;
+    --phase=*) PHASE="${1#--phase=}"; shift ;;
+    *) echo "Unknown arg: $1"; exit 1 ;;
+  esac
+done
+
 if [[ -z "$NAME" ]]; then
-  echo "Usage: bash smoke-test.sh <skill-name>"
+  echo "Usage: bash smoke-test.sh <skill-name> [--phase N]"
   echo "Example: bash smoke-test.sh my-project"
   exit 1
 fi
+
+# Phase→section map. Each phase runs a subset of sections 1–7 below.
+# Phase 3: SKILL.md written         → sections 4, 6
+# Phase 4: rules extracted          → sections 1a, 2, 3
+# Phase 5: workflows extracted      → sections 1a, 2, 3
+# Phase 6: references extracted     → sections 1a, 3
+# Phase 7: thin shells + routing    → sections 1b, 1c, 5, 6, 7
+# Phase 8: full verify              → all
+# (no flag)                         → all
+phase_runs() {
+  # $1 = section number (1..7). Returns 0 (run) or 1 (skip).
+  [[ -z "$PHASE" ]] && return 0
+  case "$PHASE" in
+    3) [[ "$1" == "1" || "$1" == "2" || "$1" == "4" || "$1" == "6" ]] ;;
+    4|5|6) [[ "$1" == "1" || "$1" == "2" || "$1" == "3" ]] ;;
+    7) [[ "$1" == "1" || "$1" == "3" || "$1" == "5" || "$1" == "6" || "$1" == "7" ]] ;;
+    8|9) return 0 ;;
+    *) return 0 ;;
+  esac
+}
+
+sub_runs() {
+  # $1 = sub-id (e.g. "1a-skill", "1a-rules", "1a-workflows", "1a-gotchas", "1b", "1c").
+  # Sub-gates let a phase run only the part of a section that applies.
+  # Returns 0 (run) or 1 (skip).
+  [[ -z "$PHASE" ]] && return 0
+  case "$PHASE" in
+    3) [[ "$1" == "1a-skill" ]] ;;
+    4) [[ "$1" == "1a-skill" || "$1" == "1a-rules" ]] ;;
+    5) [[ "$1" == "1a-skill" || "$1" == "1a-rules" || "$1" == "1a-workflows" ]] ;;
+    6) [[ "$1" == "1a-skill" || "$1" == "1a-rules" || "$1" == "1a-workflows" || "$1" == "1a-gotchas" ]] ;;
+    7) [[ "$1" == "1b" || "$1" == "1c" ]] ;;
+    8|9) return 0 ;;
+    *) return 0 ;;
+  esac
+}
+
+section() {
+  # Print the banner and return 0 if this section should run; else print a skip notice and return 1.
+  if phase_runs "$1"; then
+    echo ""
+    echo "═══ $1. $2 ═══"
+    return 0
+  else
+    echo ""
+    echo "─── (skipped section $1: $2 — not relevant for --phase $PHASE) ───"
+    return 1
+  fi
+}
 
 SKILL_DIR="skills/$NAME"
 SKILL_MD="$SKILL_DIR/SKILL.md"
@@ -30,81 +94,104 @@ fail() { ((FAIL++)); echo "  ❌ $1"; }
 warn() { ((WARN++)); echo "  ⚠️  $1"; }
 
 # ── 1. Structural Checks ─────────────────────────────────────────────
-echo ""
-echo "═══ 1. Structural Checks ═══"
-
-# 1a. Core files exist (gotchas/pitfalls is flexible)
-for f in "$SKILL_MD" \
-         "$SKILL_DIR/rules/project-rules.md" \
-         "$SKILL_DIR/rules/coding-standards.md" \
-         "$SKILL_DIR/workflows/update-rules.md" \
-         "$SKILL_DIR/workflows/fix-bug.md" \
-         "$SKILL_DIR/workflows/maintain-docs.md"; do
-  if [[ -f "$f" ]]; then
-    pass "$f exists"
-  else
-    fail "$f missing"
-  fi
-done
-
-# gotchas: check for gotchas.md OR any pitfalls file in references/
-if [[ -f "$SKILL_DIR/references/gotchas.md" ]]; then
-  pass "$SKILL_DIR/references/gotchas.md exists"
-else
-  GOTCHA_FILE=$(find "$SKILL_DIR/references" -maxdepth 1 -type f \( -name '*pitfall*' -o -name '*gotcha*' \) 2>/dev/null | head -1)
-  if [[ -n "$GOTCHA_FILE" ]]; then
-    pass "gotchas/pitfalls reference found: $(basename "$GOTCHA_FILE")"
-  else
-    fail "$SKILL_DIR/references/gotchas.md (or equivalent pitfalls file) missing"
-  fi
-fi
-
-# 1b. Cursor registration entry
-if [[ -f "$CURSOR_ENTRY" ]]; then
-  pass "Cursor entry $CURSOR_ENTRY exists"
-else
-  fail "Cursor entry $CURSOR_ENTRY missing (Cursor will never discover this skill)"
-fi
-
-# 1c. Thin shells exist and contain routing tables
-# Support both English (| Task) and Chinese (| 任务) table headers
 has_routing_table() {
   local file="$1"
   grep -q '^|' "$file" 2>/dev/null
 }
 
-for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
-  if [[ ! -f "$shell" ]]; then
-    fail "$shell missing"
-  elif has_routing_table "$shell"; then
-    pass "$shell exists with routing table"
-  else
-    fail "$shell exists but has no routing table (no '|' table rows found)"
-  fi
-done
+if section 1 "Structural Checks"; then :
 
-# .codex/instructions.md
-if [[ -f ".codex/instructions.md" ]]; then
-  if has_routing_table ".codex/instructions.md"; then
-    pass ".codex/instructions.md exists with routing table"
+# 1a-skill. SKILL.md exists (Phase 3+)
+if sub_runs "1a-skill"; then
+  if [[ -f "$SKILL_MD" ]]; then
+    pass "$SKILL_MD exists"
   else
-    fail ".codex/instructions.md exists but no routing table"
+    fail "$SKILL_MD missing"
   fi
-else
-  fail ".codex/instructions.md missing"
 fi
 
-# .cursor/rules/*.mdc
-MDC_COUNT=$(find .cursor/rules -name '*.mdc' 2>/dev/null | wc -l | tr -d ' ')
-if [[ "$MDC_COUNT" -gt 0 ]]; then
-  pass ".cursor/rules/ has $MDC_COUNT .mdc file(s)"
-else
-  fail ".cursor/rules/ has no .mdc files"
+# 1a-rules. rules/*.md (Phase 4+)
+if sub_runs "1a-rules"; then
+  for f in "$SKILL_DIR/rules/project-rules.md" \
+           "$SKILL_DIR/rules/coding-standards.md"; do
+    if [[ -f "$f" ]]; then
+      pass "$f exists"
+    else
+      fail "$f missing"
+    fi
+  done
 fi
+
+# 1a-workflows. workflows/*.md (Phase 5+)
+if sub_runs "1a-workflows"; then
+  for f in "$SKILL_DIR/workflows/update-rules.md" \
+           "$SKILL_DIR/workflows/fix-bug.md" \
+           "$SKILL_DIR/workflows/maintain-docs.md"; do
+    if [[ -f "$f" ]]; then
+      pass "$f exists"
+    else
+      fail "$f missing"
+    fi
+  done
+fi
+
+# 1a-gotchas. references/gotchas.md or equivalent (Phase 6+)
+if sub_runs "1a-gotchas"; then
+  if [[ -f "$SKILL_DIR/references/gotchas.md" ]]; then
+    pass "$SKILL_DIR/references/gotchas.md exists"
+  else
+    GOTCHA_FILE=$(find "$SKILL_DIR/references" -maxdepth 1 -type f \( -name '*pitfall*' -o -name '*gotcha*' \) 2>/dev/null | head -1)
+    if [[ -n "$GOTCHA_FILE" ]]; then
+      pass "gotchas/pitfalls reference found: $(basename "$GOTCHA_FILE")"
+    else
+      fail "$SKILL_DIR/references/gotchas.md (or equivalent pitfalls file) missing"
+    fi
+  fi
+fi
+
+# 1b. Cursor registration entry (Phase 7+)
+if sub_runs "1b"; then
+  if [[ -f "$CURSOR_ENTRY" ]]; then
+    pass "Cursor entry $CURSOR_ENTRY exists"
+  else
+    fail "Cursor entry $CURSOR_ENTRY missing (Cursor will never discover this skill)"
+  fi
+fi
+
+# 1c. Thin shells + .codex + .cursor/rules (Phase 7+)
+if sub_runs "1c"; then
+  for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
+    if [[ ! -f "$shell" ]]; then
+      fail "$shell missing"
+    elif has_routing_table "$shell"; then
+      pass "$shell exists with routing table"
+    else
+      fail "$shell exists but has no routing table (no '|' table rows found)"
+    fi
+  done
+
+  if [[ -f ".codex/instructions.md" ]]; then
+    if has_routing_table ".codex/instructions.md"; then
+      pass ".codex/instructions.md exists with routing table"
+    else
+      fail ".codex/instructions.md exists but no routing table"
+    fi
+  else
+    fail ".codex/instructions.md missing"
+  fi
+
+  MDC_COUNT=$(find .cursor/rules -name '*.mdc' 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$MDC_COUNT" -gt 0 ]]; then
+    pass ".cursor/rules/ has $MDC_COUNT .mdc file(s)"
+  else
+    fail ".cursor/rules/ has no .mdc files"
+  fi
+fi
+
+fi  # end section 1
 
 # ── 2. Line Count Budgets ─────────────────────────────────────────────
-echo ""
-echo "═══ 2. Line Count Budgets ═══"
+if section 2 "Line Count Budgets"; then :
 
 check_lines() {
   local file="$1" max="$2" label="$3"
@@ -124,9 +211,10 @@ for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
 done
 check_lines "$CURSOR_ENTRY" 60 "Cursor entry"
 
+fi  # end section 2
+
 # ── 3. Placeholder Residue ────────────────────────────────────────────
-echo ""
-echo "═══ 3. Placeholder Residue ═══"
+if section 3 "Placeholder Residue"; then :
 
 # 3a. {{...}} placeholders should all be replaced
 # Exclude JSX/code patterns like styles={{ }}, className={{ }}, etc.
@@ -155,9 +243,10 @@ else
   echo "$FILL_HITS" | head -20 | sed 's/^/       /'
 fi
 
+fi  # end section 3
+
 # ── 4. SKILL.md Content Quality ───────────────────────────────────────
-echo ""
-echo "═══ 4. SKILL.md Content Quality ═══"
+if section 4 "SKILL.md Content Quality"; then :
 
 if [[ -f "$SKILL_MD" ]]; then
   # 4a. Has frontmatter with name and description
@@ -212,9 +301,10 @@ if [[ -f "$SKILL_MD" ]]; then
   fi
 fi
 
+fi  # end section 4
+
 # ── 5. Routing Completeness ──────────────────────────────────────────
-echo ""
-echo "═══ 5. Routing Completeness (auto-parsed from Common Tasks) ═══"
+if section 5 "Routing Completeness (auto-parsed from Common Tasks)"; then :
 
 if [[ -f "$SKILL_MD" ]]; then
   # Extract file references from Common Tasks / 常见任务 section
@@ -292,9 +382,10 @@ if [[ -f "$SKILL_MD" ]]; then
   fi
 fi
 
+fi  # end section 5
+
 # ── 6. Description Consistency ────────────────────────────────────────
-echo ""
-echo "═══ 6. Description Consistency ═══"
+if section 6 "Description Consistency"; then :
 
 if [[ -f "$SKILL_MD" ]] && [[ -f "$CURSOR_ENTRY" ]]; then
   # Extract description from both files using awk for reliable YAML parsing
@@ -318,9 +409,10 @@ if [[ -f "$SKILL_MD" ]] && [[ -f "$CURSOR_ENTRY" ]]; then
   fi
 fi
 
+fi  # end section 6
+
 # ── 7. Shell Routing Table Consistency ────────────────────────────────
-echo ""
-echo "═══ 7. Shell Routing Consistency ═══"
+if section 7 "Shell Routing Consistency"; then :
 
 # Check that all shells reference the same set of tasks
 SHELL_FILES=(AGENTS.md CLAUDE.md CODEX.md GEMINI.md)
@@ -342,6 +434,8 @@ for shell in "${SHELL_FILES[@]}"; do
     warn "$shell routing table differs from $PREV_SHELL (may be intentional)"
   fi
 done
+
+fi  # end section 7
 
 # ── Summary ───────────────────────────────────────────────────────────
 echo ""

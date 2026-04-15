@@ -1,4 +1,11 @@
-# Meta-Workflow Templates
+# Meta-Workflow Templates (Guide)
+
+> **Heads up — read this before copying code blocks below:**
+> This file is a **guide** with annotated examples. The authoritative, byte-for-byte copyable files live in **[`templates/`](templates/)** (directory, lowercase). When the two drift, `templates/` wins.
+>
+> - Need a file to copy verbatim? → `templates/skill/…`, `templates/shells/…`, `templates/protocol-blocks/…`
+> - Need to understand *why* a template looks the way it does? → keep reading here.
+> - Not sure which to use? → always prefer `templates/` for copying, this doc for background.
 
 Project-level workflow templates for rule maintenance and documentation health. Copy and customize for each project.
 

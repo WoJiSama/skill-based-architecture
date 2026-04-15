@@ -25,12 +25,17 @@ templates/
 │   └── hooks-cursor.json     (Cursor config)
 ├── checklists/               → copyable verification checklists
 │   └── post-migration.md     (run after Phase 8 to verify everything)
+├── migration/                → meta-level migration helpers (not per-skill)
+│   ├── resume.sh             (detect where a crashed migration left off)
+│   └── README.md             (usage + relation to WORKFLOW.md § Resuming)
 └── protocol-blocks/          → drop-in Task Closure reinforcement
     ├── rationalizations-table.md
     ├── red-flags-stop.md
     ├── iron-law-header.md
     └── subagent-contract.md   (5-field worker task-prompt block)
 ```
+
+> `migration/` is the odd one out: it is **not** copied into the downstream project. It runs alongside the upstream repo and is invoked from the target project root via `bash "$UPSTREAM/templates/migration/resume.sh"`. See `migration/README.md`.
 
 ## Placeholders
 
@@ -54,6 +59,7 @@ Two kinds — each with a different "fill" mechanism:
 | `protocol-blocks/*` | ≤ 40 lines each | One idea per block |
 | `skill/SKILL.md` | ≤ 60 lines | Same ≤ 100 line rule as downstream SKILL.md minus the filled content |
 | `skill/references/gotchas.md` | ≤ 15 lines (seed) | MUST stay near-empty — content grows post-deployment |
+| `migration/*.sh` | ≤ 200 lines | Bridge scripts; past this, refactor into libraries |
 
 Anything over budget needs either splitting or rejection. See `ANTI-TEMPLATES.md`.
 
@@ -64,7 +70,7 @@ Before adding anything to this directory, answer:
 > "A Go backend microservice and a React animation site both pull this template. Would they both agree on this content?"
 
 - **Yes** → it's structural protocol; may go in `templates/`.
-- **No / probably not** → it's project-specific; move to `<!-- FILL: -->` comment or `EXAMPLES.md` instead.
+- **No / probably not** → it's project-specific; move to `<!-- FILL: -->` comment or `examples/` instead.
 
 No exceptions. If this test is hand-waved, `templates/` slides into opinionated defaults and downstream projects start looking identical.
 

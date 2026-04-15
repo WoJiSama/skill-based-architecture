@@ -16,11 +16,11 @@ Answer these questions to decide:
 
 | Answers | Path |
 |---------|------|
-| All No | **Minimal single SKILL.md** — use the [minimal starter template](TEMPLATES.md) |
+| All No | **Minimal single SKILL.md** — use the [minimal starter template](TEMPLATES-GUIDE.md) |
 | 1 Yes, others No | **Quick Start scaffold** below — run the script, fill TODOs |
 | 2+ Yes | **Full 9-phase migration** — follow Phase 1–9 below |
 
-If the project has only one small skill, no duplicated entry files, and no growing rule/reference sprawl yet, **do not force the full architecture immediately**. Start with a single well-written `SKILL.md` using the minimal starter template in [TEMPLATES.md](TEMPLATES.md), and upgrade only when one of the conditions above becomes true.
+If the project has only one small skill, no duplicated entry files, and no growing rule/reference sprawl yet, **do not force the full architecture immediately**. Start with a single well-written `SKILL.md` using the minimal starter template in [TEMPLATES-GUIDE.md](TEMPLATES-GUIDE.md), and upgrade only when one of the conditions above becomes true.
 
 **Step 1 — Scaffold from pre-built templates.** Don't regenerate file bodies inline — the upstream ships byte-for-byte files under [`templates/`](templates/). Copy them into the target project and run a single `sed` pass.
 
@@ -52,8 +52,12 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 # cp "$UPSTREAM/templates/hooks/session-start" .claude/
 # cp "$UPSTREAM/templates/hooks/hooks.json" .claude/
 
-echo "✅ Scaffold created at skills/$NAME/"
-echo "Next: fill every <!-- FILL: --> marker with real project content."
+# 6) Checkpoint: scaffold done — equivalent to completing Phases 3–7 in one pass
+echo "phase=7" > .migration-state
+
+echo "✅ Scaffold created at skills/$NAME/ (checkpointed: phase=7)"
+echo "Next: fill every <!-- FILL: --> marker with real project content, then run smoke-test.sh for Phase 8."
+echo "If this step crashes, see § Resuming From a Failed Phase — do NOT rerun from scratch."
 ```
 
 **Why copy instead of generate?** Inline heredoc generation lost sections under pressure (Auto-Triggers dropped, routing tables mangled, description field left as trigger-phrase-less boilerplate). The `templates/` tree is the single source of truth — see [`templates/README.md`](templates/README.md) for byte budgets, placeholder conventions, and the "would two real projects disagree?" admission test.
@@ -110,6 +114,8 @@ Classify every section into four buckets:
 3. **References** — explanatory context, not mandates
 4. **Docs** — prompts, reports, topical material
 
+**Checkpoint — end of Phase 1:** `echo "phase=1" > .migration-state`
+
 ## Phase 2: Design Structure
 
 Determine the skill directory path: `skills/<project-name>/`
@@ -124,7 +130,9 @@ Plan the file set based on project size:
 
 Don't create empty placeholder files. Each file should exist because it has meaningful content (at least 30 lines), not because a template says it should.
 
-See [REFERENCE.md § Common Rule File Sets by Project Type](REFERENCE.md#common-rule-file-sets-by-project-type) for detailed per-type file lists.
+See [references/conventions.md § Common Rule File Sets by Project Type](references/conventions.md#common-rule-file-sets-by-project-type) for detailed per-type file lists.
+
+**Checkpoint — end of Phase 2:** `echo "phase=2" > .migration-state`
 
 ## Phase 3: Write SKILL.md
 
@@ -138,9 +146,14 @@ The new `SKILL.md` should contain **only**:
 6. Rule priority (SKILL.md > rules/ > workflows/ > references/ > .cursor)
 7. Project boundaries (2–5 bullets)
 
-**Description field:** Write it as a trigger condition, not a passive summary. Include ≥ 2 quoted trigger phrases (e.g. `"add a new page"`, `"fix frontend bug"`) and concrete activation conditions. See [REFERENCE.md § Description as Trigger Condition](REFERENCE.md#description-as-trigger-condition) for examples.
+**Description field:** Write it as a trigger condition, not a passive summary. Include ≥ 2 quoted trigger phrases (e.g. `"add a new page"`, `"fix frontend bug"`) and concrete activation conditions. See [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition) for examples.
 
 **Target: ≤ 100 lines.** If longer, content belongs in sub-files.
+
+**Checkpoint — end of Phase 3:**
+```bash
+bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" --phase 3 && echo "phase=3" > .migration-state
+```
 
 ## Phase 4: Extract Rules
 
@@ -151,6 +164,11 @@ Move stable constraints into `skills/<name>/rules/`:
 - Domain rules: `frontend-rules.md`, `backend-rules.md`, etc.
 
 Each rule file should state what it governs, the constraints, and when to update.
+
+**Checkpoint — end of Phase 4:**
+```bash
+bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" --phase 4 && echo "phase=4" > .migration-state
+```
 
 ## Phase 5: Extract Workflows
 
@@ -168,8 +186,8 @@ Avoid one giant `workflow.md` — specialize by task type.
 
 **Required meta-workflows** (create for every project):
 
-- `update-rules.md` — rule sync + after-action review + learn-from-mistakes + deprecation (see [TEMPLATES.md § update-rules.md](TEMPLATES.md#update-rulesmd-enhanced-template))
-- `maintain-docs.md` — file health check, split, and merge procedures (see [TEMPLATES.md § maintain-docs.md](TEMPLATES.md#maintain-docsmd-template))
+- `update-rules.md` — rule sync + after-action review + learn-from-mistakes + deprecation (see [TEMPLATES-GUIDE.md § update-rules.md](TEMPLATES-GUIDE.md#update-rulesmd-enhanced-template))
+- `maintain-docs.md` — file health check, split, and merge procedures (see [TEMPLATES-GUIDE.md § maintain-docs.md](TEMPLATES-GUIDE.md#maintain-docsmd-template))
 
 **Task-closing hook** (apply to every project workflow, especially `fix-bug.md`, `add-*.md`, and `refactor-*.md`):
 
@@ -180,6 +198,11 @@ Avoid one giant `workflow.md` — specialize by task type.
 5. If shell routing changed, sync thin shells
 
 `update-rules.md` is not a side file to visit "if you remember" — it is the shared exit path for documenting new knowledge discovered during real work.
+
+**Checkpoint — end of Phase 5:**
+```bash
+bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" --phase 5 && echo "phase=5" > .migration-state
+```
 
 ## Phase 6: Extract References
 
@@ -194,6 +217,11 @@ Move explanatory content into `skills/<name>/references/`:
 The gotchas file is often the **most valuable reference** in a skill — it captures expensive lessons that are not obvious from code alone and prevents repeated debugging. Keep it actively maintained via the After-Action Review.
 
 This replaces long explanatory sections previously in `.cursor/rules/*.mdc` or `README.md`.
+
+**Checkpoint — end of Phase 6:**
+```bash
+bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" --phase 6 && echo "phase=6" > .migration-state
+```
 
 ## Phase 7: Create Hard Entry Points
 
@@ -238,6 +266,11 @@ This table survives context truncation because it is embedded directly in the en
 - No standalone source of truth in `.cursor/`, `.claude/`, or `.codex/`
 - Adding a new skill = dropping a folder into `skills/` + creating `.cursor/skills/<name>/SKILL.md` + updating thin shells
 
+**Checkpoint — end of Phase 7:**
+```bash
+bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" --phase 7 && echo "phase=7" > .migration-state
+```
+
 ## Phase 8: Verify
 
 A standalone copyable checklist is available at [`templates/checklists/post-migration.md`](templates/checklists/post-migration.md). The sections below are the inline reference.
@@ -255,12 +288,17 @@ A standalone copyable checklist is available at [`templates/checklists/post-migr
 - [ ] All file references and links are valid
 - [ ] No content orphaned or duplicated across locations
 
-### Activation Checks (see [REFERENCE.md § Skill Activation Verification](REFERENCE.md#skill-activation-verification))
+### Activation Checks (see [references/protocols.md § Skill Activation Verification](references/protocols.md#skill-activation-verification))
 
 - [ ] `description` field is ≥ 20 words with at least 2 quoted trigger phrases
 - [ ] `description` in `.cursor/skills/<name>/SKILL.md` matches the formal skill's description
 - [ ] Common Tasks covers the project's 5–10 most common task types
 - [ ] Known Gotchas section exists (even if empty at initial migration — it will grow via AAR)
+
+**Checkpoint — end of Phase 8:**
+```bash
+bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" && echo "phase=8" > .migration-state
+```
 
 ## Phase 9: Pressure-Test the Skill
 
@@ -304,6 +342,102 @@ Take its answer literally and fold it into the workflow text. The subagent's own
 - Final re-run: under maximum pressure, the subagent runs the Task Closure Protocol and cites the relevant rule/workflow
 
 **Recommended:** install `templates/hooks/session-start` so SKILL.md and Task Closure Protocol are re-injected on `/clear` and `/compact`. Context compression is itself a pressure source — without the hook, a single `/compact` can silently disable all routing and protocol enforcement.
+
+**Checkpoint — end of Phase 9:** `echo "phase=9" > .migration-state` (migration complete)
+
+## Resuming From a Failed Phase
+
+Migration crashes happen: the shell exits mid-`sed`, a `/compact` fires, the laptop reboots. Re-running from Phase 1 is tempting — **don't**. Half-baked artifacts from later phases (a partially-templated workflow file, a CODEX.md with `{{NAME}}` still in it) will produce false positives in earlier phases' checks, letting you "pass" a phase that is actually broken.
+
+Instead, treat migration as a checkpoint-able state machine. One line in `.migration-state`, one re-entry detector, one per-phase validator.
+
+### `.migration-state` — minimal checkpoint
+
+The Quick Start script writes `.migration-state` (single line, `phase=<N>`) after each phase completes. A crashed run leaves the file pointing at the last known-good phase. Re-entry reads it, skips completed phases, resumes from `phase+1`.
+
+If the file is missing, the snippet below auto-detects the current phase from artifact signatures.
+
+### Phase artifact signatures
+
+Each phase has a deterministic artifact. Passing the signature means the phase is done; failing means it must be re-run (and anything from later phases should be considered suspect).
+
+| Phase | Artifact signature (bash-testable) |
+|---|---|
+| 3 | `test -f skills/$NAME/SKILL.md && [ $(wc -l < skills/$NAME/SKILL.md) -le 100 ]` |
+| 4 | `test -f skills/$NAME/rules/project-rules.md && test -f skills/$NAME/rules/coding-standards.md` |
+| 5 | `test -f skills/$NAME/workflows/update-rules.md && test -f skills/$NAME/workflows/fix-bug.md` |
+| 6 | `test -f skills/$NAME/references/gotchas.md` |
+| 7 | `test -f .cursor/skills/$NAME/SKILL.md && test -f AGENTS.md && test -f CLAUDE.md && test -f CODEX.md && test -f GEMINI.md` |
+| 7 (no placeholder residue) | `! grep -rn '{{NAME}}\|{{SUMMARY}}' skills/$NAME AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor` |
+| 8 | `bash skills/$NAME/scripts/smoke-test.sh $NAME` exits 0 |
+| 9 | At least one row in `skills/$NAME/workflows/update-rules.md` § Rationalizations to Reject came from a real pressure test (manual attestation) |
+
+### One-command phase advance: `templates/migration/migrate.sh`
+
+Instead of manually copy-pasting the checkpoint bash at the end of each phase, use the wrapper. It runs the smoke-test for the phase you claim to have finished and **only** writes the checkpoint if validation passes:
+
+```bash
+# Machine-validated phases (3–8) — validates then checkpoints; refuses on failure
+NAME=my-project bash "$UPSTREAM/templates/migration/migrate.sh" 4
+
+# Human-only phases (1, 2, 9) — prompts "Have you completed Phase N? [y/N]"
+NAME=my-project bash "$UPSTREAM/templates/migration/migrate.sh" 1
+
+# Status (delegates to resume.sh)
+NAME=my-project bash "$UPSTREAM/templates/migration/migrate.sh" status
+```
+
+### Resuming after a crash: `templates/migration/resume.sh`
+
+When the migration shell exits unexpectedly, run `resume.sh` to find out where you are:
+
+```bash
+NAME=my-project bash "$UPSTREAM/templates/migration/resume.sh"
+
+# Also re-validate the last checkpoint before trusting it
+NAME=my-project bash "$UPSTREAM/templates/migration/resume.sh" --advance
+```
+
+The script reads `.migration-state` (or auto-detects from artifact signatures), warns on placeholder residue (`{{NAME}}`/`{{SUMMARY}}` from a half-completed sed pass), and prints the next WORKFLOW phase to run. See [`templates/migration/README.md`](templates/migration/README.md).
+
+### Detect-and-resume snippet (manual)
+
+If you want to embed detection into your own shell without invoking the script, the equivalent logic is:
+
+```bash
+NAME="${NAME:?set NAME first}"
+if [ -f .migration-state ]; then
+  START=$(sed -n 's/^phase=//p' .migration-state)
+  echo "Resuming: last completed phase=$START"
+else
+  # auto-detect highest completed phase
+  START=0
+  test -f "skills/$NAME/SKILL.md" && [ $(wc -l < "skills/$NAME/SKILL.md") -le 100 ] && START=3
+  test -f "skills/$NAME/rules/coding-standards.md" && START=4
+  test -f "skills/$NAME/workflows/fix-bug.md" && START=5
+  test -f "skills/$NAME/references/gotchas.md" && START=6
+  test -f ".cursor/skills/$NAME/SKILL.md" && test -f GEMINI.md && START=7
+  bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" >/dev/null 2>&1 && START=8
+  echo "Auto-detected last completed phase=$START"
+fi
+echo "Next phase to run: $((START + 1))"
+```
+
+### Per-phase validation — `smoke-test.sh --phase N`
+
+The full smoke test runs 40+ checks and is only meaningful at Phase 8. Use the `--phase N` flag to run the subset relevant to a single phase:
+
+```bash
+bash skills/$NAME/scripts/smoke-test.sh $NAME --phase 4   # rules only
+bash skills/$NAME/scripts/smoke-test.sh $NAME --phase 7   # shells + routing tables
+bash skills/$NAME/scripts/smoke-test.sh $NAME             # all (Phase 8)
+```
+
+Run `--phase N` at the tail of phase N before writing `phase=N` to `.migration-state`. A phase that fails validation must not be checkpointed.
+
+### Anti-pattern: "Just rerun from the start"
+
+A half-completed Phase 5 can leave `workflows/*.md` files with `{{NAME}}` still inside. A Phase 3 rerun will happily overwrite `SKILL.md` but leave the workflow stubs untouched — and a subsequent Phase 8 will pass the "SKILL.md ≤ 100 lines" check while the project is actually broken. Always detect-and-resume, or explicitly `rm -rf skills/$NAME .cursor/skills/$NAME .migration-state` before restarting. No in-between.
 
 ## Ongoing Maintenance
 
