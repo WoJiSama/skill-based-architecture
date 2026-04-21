@@ -1,8 +1,10 @@
 ---
 name: {{NAME}}
-version: "1.0"
 description: >
-  <!-- FILL: MUST MATCH the description in skills/{{NAME}}/SKILL.md exactly. -->
+  <!-- FILL: Rewrite as a trigger condition, not a passive summary. -->
+  <!-- FILL: Include ≥ 2 quoted trigger phrases the user would actually say. -->
+  <!-- FILL: Include concrete activation conditions (not just category labels). -->
+  <!-- FILL: After filling, copy the whole description block into .cursor/skills/{{NAME}}/SKILL.md — smoke-test enforces byte-equality. -->
   This skill should be used when the user asks to "<trigger phrase 1>",
   "<trigger phrase 2>", or "<trigger phrase 3>".
   Activate when <condition 1> or <condition 2>.

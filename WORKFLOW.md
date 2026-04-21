@@ -138,7 +138,7 @@ See [references/conventions.md § Common Rule File Sets by Project Type](referen
 
 The new `SKILL.md` should contain **only**:
 
-1. Frontmatter (`name`, `version`, `description` with trigger phrases)
+1. Frontmatter (`name`, `description` with trigger phrases)
 2. One-line project summary
 3. Always-read list (2–3 core rule files that apply to every task)
 4. Common Tasks with full file routing (each task lists exactly which rules, workflows, and references to read — not just a workflow link)
@@ -147,6 +147,8 @@ The new `SKILL.md` should contain **only**:
 7. Project boundaries (2–5 bullets)
 
 **Description field:** Write it as a trigger condition, not a passive summary. Include ≥ 2 quoted trigger phrases (e.g. `"add a new page"`, `"fix frontend bug"`) and concrete activation conditions. See [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition) for examples.
+
+**Core Principles format:** Each principle should end with a `✓ Check:` sentence — a concrete question the Agent can ask itself after execution to verify it followed the principle. Pure declarative principles ("do X") get remembered before acting but have no post-execution hook. Adding a verification sentence turns each principle into a self-test the Agent can run during AAR. See the `templates/skill/SKILL.md` Core Principles section for the format.
 
 **Target: ≤ 100 lines.** If longer, content belongs in sub-files.
 

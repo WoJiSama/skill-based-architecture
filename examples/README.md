@@ -20,6 +20,7 @@ Skim the headings first; read the full body only when the scenario matches yours
 | [migration.md](migration.md) | Patterns for converting existing docs into `skills/<name>/` — oversized SKILL.md, scattered rules, thin-shell rewrites, split/merge criteria, when **not** to split | Starting a migration, or facing a large/fragmented rule set |
 | [project-types.md](project-types.md) | Canonical shapes for Java/Spring Boot, Python CLI / data, multi-skill fullstack, and the "small enough that a single SKILL.md is right" case | Starting fresh, picking a skeleton, or deciding whether the full architecture is overkill |
 | [self-evolution.md](self-evolution.md) | After-Action Review, Learn-from-Mistakes, recording thresholds, activation over storage, description trigger failures, and Task Closure Protocol under pressure | Maintaining a skill over time, debugging why a rule "was written but never fired" |
+| [behavior-failures.md](behavior-failures.md) | **Behavior-layer** ❌/✅ scenarios — verbatim Agent rationalizations before / after each mechanism kicks in (AAR skip, passive-summary description, same-session route skip) | Debugging a skill that looks correct on paper but still drifts in practice |
 
 ## Topic map by numbered example
 

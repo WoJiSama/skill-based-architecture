@@ -24,15 +24,24 @@ Check line counts for all files under `skills/{{NAME}}/` and flag those that may
 
 Note: these numbers are **reference values**, not hard thresholds. A 250-line rules file with a single coherent topic is perfectly fine to keep.
 
-## Step 1b: Gotchas Accumulation Check
+## Step 1b: Accumulation Check (all file types)
 
-If `references/gotchas.md` (or any domain-specific pitfall file) exceeds **30 entries**, evaluate:
+Accumulation rot is not limited to gotchas. Check **every** file under `skills/{{NAME}}/`:
 
-1. **Can entries be grouped by domain?** → Split into domain-specific files
-2. **Have any gotchas been fixed?** → Archive or delete resolved entries
-3. **Are any entries redundant?** → Merge into one entry
+| File type | Entry count trigger | Action |
+|---|---|---|
+| `references/gotchas.md` | > 30 entries | Evaluate: group by domain, remove resolved, merge duplicates |
+| `rules/*.md` | > 25 bullet-level rules in one file | Evaluate: are any duplicates? Any obsolete after recent changes? |
+| `references/*.md` (non-gotchas) | > 40 entries | Evaluate: can entries be grouped under better H2/H3 sections? |
 
-A gotchas file that's too long to scan quickly defeats its purpose — the whole point is "brief, scannable list."
+For each file that exceeds the trigger:
+
+1. **Dedup scan** — search for entries that say the same thing in different words. Use `**[topic]**` tags to cluster related entries quickly: `grep -oP '\*\*\[([^\]]+)\]' <file>` lists all topics; duplicate topics in the same file are the first place to look. Merge into one entry keeping the clearest wording.
+2. **Staleness scan** — are any entries about technology/patterns that have since been removed from the project? Delete stale entries or mark `<!-- DEPRECATED: reason, YYYY-MM -->`.
+3. **Structural scan** — are entries grouped under meaningful headings, or piled at the bottom? Re-anchor orphan entries under the correct H2/H3 section.
+4. **Tag audit** — do entries carry `**[topic]**` tags? If a file has > 50% untagged entries, tag them during this pass to make the next scan faster.
+
+A gotchas file that's too long to scan quickly defeats its purpose — the whole point is "brief, scannable list." The same applies to any file that agents read as part of task routing.
 
 ## Step 2: Evaluate — Should You Split?
 

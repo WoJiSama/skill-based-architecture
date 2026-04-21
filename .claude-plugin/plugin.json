@@ -1,0 +1,22 @@
+{
+  "name": "skill-based-architecture",
+  "description": "Restructure oversized SKILL.md or scattered project rules into a well-organized Skill directory, with cross-tool thin shells, SessionStart hooks, Task Closure Protocol, and self-evolving workflows.",
+  "version": "1.0.0",
+  "author": {
+    "name": "WoJiSama"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skill",
+    "architecture",
+    "rules",
+    "documentation",
+    "meta-skill",
+    "cross-tool",
+    "claude-code",
+    "cursor",
+    "codex",
+    "gemini"
+  ],
+  "skills": ["./"]
+}

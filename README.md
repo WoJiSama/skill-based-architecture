@@ -217,6 +217,15 @@ In these cases, start with a plain `CLAUDE.md` or `.cursor/rules/workflow.mdc`. 
 
 ## Quick Start
 
+### Option 0 — Claude Code one-line install (recommended)
+
+```bash
+/plugin marketplace add WoJiSama/skill-based-architecture
+/plugin install skill-based-architecture@skill-based-architecture
+```
+
+The repository ships `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` so Claude Code can discover and install it in a single command. After install, activate in any project by saying "Use skill-based-architecture to refactor the project rules".
+
 ### Option 1 — Install as a Cursor user-level skill
 
 Clone into your Cursor skills directory so the skill is available in every project:
@@ -237,7 +246,7 @@ git clone https://github.com/WoJiSama/skill-based-architecture.git \
   .cursor/skills/skill-based-architecture
 ```
 
-### Option 3 — Use with Claude Code / Codex / Windsurf
+### Option 3 — Use with Codex / Gemini / Windsurf
 
 Copy the files into any location your agent reads from, then reference the skill in your `CLAUDE.md`, `AGENTS.md`, or equivalent entry file:
 

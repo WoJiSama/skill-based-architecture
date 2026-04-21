@@ -77,6 +77,20 @@ Before recording a potential new piece of knowledge, ask:
 
 **At least 2 of 3 must be "yes / high / no" → worth recording. Otherwise skip.**
 
+### Search Before Record (mandatory)
+
+Before writing anything new, search existing docs for the same or similar lesson:
+
+```bash
+grep -ri "<key concept>" skills/<name>/rules/ skills/<name>/references/ skills/<name>/workflows/
+```
+
+- **Exact match found** → stop. The lesson already exists. If the existing entry is incomplete, **update it in place** rather than adding a new one.
+- **Similar but different angle found** → **merge into the existing entry**, adding the new angle. Do not create a parallel entry with different wording for the same lesson.
+- **No match found** → proceed to "Where To Record" below.
+
+This step prevents the most common form of knowledge rot: the same lesson recorded 3 times in 3 different wordings across 3 files.
+
 ### Where To Record
 
 - Stable constraint or convention → `rules/`
@@ -131,6 +145,38 @@ Not everything worth recording needs a full section. Choose the lightest format:
 | 10+ lines with distinct steps | Consider whether a new file is warranted (usually not) |
 
 **Prefer appending to existing files over creating new ones.**
+
+### Entry Tagging
+
+Every recorded entry — bullet point, gotcha, or rule — must carry lightweight inline tags for future machine-assisted dedup and staleness scanning.
+
+**Tag format — `**[topic]**` at the start of each entry:**
+
+| Tag | Position | Purpose | Example |
+|---|---|---|---|
+| `**[topic]**` | Start of entry text | Classification / dedup clustering | `**[lifecycle]**` |
+
+**Full example:**
+
+```markdown
+- **[lifecycle]** Filter must be registered before app init; registering after causes silent drop
+```
+
+**Rules:**
+
+1. `[topic]` uses a short, reusable noun — not a sentence. Reuse existing topics when possible; check `grep -oP '\*\*\[([^\]]+)\]' references/ rules/` for the current topic list before inventing a new one.
+2. When multiple entries share the same `[topic]` in one file, check whether they are duplicates or should be merged.
+3. For gotchas, the topic goes in the H2 heading: `## **[lifecycle]** Short title`.
+
+### Structural Placement (not "append at bottom")
+
+New entries must be placed **under the most relevant existing H2/H3 section** in the target file, not appended at the file bottom.
+
+1. Scan the target file's headings — find the section whose topic matches the new entry.
+2. **Match found** → append under that heading, in logical order with existing entries.
+3. **No match found** → create a new H2/H3 section with a descriptive name, then add the entry. Place the new section in the most logical position among existing sections, not at the very end.
+
+**Why this matters:** entries appended at the bottom of a file without section anchoring become an unsorted pile. After 10 such entries, no one (human or Agent) will scan through them. Structurally placed entries stay discoverable because they sit next to related content.
 
 ### Generalization Rule
 

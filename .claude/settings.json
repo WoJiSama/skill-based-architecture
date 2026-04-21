@@ -1,0 +1,12 @@
+{
+  "_comment": "Claude Code project-wide settings. Registers the SessionStart hook to re-inject SKILL.md on startup/clear/compact — keeping routing and Task Closure Protocol in context through long sessions.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "command": "bash .claude/hooks/session-start",
+        "async": false
+      }
+    ]
+  }
+}

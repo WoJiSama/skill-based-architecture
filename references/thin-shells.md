@@ -8,7 +8,6 @@
 ```md
 ---
 name: <project-name>
-version: "1.0"
 description: >
   This skill should be used when the user asks to "<trigger phrase 1>",
   "<trigger phrase 2>", or "<trigger phrase 3>".

@@ -30,7 +30,7 @@ If none of the above apply, do the work inline — subagent dispatch has overhea
 
 Write the full task list **before** touching any subagent or file.
 
-For each item, produce a **Subagent Contract** (see [`templates/protocol-blocks/subagent-contract.md`](../../../templates/protocol-blocks/subagent-contract.md)). Every contract has exactly five fields:
+For each item, produce a **Subagent Contract** with exactly five fields:
 
 1. **Goal** — one sentence, outcome-focused, not procedure-focused
 2. **Inputs** — exact file paths, data, or upstream artifacts the worker may read
@@ -48,7 +48,7 @@ For each contract:
 
 1. Spawn a fresh worker (Claude Code: `Task` tool with the appropriate `subagent_type`; degraded mode: execute inline but reset your mental context — re-read only the contract)
 2. Pass the contract verbatim as the task prompt. Do **not** paste the main conversation history.
-3. Include the **Iron Law header** (see [`templates/protocol-blocks/iron-law-header.md`](../../../templates/protocol-blocks/iron-law-header.md)) so the worker knows Task Closure Protocol applies to them too.
+3. Include the **Iron Law header** ("NO TASK IS COMPLETE WITHOUT A TASK CLOSURE PROTOCOL SCAN" — main work + 30-second AAR + record-if-needed) so the worker knows Task Closure Protocol applies to them too.
 4. Dispatch workers **in parallel** when their contracts have no ordering dependency. Sequential dispatch is a defect unless justified.
 
 **Dispatch discipline:**

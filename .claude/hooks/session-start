@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# session-start — re-inject the skill-based-architecture SKILL.md on startup/clear/compact.
+#
+# This project is self-hosting: SKILL.md lives at the repo root, not under skills/.
+# The hook ensures that after /clear or /compact the routing table and Task Closure
+# Protocol don't drift out of memory.
+
+set -euo pipefail
+
+SKILL_PATH="${SKILL_PATH:-SKILL.md}"
+HARNESS="${CLAUDE_HARNESS:-${SESSION_HARNESS:-claude}}"
+
+if [[ ! -f "$SKILL_PATH" ]]; then
+  exit 0
+fi
+
+SKILL_BODY=$(python3 -c '
+import json, sys
+with open(sys.argv[1], "r") as f:
+    print(json.dumps(f.read()))
+' "$SKILL_PATH")
+
+case "$HARNESS" in
+  cursor)
+    printf '{"additional_context": %s}\n' "$SKILL_BODY"
+    ;;
+  claude|claude-code)
+    printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":%s}}\n' "$SKILL_BODY"
+    ;;
+  copilot|opencode|gemini|*)
+    printf '{"additionalContext": %s}\n' "$SKILL_BODY"
+    ;;
+esac

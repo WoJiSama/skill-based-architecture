@@ -8,6 +8,29 @@
 # Supports both English and Chinese (中文) section names.
 # Exit code: 0 = all pass, 1 = failures found.
 #
+# ═══════════════════════════════════════════════════════════════════════
+# 7 CATEGORIES of checks (see corresponding section markers below):
+#
+#   1. Structural Checks          — SKILL.md, rules/, workflows/, gotchas,
+#                                   Cursor registration entry, thin shells exist
+#   2. Line Count Budgets         — SKILL.md ≤ 100 lines, shells ≤ 60 lines,
+#                                   individual rule/workflow files within range
+#   3. Placeholder Residue        — no {{NAME}} / {{SUMMARY}} leftover;
+#                                   no unreplaced <!-- FILL: --> markers
+#   4. SKILL.md Content Quality   — description ≥ 20 words, ≥ 2 quoted trigger
+#                                   phrases, Common Tasks has Other fallback,
+#                                   Known Gotchas section exists
+#   5. Routing Completeness       — every file referenced in Common Tasks
+#                                   actually exists on disk
+#   6. Description Consistency    — SKILL.md and .cursor/skills/<name>/SKILL.md
+#                                   descriptions match byte-for-byte
+#   7. Shell Routing Consistency  — AGENTS / CLAUDE / CODEX / GEMINI shells
+#                                   share the same Quick Routing task set
+#
+# Roughly 48 discrete checks across these 7 categories (count varies slightly
+# based on how many rules/workflows/gotchas files the target project has).
+# ═══════════════════════════════════════════════════════════════════════
+#
 # --phase N runs the subset of checks relevant to WORKFLOW.md Phase N. See
 # `WORKFLOW.md § Resuming From a Failed Phase` for the phase→section mapping.
 # Without --phase, all sections run (equivalent to Phase 8 full verify).
@@ -299,6 +322,21 @@ if [[ -f "$SKILL_MD" ]]; then
   else
     warn "SKILL.md missing Known Gotchas section (acceptable for fresh migration, should grow via AAR)"
   fi
+
+  # 4g. Core Principles have ✓ Check: verification sentences
+  if grep -qiE '## .*(Core Principles|核心原则|Principles)' "$SKILL_MD"; then
+    principle_count=$(grep -cE '^\s*[0-9]+\.\s+\*\*' "$SKILL_MD" || true)
+    check_count=$(grep -c '✓ Check:' "$SKILL_MD" || true)
+    if [[ "$principle_count" -gt 0 ]]; then
+      if [[ "$check_count" -ge "$principle_count" ]]; then
+        pass "All $principle_count principles have ✓ Check: verification sentences"
+      elif [[ "$check_count" -gt 0 ]]; then
+        warn "SKILL.md has $principle_count principles but only $check_count ✓ Check: lines — some principles are declarative-only"
+      else
+        warn "SKILL.md has $principle_count principles but no ✓ Check: lines — all principles are declarative-only (add verification sentences)"
+      fi
+    fi
+  fi
 fi
 
 fi  # end section 4
@@ -319,11 +357,30 @@ if [[ -f "$SKILL_MD" ]]; then
       break
     fi
     if $IN_COMMON_TASKS; then
+      # Skip lines that are fully inside a multi-line HTML comment.
+      # FILL comments often contain example paths as documentation — those
+      # are not real references and should not trigger existence checks.
+      if [[ "${IN_COMMENT:-false}" == "true" ]]; then
+        if [[ "$line" == *"-->"* ]]; then
+          IN_COMMENT=false
+        fi
+        continue
+      fi
+
+      # Strip single-line HTML comments (<!-- ... --> on one line)
+      stripped_line=$(printf '%s' "$line" | sed -E 's/<!--([^-]|-[^-]|--[^>])*-->//g')
+
+      # Detect start of multi-line comment (opens without close on this line)
+      if [[ "$stripped_line" == *"<!--"* ]]; then
+        IN_COMMENT=true
+        stripped_line="${stripped_line%%<!--*}"
+      fi
+
       # Extract backtick-quoted relative paths (rules/, workflows/, references/)
-      while [[ "$line" =~ \`((rules|workflows|references)/[^\`]+)\` ]]; do
+      while [[ "$stripped_line" =~ \`((rules|workflows|references)/[^\`]+)\` ]]; do
         ref="${BASH_REMATCH[1]}"
         REFERENCED_FILES+=("$ref")
-        line="${line#*\`$ref\`}"
+        stripped_line="${stripped_line#*\`$ref\`}"
       done
     fi
   done < "$SKILL_MD"
@@ -340,6 +397,11 @@ if [[ -f "$SKILL_MD" ]]; then
       # Skip wildcard patterns like rules/*.md
       if [[ "$ref" == *'*'* ]]; then
         pass "  $ref (wildcard pattern, skipping existence check)"
+        continue
+      fi
+      # Skip angle-bracket placeholders like rules/<x>.md — treat as template residue
+      if [[ "$ref" == *'<'* || "$ref" == *'>'* ]]; then
+        warn "  $ref looks like an unfilled template placeholder — replace with a real path"
         continue
       fi
       if [[ -f "$full_path" ]]; then
@@ -400,7 +462,15 @@ if [[ -f "$SKILL_MD" ]] && [[ -f "$CURSOR_ENTRY" ]]; then
   DESC_FORMAL=$(extract_desc "$SKILL_MD")
   DESC_CURSOR=$(extract_desc "$CURSOR_ENTRY")
 
-  if [[ "$DESC_FORMAL" == "$DESC_CURSOR" ]]; then
+  BOTH_UNFILLED=false
+  if [[ ( "$DESC_FORMAL" == *"FILL:"* || "$DESC_FORMAL" == *"<trigger phrase"* ) \
+     && ( "$DESC_CURSOR" == *"FILL:"* || "$DESC_CURSOR" == *"<trigger phrase"* ) ]]; then
+    BOTH_UNFILLED=true
+  fi
+
+  if $BOTH_UNFILLED; then
+    warn "description in both SKILL.md and Cursor entry still contains FILL placeholders — fill them (identically) before shipping"
+  elif [[ "$DESC_FORMAL" == "$DESC_CURSOR" ]]; then
     pass "description matches between SKILL.md and Cursor entry"
   else
     fail "description MISMATCH between SKILL.md and Cursor entry"

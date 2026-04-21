@@ -191,7 +191,6 @@ primary: true
 ```yaml
 ---
 name: my-api
-version: "1.0"
 description: >
   This skill should be used when the user asks to "add a new API endpoint",
   "write controller logic", "fix a backend bug", or "add a database migration".

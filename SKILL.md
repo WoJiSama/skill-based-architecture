@@ -46,23 +46,23 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 
 ## Core Principles
 
-1. **Single concise entry** — `SKILL.md` ≤ 100 lines; it navigates, not exhausts
-2. **One skill folder** — all formal docs under `skills/<name>/`, not scattered at repo root
-3. **Rules ≠ Flows** — `rules/` for constraints, `workflows/` for procedures; never mix
-4. **Thin shells with inline routing** — `.cursor/`, `.claude/`, `.codex/`, `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md` only route to the skill, **but must embed an inline routing table** (task → required reads → workflow), not just "go read SKILL.md"
-5. **Cursor registration entry** — when the formal skill lives at `skills/<name>/`, a registration entry **must** be created at `.cursor/skills/<name>/SKILL.md` (Cursor's agent_skill discovery only scans `.cursor/skills/`)
-6. **Official minimum, local structure** — keep the official minimum contract clear: `name` identifies the skill, `description` explains what it does and when to use it; this skill adds project-scale structure only when that minimum shape stops being enough
-7. **Description = trigger condition** — the `description` field in frontmatter is how the Agent decides whether to activate a skill; write it as a trigger condition with explicit quoted phrases, not a passive summary (see [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition))
-8. **Gotchas are the highest-value content** — edge cases, footguns, and costly pitfalls that are not obvious from code; maintain them actively and keep them easily discoverable (in `references/gotchas.md` or a Known Gotchas section in SKILL.md)
-9. **Progressive disclosure** — SKILL.md links to one-level-deep support files
-10. **Task Closure Protocol** — AAR is part of task completion, not an optional extra; every non-trivial task must run a 30-second scan before declaring done (see [TEMPLATES-GUIDE.md § Task Closure Protocol](TEMPLATES-GUIDE.md#task-closure-protocol))
-11. **Generalization rule** — records must be reusable knowledge that makes sense outside the current project context, not project-specific narratives; apply the generalization check before writing (see [TEMPLATES-GUIDE.md § Generalization Rule](TEMPLATES-GUIDE.md#generalization-rule))
-12. **Self-maintenance** — line counts signal evaluation, not automatic action; split only when topics are separable, merge only when fragments belong together
-13. **Activation over storage** — a costly, task-relevant pitfall is not considered "captured" if it only lives deep in `references/`; it must also surface in the task path that should prevent the mistake next time (workflow checklist, task routing, or a concise rule summary)
-14. **Token efficiency** — Always-read files stay minimal (2–3 core rules); domain files are read only when task-routed via Common Tasks
-15. **Protocol reinforcement via Rationalizations Table** — the Task Closure Protocol is vulnerable to "just this once" erosion under pressure; maintain a Rationalizations to Reject table capturing verbatim excuses from pressure-test failures and their rebuttals (see [TEMPLATES-GUIDE.md § Rationalizations to Reject](TEMPLATES-GUIDE.md#rationalizations-to-reject) and [WORKFLOW.md § Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill))
+1. **Single concise entry** — `SKILL.md` ≤ 100 lines; it navigates, not exhausts. ✓ Check: `wc -l` ≤ 100; over → move content to sub-files.
+2. **One skill folder** — all formal docs under `skills/<name>/`, not scattered at repo root. ✓ Check: `ls *.md` at root shows only thin shells, not rule/workflow files.
+3. **Rules ≠ Flows** — `rules/` for constraints, `workflows/` for procedures. ✓ Check: any numbered steps in `rules/`? Any "always/never" in `workflows/`? Either = mixing.
+4. **Thin shells with inline routing** — every harness entry embeds a routing table (task → reads → workflow). ✓ Check: open any shell — 3-column table within first 40 lines? No → soft pointer.
+5. **Cursor registration entry** — `.cursor/skills/<name>/SKILL.md` must exist. ✓ Check: `ls .cursor/skills/` — missing = Cursor cannot discover the skill.
+6. **Official minimum, local structure** — `name` + `description` is the official contract; this skill adds structure only when that stops being enough. ✓ Check: if your skill has < 3 topics, no task routing, and no lesson-capture need, a single-file skill already satisfies the official contract — don't add folders yet.
+7. **Description = trigger condition** — write description with explicit quoted phrases, not passive summary ([ref](references/layout.md#description-as-trigger-condition)). ✓ Check: ≥ 2 quoted phrases + "Activate when…"? No → rewrite.
+8. **Gotchas are highest-value** — maintain costly pitfalls actively; keep them discoverable. ✓ Check: is each high-cost gotcha reachable from a Common Tasks route, not only buried in `references/`?
+9. **Progressive disclosure** — SKILL.md links one level deep; deep content pulled only when task-routed. ✓ Check: open SKILL.md and follow every link — does any target file link further to a third level that should have been reachable from SKILL.md directly? If yes, SKILL.md is hiding its routing structure.
+10. **Task Closure Protocol** — AAR is part of completion, not optional ([ref](TEMPLATES-GUIDE.md#task-closure-protocol)). ✓ Check: all 4 AAR questions answered before marking done? Skipped "nothing to record" genuinely true?
+11. **Generalization rule** — records must make sense outside current project context ([ref](TEMPLATES-GUIDE.md#generalization-rule)). ✓ Check: replace project name with a different one — still makes sense? No → rewrite as pattern.
+12. **Self-maintenance** — line counts signal evaluation, not automatic action. ✓ Check before splitting: topics independently navigable? Reader ever wants only one part? Both yes → split.
+13. **Activation over storage** — pitfall in `references/` alone is not "captured"; must also be on the task path. ✓ Check: trace normal route for this scenario — Agent hits the entry without hunting? No → stored, not activated.
+14. **Token efficiency** — Always-read stays 2–3 files; domain files via Common Tasks only. ✓ Check: Always Read > 3 entries? Demote lowest-frequency.
+15. **Rationalizations Table** — captures verbatim excuses from real pressure-test failures ([ref](TEMPLATES-GUIDE.md#rationalizations-to-reject), [Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)). ✓ Check: every row traces to a real failure — speculative rows dilute pressure value; remove them.
 
-**What counts as a behavior change?** Not only business logic or data flow changes. It also includes interaction changes, schema / renderer behavior changes, styling conventions that change outcomes, overlay / layering / z-index behavior, and host-compatibility changes that future agents could still misjudge without guidance.
+**Behavior change** includes interaction, schema/renderer, styling, overlay/z-index, and host-compatibility changes — not just business logic or data flow.
 
 ## Common Pitfalls
 
