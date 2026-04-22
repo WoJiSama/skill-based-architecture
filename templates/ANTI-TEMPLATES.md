@@ -99,14 +99,29 @@ The gate catches **explicit adversarial framing** (prompts with literal "bypass"
 
 ### When to Install the Mechanism Gate (Hook)
 
-`templates/hooks/agent-behavior-gate.sh` is a PreToolUse hook that performs the same checks deterministically, before any Write/Edit to `rules/agent-behavior.md` is applied. It blocks 100% of the attack classes above, regardless of model or prompt framing. Install when:
+`templates/hooks/agent-behavior-gate.sh` is a PreToolUse hook that performs the same checks deterministically, before any Write/Edit to `rules/agent-behavior.md` is applied.
 
-- Multiple committers can edit the file
-- Any committer might use Haiku-class models
-- Automated pipelines can ship diffs without human review
-- The downstream project's behavior-defaults file is business-critical
+**Coverage — tested 2026-04:**
 
-The hook has an escape hatch (`AGENT_BEHAVIOR_GATE_OVERRIDE=1`) for legitimate maintainer edits and a warn-only mode for rollout (`AGENT_BEHAVIOR_GATE_WARN=1`). See `templates/hooks/README.md` for full rollout / tuning guidance including false-positive mitigations (shrinking edits and typo fixes bypass the gate automatically).
+| Edit surface | Hook fires | Hook blocks |
+|---|---|---|
+| Interactive Claude Code CLI session | yes | **yes — 100%** |
+| `claude --print` subprocess (automation) | yes | no — `--print` auto-approves |
+| Agent SDK subagent (Task/Agent dispatch) | no | — |
+
+**Install when** interactive-session protection is valuable:
+- Multiple committers edit the file directly through Claude Code CLI
+- Any committer uses Haiku-class models (hook is model-independent — it's a bash script)
+- The downstream project's behavior-defaults file is business-critical for interactive sessions
+
+**Do NOT rely on the hook alone** when:
+- Automated pipelines run `claude --print` — hook fires but permission denial is ignored
+- Agents dispatch edits via Task/Agent (Agent SDK subagents bypass PreToolUse by design)
+- In those cases, add git-level guards: CODEOWNERS on the file + CI that checks the diff against the Admission Threshold rules. The hook protects humans; git guards protect automation.
+
+**Schema requirement (Claude Code CLI v2.1+):** hooks use a nested format (`matcher` → `hooks[]` → `{type, command}`). A flat `matcher` + `command` setup will silently fail to fire for PreToolUse (SessionStart may still work). Both `templates/hooks/hooks.json` and `.json.cursor` ship the correct schema.
+
+The hook has an escape hatch (`AGENT_BEHAVIOR_GATE_OVERRIDE=1`) for legitimate maintainer edits and a warn-only mode for rollout (`AGENT_BEHAVIOR_GATE_WARN=1`). Shrinking edits and typo fixes (≤ 20 char delta on a same line) bypass the gate automatically to minimize false positives. See `templates/hooks/README.md` for full rollout / tuning guidance.
 
 ## Rules for Adding New Rejections
 

@@ -1,19 +1,27 @@
 {
-  "_comment": "Cursor hooks. Copy to .cursor/hooks.json. CLAUDE_HARNESS=cursor switches the session-start JSON shape. See templates/hooks/README.md for details.",
+  "_comment": "Cursor hooks. Copy to .cursor/hooks.json. CLAUDE_HARNESS=cursor switches the session-start JSON shape. Schema matches Claude Code CLI v2.1+ (nested hooks array with type:command). Cursor's PreToolUse contract may differ — verify hook fires before relying on it.",
   "hooks": {
     "SessionStart": [
       {
         "matcher": "startup|clear|compact",
-        "command": "CLAUDE_HARNESS=cursor bash templates/hooks/session-start",
-        "async": false
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CLAUDE_HARNESS=cursor bash templates/hooks/session-start"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "_comment": "Optional gate on rules/agent-behavior.md edits. Cursor's PreToolUse contract may differ from Claude Code's — verify hook fires before relying on it.",
+        "_comment": "Optional gate on rules/agent-behavior.md edits. Remove this matcher block to disable.",
         "matcher": "Write|Edit",
-        "command": "bash templates/hooks/agent-behavior-gate.sh",
-        "async": false
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash templates/hooks/agent-behavior-gate.sh"
+          }
+        ]
       }
     ]
   }
