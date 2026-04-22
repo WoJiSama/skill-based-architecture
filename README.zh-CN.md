@@ -14,6 +14,8 @@
                                                 └── references/gotchas.md  (高代价的坑)
 ```
 
+> **想搞懂它到底是怎么工作的?** 看 [DEEPDIVE.md](DEEPDIVE.md) —— 本项目的两条核心机制:**Hook 系统**(机制级护栏,不是光靠约定)和**组合框架**(workflow 可以调用其他 skill;一个仓库可以同时有好几个 skill)。
+
 ---
 
 ## 社区支持

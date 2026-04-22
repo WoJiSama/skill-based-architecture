@@ -14,6 +14,8 @@ your project  ──►  skill-based-architecture  ──►  skills/<your-proje
                                                    └── references/gotchas.md  (costly lessons)
 ```
 
+> **Want to understand how this actually works?** Read [DEEPDIVE.md](DEEPDIVE.md) — the two mechanisms that make this more than a docs folder: the **hook system** (mechanism-level guards, not just convention) and the **composition framework** (workflows invoke other skills; one repo can own several skills).
+
 ---
 
 ## Community support
