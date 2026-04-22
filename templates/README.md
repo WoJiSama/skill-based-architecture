@@ -19,11 +19,13 @@ templates/
 │   ├── .codex/instructions.md
 │   ├── .cursor/rules/workflow.mdc
 │   └── .cursor/skills/{{NAME}}/SKILL.md
-├── hooks/                    → optional SessionStart injection
-│   ├── session-start         (bash, per-harness JSON branching)
-│   ├── hooks.json            (Claude Code config)
-│   ├── hooks-cursor.json     (Cursor config)
-│   └── SECURITY.md           (trust boundary: what may vs must not be written to hook-read files)
+├── hooks/                    → optional SessionStart injection + mechanism-level gates
+│   ├── session-start              (bash, per-harness JSON branching — re-inject SKILL.md)
+│   ├── agent-behavior-gate.sh     (bash, PreToolUse — enforce Admission Threshold deterministically)
+│   ├── hooks.json                 (Claude Code config — SessionStart + PreToolUse)
+│   ├── hooks-cursor.json          (Cursor config — same as above, per-harness wiring)
+│   ├── README.md                  (rollout / tuning / false-positive mitigations, per-hook)
+│   └── SECURITY.md                (trust boundary: what may vs must not be written to hook-read files)
 ├── checklists/               → copyable verification checklists
 │   └── post-migration.md     (run after Phase 8 to verify everything)
 ├── migration/                → meta-level migration helpers (not per-skill)
@@ -56,7 +58,9 @@ Two kinds — each with a different "fill" mechanism:
 |---|---|---|
 | `shells/*` | ≤ 60 lines | Thin shells must stay thin; > 60 = content leaking in |
 | `skill/rules/project-rules.md`, `skill/rules/coding-standards.md` | ≤ 20 lines, ≥ 60% must be `<!-- FILL: -->` | Rule stubs are scaffolding, not content |
-| `skill/rules/agent-behavior.md` | ≤ 100 lines, fully pre-filled | Universal coding defaults. Exception to the stub-only rule — ships as content. **Growth gated** by `ANTI-TEMPLATES.md § Admission Threshold for Behavioral Principles`: new principle requires AAR evidence or equal-weight removal, not borrowing |
+| `skill/rules/agent-behavior.md` | ≤ 100 lines, fully pre-filled | Universal coding defaults. Exception to the stub-only rule — ships as content. **Growth gated** by `ANTI-TEMPLATES.md § Admission Threshold` (convention-level, ~30% hostile-prompt block rate). For mechanism-level enforcement install `templates/hooks/agent-behavior-gate.sh` — blocks 100% of tested attack classes deterministically |
+| `hooks/agent-behavior-gate.sh` | ≤ 150 lines | PreToolUse gate script. False-positive mitigations (shrinking/typo-tolerance paths) live in-script; see `hooks/README.md` |
+| `hooks/README.md` | ≤ 150 lines | Per-hook rollout guidance; allowed larger because it documents optional installs + tuning |
 | `skill/workflows/fix-bug.md` (and other task-specific) | ≤ 80 lines | Project-specific workflows stay lean |
 | `skill/workflows/update-rules.md`, `maintain-docs.md`, `subagent-driven.md` | ≤ 250 lines | Protocol-heavy workflows allowed more room |
 | `protocol-blocks/*` | ≤ 40 lines each | One idea per block |

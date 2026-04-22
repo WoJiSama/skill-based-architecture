@@ -1,10 +1,18 @@
 {
-  "_comment": "Claude Code session-start hook. Copy to .claude/hooks.json and adjust SKILL_PATH if needed.",
+  "_comment": "Claude Code hooks. Copy to .claude/hooks.json. See templates/hooks/README.md for details.",
   "hooks": {
     "SessionStart": [
       {
         "matcher": "startup|clear|compact",
         "command": "bash templates/hooks/session-start",
+        "async": false
+      }
+    ],
+    "PreToolUse": [
+      {
+        "_comment": "Optional gate on rules/agent-behavior.md edits. Remove this block to disable.",
+        "matcher": "Write|Edit",
+        "command": "bash templates/hooks/agent-behavior-gate.sh",
         "async": false
       }
     ]

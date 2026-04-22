@@ -1,10 +1,17 @@
 {
-  "_comment": "Claude Code project-wide settings. Registers the SessionStart hook to re-inject SKILL.md on startup/clear/compact — keeping routing and Task Closure Protocol in context through long sessions.",
+  "_comment": "Claude Code project-wide settings. SessionStart re-injects SKILL.md; PreToolUse gates rules/agent-behavior.md edits per ANTI-TEMPLATES.md § Admission Threshold.",
   "hooks": {
     "SessionStart": [
       {
         "matcher": "startup|clear|compact",
         "command": "bash .claude/hooks/session-start",
+        "async": false
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "command": "bash templates/hooks/agent-behavior-gate.sh",
         "async": false
       }
     ]
