@@ -138,6 +138,48 @@ See [templates/skill/workflows/update-rules.md § Rationalizations to Reject](..
 
 ---
 
+## Scenario 4 — Perf edit shipped without measuring baseline
+
+**Context:** Agent is asked to "speed up the search index rebuild." Agent rewrites the batching logic, runs the existing test suite (functional tests only, no timing assertions), tests pass, change ships.
+
+### ❌ Agent behavior without Principle 7
+
+> **Agent:** "Rewrote the batch loop to use parallel workers. Tests pass. Should be faster now."
+
+What the Agent skipped:
+- Did not run a benchmark before the change to capture baseline throughput
+- Did not run a benchmark after the change to measure delta
+- Relied on "parallel = faster" intuition — ignored that parallelism introduced lock contention on the shared index writer
+- Net result: rebuild time regressed 40% under realistic document volumes; only caught in staging after a full data load, two days after merge
+
+Cost: two days of debugging, a revert, a re-implementation with actual measurements showing where contention was.
+
+### ✅ Agent behavior with Principle 7
+
+> **Agent:** "Before touching the batch loop — running the perf benchmark suite to capture baseline.
+>
+> Baseline: 1 200 docs/s, p95 latency 420 ms.
+>
+> Rewriting to parallel workers… done. Re-running benchmark under identical conditions.
+>
+> After: 980 docs/s, p95 latency 510 ms — regression. Parallel workers are slower here, likely due to shared-writer contention.
+>
+> Reverting parallelism. Trying a larger batch size instead…
+>
+> After v2: 1 650 docs/s, p95 latency 310 ms — improvement. Shipping with delta in commit message."
+
+**The mechanism that catches it:** `rules/agent-behavior.md § 7` gates every performance-related change on a before/after benchmark. The ✓ Check cannot be answered ("can you cite the before-and-after results?") without having actually run them.
+
+**Rationalizations that would have bypassed it:**
+
+| Excuse | Reject |
+|---|---|
+| "Parallel is obviously faster for I/O-bound work" | Intuition is cheap; measurement is evidence. The benchmark took 90 seconds. The revert took two days. |
+| "Functional tests all pass — perf must be fine" | Functional tests do not assert timing. A regression can be functionally correct. |
+| "We'll catch it in staging" | Staging with realistic data volume is two days away. The benchmark is 90 seconds away. |
+
+---
+
 ## How to add new scenarios here
 
 This file grows only via **real pressure-test failures** — same rule as the Rationalizations Table:

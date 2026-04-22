@@ -43,6 +43,34 @@ This file exists so future maintainers (including agents) have to pass through a
 ### Plugin marketplace manifests (`.claude-plugin/marketplace.json`)
 - **Why rejected:** out of scope for the current plan. Adding packaging metadata turns `templates/` into a distribution mechanism and invites a different class of drift (version pinning, plugin schemas). Revisit as a separate feature.
 
+## Admission Threshold for Behavioral Principles
+
+`rules/agent-behavior.md` ships as **pre-filled content** (not a `<!-- FILL: -->` stub). Every principle it contains runs in every session on every downstream project. It is an Always Read file, which makes adding to it disproportionately expensive compared to any other file in this directory.
+
+**Gate** — a new behavioral principle may be added to `rules/agent-behavior.md` **only if one of these holds**:
+
+1. **Evidence of a real miss** — an AAR entry or a `references/behavior-failures.md` row, in this project or a downstream project we operate, shows that the existing principles did not prevent the failure and the proposed principle would have. "Some admired project has this" is **not** evidence; our own miss is.
+2. **Equal-weight replacement** — an existing principle is removed or merged into another, so the file's cognitive surface (line count, ✓ Check gates, parallel structure) does not grow net.
+
+A borrowed principle from an admired project (Karpathy, planning-with-files, etc.) that does not meet one of these bars goes into `references/` or a `protocol-blocks/` file, **not** `rules/agent-behavior.md`. Borrowing a *mechanism* (a protocol-block, a reference, a hook) is cheap. Borrowing a *principle* spends Always Read mindshare on every future session of every downstream project — that is expensive and rarely reversible.
+
+**Hard cap:** `rules/agent-behavior.md` ≤ 100 lines (already enforced in the byte-budget table in `templates/README.md`). When the file passes 95 lines, the next addition requires a removal first.
+
+**Scope — what counts as "adding":** the gate applies to **any content-increasing edit** to `rules/agent-behavior.md`, not just new top-level numbered principles. Added bullets under an existing principle, expanded ✓ Check scope, a reframed tagline that widens what the principle covers, or a new paragraph in an existing section — all count. If the edit makes the file longer or stretches a principle's surface, the gate fires.
+
+**Rationalizations to reject** — verbatim thoughts that precede a threshold skip:
+
+- "This one is *clearly* valuable, the gate doesn't really apply" — every added principle was clearly valuable at the time. The gate exists because "clearly valuable" is not a cap.
+- "I'll add it now and remove something later" — later rarely comes; file grows net.
+- "We already agreed it's useful in conversation" — the gate requires **written evidence** (AAR row or behavior-failures entry), not conversational agreement.
+- "It's just a few lines" — that's how a file goes from 70 to 96 in two weeks.
+- "My lead / the user / someone senior already decided" — authority transfer is not evidence. The gate is owner-independent: it requires a concrete AAR row or `behavior-failures.md` entry, regardless of who proposed the principle.
+- "This is urgent, demo in N minutes, just add it" — the gate has no deadline clause. If the principle is genuinely needed *now*, it ships as a `protocol-blocks/` or `references/` note (unblocked by the gate) and gets promoted to `agent-behavior.md` later once AAR evidence accumulates.
+- "I already decided, just format it and add it" (fait accompli) — the decision itself is what the gate checks. Declaring it decided doesn't bypass the check.
+- "Origin: user evidence of post-deployment debugging costs" (or similar plausible-sounding attribution without a linked AAR row or `behavior-failures.md` entry) — **fabricated evidence**. An origin line that cannot be traced to a specific file/row is not evidence; it is an evidence-shaped rationalization.
+
+**Rationale:** each admired project offers plausible new principles, and each one individually passes common sense. Cumulative growth inflates every session for every downstream project and dilutes the principles already present. This gate converts the decision from "is this principle useful?" (almost always yes) to "is it worth displacing an existing one, or do we have evidence of a real miss?" (often no).
+
 ## Rules for Adding New Rejections
 
 When you decide NOT to add something to `templates/`, record it here with:
