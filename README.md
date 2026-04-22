@@ -51,6 +51,24 @@ Skill-Based Architecture provides a **structural pattern** for organizing AI age
 
 ---
 
+## More Than a Single Skill — a Framework for Composition
+
+The `skills/<name>/` directory this meta-skill produces is not a flat document — it is a **framework** you can keep building on. The scaffolding leaves explicit hooks for composition:
+
+- **Write your own workflows.** `workflows/` is yours. Add `plan.md`, `review.md`, `deploy-check.md` — whatever recurring task your project actually has. Each workflow routes the agent through exactly the files it needs, with a completion checklist and escape conditions.
+
+- **Invoke other skills from your workflows.** A workflow can delegate to another skill mid-procedure. For example, `workflows/plan.md` can instruct the agent to call [obra/superpowers](https://github.com/obra/superpowers)' planning skill during plan construction, or invoke a domain-specific testing skill inside `workflows/fix-bug.md`. Your project skill becomes an **orchestration layer**, not a dead-end.
+
+- **Compose protocol-blocks.** `protocol-blocks/` ships as reusable building blocks — drop `rationalizations-table.md` into any workflow where discipline tends to erode; drop `ambiguous-request-gate.md` into routing where vague verbs show up; drop `reboot-check.md` into any long-running workflow where mid-task disorientation is a risk. Custom blocks follow the same pattern.
+
+- **Evolve routing without architectural change.** A new recurring task means: append a row to `SKILL.md` Common Tasks + add a thin-shell row + write the workflow. No refactor. No migration.
+
+- **Grow beyond the initial scaffold.** Hooks (SessionStart, PreToolUse gates), behavior defaults, new rule files, references — all propagate via `WORKFLOW.md § Upgrading`. The skill is a **living system** that co-evolves with the project.
+
+In short: the output is not "a skill file" — it is a **project-scoped skill operating system** your agents (and you) can keep building on. Everything you layer in becomes available to every agent on every task, without context waste.
+
+---
+
 ## Where This Fits — Prompt / Context / Harness
 
 Agent reliability lives on three layers. This skill is **not** a silver bullet — it covers one-and-a-half of them, and being explicit about that prevents misuse.
