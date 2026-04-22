@@ -164,6 +164,8 @@ Adding state / validation / recovery primitives to a downstream project is that 
 
 ## Multi-Skill Projects
 
+This section covers the **structural layout** of multi-skill repos. For the **operating guide** (routing, description discipline, shared resources, cross-skill refs, fission signals) see [multi-skill-routing.md](multi-skill-routing.md).
+
 When a repo has multiple skills (e.g. `skills/app/` + `skills/template-builder/`):
 
 ```text
