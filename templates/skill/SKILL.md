@@ -34,6 +34,8 @@ These files apply to every task. Read them first:
 
 ## Common Tasks
 
+**Route-before-routing check (Principle 1 gate)** — if the request contains vague improvement verbs ("refactor / clean up / optimize / make it better / 整理 / 重构 / 优化") **without** a concrete module, file, or verifiable outcome, **stop and ask** for scope before matching below. Offering partial plans, scanning the project "to get started", or proposing options is forbidden — the gate blocks forward movement until scope is clarified. See `protocol-blocks/ambiguous-request-gate.md` for full protocol.
+
 Each entry lists the exact files to read — don't read files not listed for your task:
 
 <!-- FILL: add 3–8 real recurring task types for this project, in the format below.

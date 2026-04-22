@@ -441,6 +441,45 @@ Run `--phase N` at the tail of phase N before writing `phase=N` to `.migration-s
 
 A half-completed Phase 5 can leave `workflows/*.md` files with `{{NAME}}` still inside. A Phase 3 rerun will happily overwrite `SKILL.md` but leave the workflow stubs untouched — and a subsequent Phase 8 will pass the "SKILL.md ≤ 100 lines" check while the project is actually broken. Always detect-and-resume, or explicitly `rm -rf skills/$NAME .cursor/skills/$NAME .migration-state` before restarting. No in-between.
 
+## Upgrading an Existing Downstream Project
+
+When upstream adds new templates, hooks, protocol-blocks, or principles, existing downstream projects need a **targeted refresh** — not a full re-migration. Re-running `migration/` scripts on an already-migrated project will overwrite project-specific content (filled SKILL.md, populated gotchas, real workflows).
+
+### What's additive (safe to copy directly)
+
+- **New pre-filled rule files** (`rules/agent-behavior.md`, `references/behavior-failures.md`) — drop in as-is; these carry universal defaults with no project-specific content
+- **New hooks** (`.claude/hooks/*.sh`, hook entries in `.claude/settings.json`) — add alongside existing hooks; never overwrite user-tuned settings. Verify schema (`hooks[]` nested array with `{type, command}`) — flat format silently fails for PreToolUse
+- **New protocol-blocks** — `templates/protocol-blocks/*` are always optional; copy only if a workflow or shell references them
+
+### What requires judgment (do not overwrite)
+
+- **`SKILL.md`** — project-specific Common Tasks, Known Gotchas, Core Principles live here. Compare upstream `templates/skill/SKILL.md` against downstream `skills/<name>/SKILL.md` and **surgically merge** new sections (e.g., add `agent-behavior.md` to Always Read list, add Ambiguous Request Gate to Common Tasks preamble). Do not replace the file.
+- **Shells** (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`) — same pattern. Downstream shells have project routing tables; upstream has preamble improvements. Add the Always Read preamble and route-before-routing check, but keep the downstream's task rows intact.
+- **`smoke-test.sh`** — usually safe to overwrite (it's a verification tool), but `diff` first to catch project-specific extensions.
+
+### Procedure
+
+1. **Audit.** Compare upstream and downstream file sets:
+   ```bash
+   UPSTREAM="${UPSTREAM:-../skill-based-architecture}"
+   NAME=<project>
+   # What's missing downstream?
+   for d in templates/skill templates/shells templates/hooks templates/protocol-blocks; do
+     diff <(ls "$UPSTREAM/$d" 2>/dev/null) <(ls "skills/$NAME" "." ".claude/hooks" 2>/dev/null) | head
+   done
+   ```
+2. **Copy additive files** as-is into the equivalent downstream paths.
+3. **Merge judgment files** — open upstream and downstream versions side-by-side, cherry-pick new sections. Never replace the whole file.
+4. **Update `.claude/settings.json`** if the hook schema evolved (e.g., flat → nested `hooks[]`).
+5. **Run `smoke-test.sh`** to verify nothing broke.
+6. **Probe with 3–5 subagent dispatches** using realistic project prompts to confirm routing still works. Use `isolation: worktree`, but be aware that **Agent SDK subagents do not fire PreToolUse hooks** — they test skill routing, not hook enforcement.
+
+### What NOT to do
+
+- Don't re-run `templates/migration/*.sh` on an already-migrated project — they'll clobber project-specific content
+- Don't propagate experimental upstream additions (principles that accumulated in an over-cap `agent-behavior.md` during testing, etc.) — only the canonical clean state belongs downstream
+- Don't use absolute paths in subagent prompts when probing — they bypass `isolation: worktree` and leak writes back to main (see `examples/behavior-failures.md`)
+
 ## Ongoing Maintenance
 
 After initial migration, two mechanisms keep the documentation healthy over time:

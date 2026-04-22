@@ -2,6 +2,16 @@
 
 Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
 
+## Always Read (every task, in addition to route-specific reads)
+
+- `skills/{{NAME}}/rules/project-rules.md`
+- `skills/{{NAME}}/rules/coding-standards.md`
+- `skills/{{NAME}}/rules/agent-behavior.md` — universal behavior defaults (Think / Simplicity / Surgical / Goal-Driven / Three-Strike)
+
+**Route-before-routing check**: if the request contains vague improvement verbs ("refactor / clean up / optimize / make it better / 整理 / 重构 / 优化") **without** a concrete module/file or verifiable outcome → stop and ask for scope. Do not offer partial plans; see `skills/{{NAME}}/protocol-blocks/ambiguous-request-gate.md` if present.
+
+The table below lists **additional** reads per task type.
+
 ## Quick Routing (survives context truncation)
 
 | Task | Required reads | Workflow |

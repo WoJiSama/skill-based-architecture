@@ -35,8 +35,9 @@ templates/
     ├── rationalizations-table.md
     ├── red-flags-stop.md
     ├── iron-law-header.md
-    ├── subagent-contract.md   (5-field worker task-prompt block)
-    └── reboot-check.md        (5-question mid-task re-orientation)
+    ├── subagent-contract.md        (5-field worker task-prompt block)
+    ├── reboot-check.md              (5-question mid-task re-orientation)
+    └── ambiguous-request-gate.md   (pre-routing Principle 1 check for vague verbs)
 ```
 
 > `migration/` is the odd one out: it is **not** copied into the downstream project. It runs alongside the upstream repo and is invoked from the target project root via `bash "$UPSTREAM/templates/migration/resume.sh"`. See `migration/README.md`.
@@ -56,7 +57,7 @@ Two kinds — each with a different "fill" mechanism:
 
 | Path | Budget | Enforcement |
 |---|---|---|
-| `shells/*` | ≤ 60 lines | Thin shells must stay thin; > 60 = content leaking in |
+| `shells/*` | ≤ 60 lines | Thin shells must stay thin; > 60 = content leaking in. Must include an Always Read preamble + route-before-routing check for vague verbs (see `protocol-blocks/ambiguous-request-gate.md`) — the routing table alone is not sufficient |
 | `skill/rules/project-rules.md`, `skill/rules/coding-standards.md` | ≤ 20 lines, ≥ 60% must be `<!-- FILL: -->` | Rule stubs are scaffolding, not content |
 | `skill/rules/agent-behavior.md` | ≤ 100 lines, fully pre-filled | Universal coding defaults. Exception to the stub-only rule — ships as content. **Growth gated** by `ANTI-TEMPLATES.md § Admission Threshold` (convention-level, ~30% hostile-prompt block rate). For mechanism-level enforcement install `templates/hooks/agent-behavior-gate.sh` — blocks 100% of tested attack classes deterministically |
 | `hooks/agent-behavior-gate.sh` | ≤ 150 lines | PreToolUse gate script. False-positive mitigations (shrinking/typo-tolerance paths) live in-script; see `hooks/README.md` |

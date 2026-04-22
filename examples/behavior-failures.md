@@ -180,6 +180,47 @@ Cost: two days of debugging, a revert, a re-implementation with actual measureme
 
 ---
 
+## Scenario 5 — Vague "refactor / optimize / clean up" prompt bypasses routing
+
+**Observed:** Haiku 4.5 tests against wj-small-tools, 2026-04. Prompt: "我想把后端代码重构一下,让结构更清晰。你能帮我开始吗?"
+
+### ❌ Agent behavior without Ambiguous Request Gate
+
+Agent scans the project structure, identifies "15+ business modules", produces a 4-phase refactor plan with a new target architecture diagram, then — at the end — asks the user for goals/time/risk. All without reading `project-rules.md` which explicitly says "**保持现有 Java 包结构稳定，不做大规模重命名或拆分**". The Agent treats "让结构更清晰" as a legitimate routed task and sets off planning. Project-specific rules are ignored because they're behind routing that Agent never matched.
+
+### ✅ Agent behavior with Ambiguous Request Gate
+
+Agent reads SKILL.md, hits the pre-routing check: verb "重构" + "让结构更清晰" (vague verb + vague outcome "clearer" = both conditions satisfied). Agent **stops immediately** and asks: "改哪个具体模块 / 文件?'更清晰'是指分包更一致、函数更小、依赖更少、还是更易新人上手?" No scanning, no partial plan, no "here are 3 options". Only after the user specifies scope + outcome does the Agent route.
+
+**Mechanism:** Ambiguous Request Gate — `templates/protocol-blocks/ambiguous-request-gate.md`. The gate fires BEFORE the routing table as a Principle 1 pre-check, not AS a routing option (that was the v2 design that didn't hold — Haiku matched it as a task row and still proposed plans).
+
+### Lessons folded back upstream
+
+1. **Shells must list Always Read files in a preamble**, not only in per-task routing rows. Agents answering meta-queries ("what should I prepare before修 bug?") retrieve from shells and miss the global Always Read if it's not surfaced there.
+2. **Vague-verb detection is convention-level for Haiku**. Even with the gate, Haiku still sometimes offers "here are 3 directions, pick one" — the gate raises the bar but does not close the loophole completely for the weakest model tier. For Sonnet+ the gate is fully effective.
+3. The gate's anti-patterns section must explicitly forbid "scan first, ask later" and "delegate to planner agent" — both observed evasion routes.
+
+## Scenario 6 — Absolute paths in subagent prompts bypass `isolation: worktree`
+
+**Observed:** multiple subagent test rounds in 2026-04 (both upstream gate tests and wj-small-tools routing tests).
+
+### ❌ Test author behavior without awareness of this pitfall
+
+Test author writes a subagent prompt: "in `/Users/shiqi/IdeaProjects/foo` please add a principle to `rules/agent-behavior.md`." The Agent tool creates a worktree at some temp path, the subagent runs with CWD = worktree root, but **uses the absolute path from the prompt** for its Read/Edit calls. Edits therefore land in the main repo, not the worktree. When the subagent finishes with changes present, the Agent tool **still reports the worktree as clean** (the worktree is unchanged because all edits went to the absolute path outside it) and silently cleans it up — no path returned, no warning. Main branch is silently polluted. Across a 20-subagent test round, the polluted state compounds into "the file under test grew by 80 lines from test artifacts the user half-notices and half-accepts".
+
+### ✅ Test author behavior with this pitfall recorded
+
+Test author uses **relative paths** in subagent prompts ("in this repo, edit `rules/agent-behavior.md`") OR accepts that absolute-path prompts will pollute main and explicitly `git checkout` after each round. Before dispatching, the test author verifies the subagent prompt does not contain absolute paths that cross the worktree boundary.
+
+**Mechanism:** awareness, not a tool — there is no runtime protection. `isolation: worktree` is designed to isolate *relative* working-directory edits; absolute paths escape it by design. Record this in `WORKFLOW.md § Upgrading` and in any testing workflow.
+
+### Lessons folded back upstream
+
+- `WORKFLOW.md § Upgrading` now includes "don't use absolute paths in subagent prompts when probing"
+- Any future testing-automation documentation should emphasize: **`isolation: worktree` is not a sandbox; it is a CWD isolation**. Absolute paths, env-var-based paths, and `~/foo` paths all escape it.
+
+---
+
 ## How to add new scenarios here
 
 This file grows only via **real pressure-test failures** — same rule as the Rationalizations Table:

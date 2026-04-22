@@ -6,7 +6,17 @@ alwaysApply: true
 
 Formal rules live in `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill.
 
-| Task | Required reads | Workflow |
+## Always Read (every task, in addition to route-specific reads)
+
+- `skills/{{NAME}}/rules/project-rules.md`
+- `skills/{{NAME}}/rules/coding-standards.md`
+- `skills/{{NAME}}/rules/agent-behavior.md`
+
+**Route-before-routing check**: vague verbs ("refactor / clean up / optimize / 整理 / 重构 / 优化") without concrete module or verifiable outcome → stop and ask for scope, do not offer partial plans.
+
+The table below lists **additional** reads per task type.
+
+| Task | Additional reads | Workflow |
 |------|---------------|----------|
 | Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
 | Multi-subtask / long run (≥ 3 independent subtasks) | `rules/project-rules.md` | `workflows/subagent-driven.md` |
