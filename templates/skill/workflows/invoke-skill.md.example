@@ -1,0 +1,94 @@
+# Invoke Another Skill — Example Workflow
+
+Copy this file to `workflows/<real-name>.md` and adapt. Demonstrates **Pattern A (Embedded Invocation)** from `references/skill-composition.md` — your workflow calls out to another skill mid-procedure and returns.
+
+This example scenario: the user asks to "plan a new feature". Your project has feature-specific rules worth capturing, but the *planning methodology* (PRD → breakdown → verification criteria) is generic, so you delegate that step to a reusable planning skill.
+
+---
+
+## When this workflow fires
+
+- Route entry in `SKILL.md` Common Tasks matches ("plan a new feature", "write a PRD", etc.)
+- User has not already produced a plan; if they have, skip to execution
+
+## Prerequisites
+
+Read in order:
+1. `rules/project-rules.md` (project scope / non-goals)
+2. `rules/coding-standards.md`
+3. `rules/agent-behavior.md` (behavior defaults)
+4. **Verify the invoked skill is present** — `ls skills/superpowers/SKILL.md` must exist. If not:
+   - Stop and report: "This workflow depends on skills/superpowers/. Install it first: `git clone https://github.com/obra/superpowers skills/superpowers`."
+   - Do not proceed with a substitute.
+
+## Steps
+
+### Step 1 — Capture project-specific planning constraints
+
+Before invoking the generic planning skill, record what's unique to this project:
+
+- What users, what use cases (from `rules/project-rules.md`)
+- What's in-scope for this project, what's not
+- Any domain constraints (compliance, performance, data model)
+
+Output: 3–6 bullets of project context the planner needs.
+
+### Step 2 — Invoke the planning skill
+
+1. Read `skills/superpowers/SKILL.md` and match "plan a feature" to its Common Tasks route.
+2. Follow `skills/superpowers/workflows/plan-a-feature.md` (or whichever workflow its route points to) **with the Step 1 bullets as input context**.
+3. Let it run its full planning procedure — PRD, user stories, tasks, verification — without cutting steps.
+4. When it completes, the output artifact (e.g., `plans/<feature>.md`) is what we return from Step 2 with.
+
+### Step 3 — Apply project-specific plan review
+
+Back in this workflow. The planning skill produced a generic plan; now apply project filters:
+
+- Does the plan violate anything in `rules/project-rules.md`? (e.g., "no new dependencies this quarter" — flag any third-party libs introduced)
+- Are the verification criteria concrete enough for this project's CI? (if not, tighten)
+- Does any step cross a `references/gotchas.md` boundary? (annotate the plan with the relevant gotcha references)
+
+Output: the plan, annotated with project-specific flags or fixes.
+
+### Step 4 — Task Closure Protocol
+
+<!-- Include the Iron Law — invoking another skill does NOT exempt this workflow from AAR. -->
+
+Run the standard Task Closure Protocol (see `workflows/update-rules.md`):
+
+1. Did the planning skill surface anything that belongs in this project's `rules/` or `references/gotchas.md`? (a recurring constraint, a domain pitfall the planner bumped into)
+2. Did the invocation itself expose a gap — e.g., your Step 1 context was insufficient and the planner asked follow-ups? Record a rule: "when invoking superpowers/plan, always include X in Step 1."
+3. Was the invoked skill's output format what Step 3 expected? If the planner changed its output shape, update Step 3's assumptions.
+
+Record answers if they pass the Recording Threshold. Do not skip this step just because another skill did the "main work."
+
+## Completion checklist
+
+- [ ] Step 1 context captured (not just "use defaults")
+- [ ] Invoked skill actually ran (not substituted)
+- [ ] Step 3 project-filter applied — plan annotated
+- [ ] Step 4 AAR run; any recording done
+- [ ] Plan artifact exists at agreed path
+- [ ] User can read and execute the plan without re-asking clarifying questions this workflow already handled
+
+## Escape conditions
+
+Stop and escalate to user if:
+- The invoked skill asks for context that this workflow should have provided in Step 1 but didn't — update this workflow, don't answer the skill's question ad-hoc
+- The invoked skill's output contradicts a rule in `rules/project-rules.md` at a fundamental level (not just a review flag) — a contradictory plan is a scope/rule problem, not a planning problem
+- The invoked skill fails or returns an unusable artifact — stop; don't wing a substitute plan silently
+
+## Anti-patterns
+
+- **Skipping Step 1 because "the planner will figure it out"** — it won't; you know the project context, the planner doesn't. Always provide project bullets.
+- **Skipping Step 3 because "the planner is good"** — it is, but it's generic; Step 3 is where project-specific rigor enters.
+- **Skipping Step 4 because "the planner did AAR"** — the planner did AAR for its own rules, not yours. You still own this project's learnings.
+
+## Notes on adapting this template
+
+- Change `skills/superpowers/` to whichever skill you actually invoke.
+- Rename Step 2 to reflect what that skill does ("run security review", "generate tests", etc.).
+- Keep Steps 1, 3, 4 — those are the project-specific bookends. Only Step 2 changes.
+- If your workflow invokes multiple skills, add more Step 2s in sequence, each with a named purpose.
+
+See [`references/skill-composition.md`](../../references/skill-composition.md) for the full discussion of composition patterns and when each fits.

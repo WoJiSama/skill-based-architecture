@@ -10,6 +10,7 @@ templates/
 │   ├── SKILL.md
 │   ├── rules/{project-rules,coding-standards,agent-behavior}.md
 │   ├── workflows/{update-rules,fix-bug,maintain-docs,subagent-driven}.md
+│   ├── workflows/invoke-skill.md.example  (copy-paste template for Pattern A composition; rename and adapt)
 │   ├── references/{gotchas,behavior-failures}.md
 │   └── scripts/              → automated verification (lives inside the skill)
 │       ├── smoke-test.sh     (fully automated structural + routing checks)

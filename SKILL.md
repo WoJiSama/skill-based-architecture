@@ -88,13 +88,14 @@ These are the most costly mistakes when using this architecture. Each has caused
 | Prompts, reports, external docs | `docs/` |
 | Editor/tool-specific config | `.cursor/` / `.claude/` (thin shells) |
 
-## Multi-Skill Projects & Skill Fission
+## Multi-Skill & Composition
 
-For repos with multiple skills, coexistence rules, monorepo guidance, and when-to-split criteria, see [references/layout.md § Multi-Skill Projects](references/layout.md#multi-skill-projects).
+- **Multi-skill repos** — [references/multi-skill-routing.md](references/multi-skill-routing.md) (operating) + [references/layout.md § Multi-Skill Projects](references/layout.md#multi-skill-projects) (fission).
+- **Invoking other skills** from your workflows (embedded / serial chain / subagent delegation) — [references/skill-composition.md](references/skill-composition.md) + starter [templates/skill/workflows/invoke-skill.md.example](templates/skill/workflows/invoke-skill.md.example).
 
 ## Resources
 
-- [WORKFLOW.md](WORKFLOW.md) — Migration procedure (Quick Start + 9 phases)
-- [REFERENCE.md](REFERENCE.md) + [references/](references/) — Templates, decision guides, anti-patterns, troubleshooting (split by topic: layout / thin-shells / protocols / conventions)
+- [WORKFLOW.md](WORKFLOW.md) — Migration procedure (Quick Start + 9 phases + Downstream Upgrade)
+- [REFERENCE.md](REFERENCE.md) + [references/](references/) — Templates, decision guides, anti-patterns, troubleshooting (split by topic: layout / thin-shells / protocols / conventions / skill-composition / multi-skill-routing)
 - [TEMPLATES-GUIDE.md](TEMPLATES-GUIDE.md) — Starter templates + meta-workflow templates
-- [EXAMPLES.md](EXAMPLES.md) + [examples/](examples/) — 16 before/after scenarios, split by topic (migration / project-types / self-evolution)
+- [EXAMPLES.md](EXAMPLES.md) + [examples/](examples/) — behavior failures + before/after scenarios
