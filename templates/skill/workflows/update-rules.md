@@ -98,6 +98,7 @@ This step prevents the most common form of knowledge rot: the same lesson record
 - Ordered task step or completion check → `workflows/`
 - Task routing changed → `SKILL.md`
 - Entry routing changed → thin shells (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
+- **Session history / debug trace / chronological notes → do NOT record in the skill** — use git commit messages, `CHANGELOG.md`, or a `docs/` note outside the skill. `references/` is for reusable knowledge, not timestamped logs. Every `YYYY-MM-DD-session-notes.md` under `references/` is a sign this rule was violated.
 
 ### Recording Destination (user-initiated recording)
 

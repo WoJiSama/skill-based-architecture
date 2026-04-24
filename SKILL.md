@@ -95,7 +95,6 @@ These are the most costly mistakes when using this architecture. Each has caused
 
 ## Resources
 
-- [DEEPDIVE.md](DEEPDIVE.md) — How the two core pillars (hook system + composition framework) actually work, including limits
 - [WORKFLOW.md](WORKFLOW.md) — Migration procedure (Quick Start + 9 phases + Downstream Upgrade)
 - [REFERENCE.md](REFERENCE.md) + [references/](references/) — Templates, decision guides, anti-patterns, troubleshooting (split by topic: layout / thin-shells / protocols / conventions / skill-composition / multi-skill-routing)
 - [TEMPLATES-GUIDE.md](TEMPLATES-GUIDE.md) — Starter templates + meta-workflow templates
