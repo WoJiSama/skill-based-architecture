@@ -21,13 +21,14 @@ Threshold: if this change would cause someone to guess wrong on a similar task w
 
 ## Task Closure Protocol
 
-A task is NOT complete until all three steps are done:
+A task is NOT complete until all four steps are done:
 
 1. **Main work** — implementation done, verified, tests pass
 2. **30-second AAR scan** — run the 4-question checklist below; all "no" = stop here
 3. **Record if needed** — any "yes" → apply recording threshold → record if it passes
+4. **Cross-reference sync check** — if this task modified any file in `rules/` or `references/`, confirm the `workflows/*.md` files that link to it still describe current behavior. Run [`scripts/check-cross-references.sh`](../scripts/check-cross-references.sh) if present, or `grep -rln '<changed-file-basename>' workflows/` manually. For each hit, read the workflow's checklist and fix drift in the **same commit**. Rule edits cascade to workflows silently; this is the manual gate against misleading staleness.
 
-No workflow may declare completion without step 2. This is mandatory, not an optional add-on.
+No workflow may declare completion without step 2. Steps 3–4 fire conditionally (3 on AAR hits, 4 on rules/references edits) and are mandatory when their trigger fires.
 
 ### Rationalizations to Reject
 
@@ -43,6 +44,9 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 | "This is covered by the existing rules" | Then the scan returns "no" in 10 seconds. Faster to run it than argue about it |
 | "I already read SKILL.md for the previous task" | The new task may match a different route. Context compresses silently. Re-read costs seconds; skipping costs hours of wrong-direction work |
 | "User said 'record this' — I'll also archive the full session as YYYY-MM-DD-session-notes.md in `references/`" | "Record" means extract a **generalized, reusable lesson** into `rules/` or `references/<topic>.md`. Dated session narratives belong in `git log` / `CHANGELOG`, never in `references/`. `references/` rejects date-named narrative files — they violate the generalization rule (project-specific story, not reusable knowledge) and the activation rule (no routing path will ever read them) |
+| "I changed `rules/X.md` — workflows can be checked next task" | Cross-reference drift compounds silently. A workflow that repeats a now-wrong invariant is worse than one missing the new invariant; it actively misleads. The check takes seconds when the edit is fresh; next task, you'll forget what you changed |
+| "I'll add the activation pointer to the workflow in a follow-up commit" | Same excuse family as "workflows can be checked next task". The moment you know where the new entry belongs is *now*; after the commit lands, the routing decision evaporates. Either declare the activation path in the same commit, or skip recording entirely |
+| "The entry is so obviously useful someone will find it" | "Obvious" is survivor bias — you already know the lesson. Future agents arriving cold see only the routing table; unindexed references are invisible. Activation is navigation, not advertising |
 
 ### Red Flags — STOP if you catch yourself thinking any of these
 
@@ -114,19 +118,26 @@ For UI / interaction / layering / host-compatibility issues:
 - Long-lived team convention or preferred implementation pattern → `rules/`
 - Compatibility pitfall, debugging lesson, layering trap, or non-obvious failure mode → `references/`
 
-### Activation Check
+### Activation Check (mandatory gate)
 
-If the lesson is both **costly** and **task-relevant**, don't stop at storing it in `references/`.
+**Rule: no new `references/` entry ships without a declared activation path.**
 
-Ask:
+Before recording any new entry in `references/`, answer both:
 
-1. Would a future agent naturally read this reference during the same task type?
-2. If not, should this also change a workflow checklist, `SKILL.md` Common Tasks routing, or a concise rule summary?
+1. **Where will the next agent hit this?** Name the specific trigger — a workflow checklist line, a `SKILL.md` Common Tasks route, a thin-shell routing-table cell, or a concise rule summary. "In `references/` under the right topic" is not an answer; that is storage, not activation.
+2. **Is that trigger guaranteed to fire for the task this entry prevents?** If the task path never reads the referencing file, the entry is inert — reject recording.
 
-High-cost pitfalls are only considered fully captured when they are both:
+If no activation path exists, do one of these and re-check:
 
-- **stored** in the right formal doc, and
-- **activated** in the task path that should prevent the mistake next time
+- Add the pointer to the nearest workflow / route / rule in the **same commit** that adds the reference entry
+- Promote the entry to a `rules/` line or `workflows/` checklist item if short enough to live there directly
+- Skip recording; the lesson isn't costly enough to justify a reference file no task will read
+
+This gate applies to **every** record, not just high-cost ones. Unactivated `references/` entries inflate disk and token budget without ever being consulted — indistinguishable from not recording at all. The writer's burden is proving the entry is reachable, not arguing it is valuable.
+
+**Tier exception (Progressive Rigor):** At Folder-light tier the activation path can target a `SKILL.md` routing row or a bullet in `rules/*.md` — `workflows/` need not exist. At Single-file tier with no `rules/` either, skip recording: the lesson has not earned the upgrade pressure. The gate never forces tier escalation; it forces honesty about whether the current tier has a reachable path.
+
+**Write the "why" out loud:** in the commit body (or PR description), one sentence on why the chosen activation point is the right one ("this pitfall triggers during the auth-setup workflow, so the pointer goes in workflows/auth-setup.md § Step 3"). Not machine-verifiable — the point is that ceremonial pointers feel wrong when you have to defend them in prose. Backstop: [`scripts/audit-references.sh`](../scripts/audit-references.sh) catches orphans the gate missed.
 
 ### When NOT to Record
 
@@ -151,23 +162,12 @@ Not everything worth recording needs a full section. Choose the lightest format:
 
 Every recorded entry — bullet point, gotcha, or rule — must carry lightweight inline tags for future machine-assisted dedup and staleness scanning.
 
-**Tag format — `**[topic]**` at the start of each entry:**
-
-| Tag | Position | Purpose | Example |
-|---|---|---|---|
-| `**[topic]**` | Start of entry text | Classification / dedup clustering | `**[lifecycle]**` |
-
-**Full example:**
-
-```markdown
-- **[lifecycle]** Filter must be registered before app init; registering after causes silent drop
-```
+**Format:** `**[topic]**` at the start of every entry. Example: `- **[lifecycle]** Filter must register before app init; registering after causes silent drop`. For gotchas, the topic goes in the H2 heading: `## **[lifecycle]** Short title`.
 
 **Rules:**
 
-1. `[topic]` uses a short, reusable noun — not a sentence. Reuse existing topics when possible; check `grep -oP '\*\*\[([^\]]+)\]' references/ rules/` for the current topic list before inventing a new one.
-2. When multiple entries share the same `[topic]` in one file, check whether they are duplicates or should be merged.
-3. For gotchas, the topic goes in the H2 heading: `## **[lifecycle]** Short title`.
+1. `[topic]` is a short reusable noun, not a sentence. Reuse existing topics — check `grep -oP '\*\*\[([^\]]+)\]' references/ rules/` before inventing a new one.
+2. When multiple entries share the same `[topic]` in one file, verify they are not duplicates — merge if yes.
 
 ### Structural Placement (not "append at bottom")
 
@@ -214,6 +214,19 @@ Deprecation steps:
 4. **If unsure** → annotate with `<!-- DEPRECATED: reason, date -->` and revisit later
 5. **Update references** — if an entire file is deleted, update SKILL.md and the sync trigger table
 
+### Surfacing Deprecation Candidates
+
+Proactive scan — do not wait for "I noticed this feels stale":
+
+```bash
+bash scripts/audit-references.sh              # full inbound-link report
+bash scripts/audit-references.sh --orphans    # only zero-inbound files, exits 1 if any
+```
+
+An orphan (zero inbound links from workflows, rules, SKILL.md, or shells) is either a forgotten activation pointer or a candidate for deletion. Single-referrer files are weak links — read the referring file to confirm it's a real activation path, not a leftover mention.
+
+Run this at every major refactor or when `smoke-test.sh` flags gotchas/pitfall line bloat (default cap 400 lines; tune via `GOTCHAS_MAX_LINES` env var if the project has a principled reason). For routine tasks, the `§ Activation Check` gate should prevent orphans in the first place; this audit is the backstop for when the gate was skipped.
+
 ## Post-Update Health Check
 
 After completing rule updates, check the line count of modified files. If any exceed the healthy range, evaluate whether splitting is needed using the `maintain-docs.md` judgment process — **exceeding the threshold does not mean you must split**; a long file with a single coherent topic can stay as-is.
@@ -224,6 +237,5 @@ After completing rule updates, check the line count of modified files. If any ex
 - Entry files contain only navigation and summaries
 - Sync trigger table includes any newly discovered mappings
 - Obsolete rules have been removed or marked
-- Recording threshold was checked for every substantive task that triggered this workflow
-- If the threshold passed, the appropriate file was updated before task closure
-- If the lesson was costly and task-relevant, it was also surfaced in workflow/routing instead of living only in `references/`
+- Recording threshold checked on every substantive task; when it passed, the appropriate file was updated before closure
+- Every new `references/` entry has a declared activation path (workflow line / `SKILL.md` route / rule summary) added in the **same commit** — no orphan shipped

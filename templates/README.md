@@ -13,8 +13,10 @@ templates/
 │   ├── workflows/invoke-skill.md.example  (copy-paste template for Pattern A composition; rename and adapt)
 │   ├── references/{gotchas,behavior-failures}.md
 │   └── scripts/              → automated verification (lives inside the skill)
-│       ├── smoke-test.sh     (fully automated structural + routing checks)
-│       └── test-trigger.sh   (description trigger rate testing)
+│       ├── smoke-test.sh                (fully automated structural + routing checks)
+│       ├── test-trigger.sh              (description trigger rate testing)
+│       ├── check-cross-references.sh    (workflows → rules/references staleness heuristic)
+│       └── audit-references.sh          (orphan + low-inbound detection for rules/ and references/)
 ├── shells/                   → becomes repo-root entry files
 │   ├── AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md
 │   ├── .codex/instructions.md

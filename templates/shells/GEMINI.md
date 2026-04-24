@@ -2,7 +2,14 @@
 
 Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
 
-## Always Read (every task, in addition to route-specific reads)
+<!-- The <always-applicable> and <task-routing> XML tags below are load-bearing.
+     Rationale: LLMs parse XML-tag blocks as discrete hard-constraint sections
+     more reliably than plain markdown headings, especially after context
+     compression. See skill's references/thin-shells.md § XML-Tag Injection. -->
+
+<always-applicable>
+
+**Always Read (every task, in addition to route-specific reads)**
 
 - `skills/{{NAME}}/rules/project-rules.md`
 - `skills/{{NAME}}/rules/coding-standards.md`
@@ -10,9 +17,13 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 
 **Route-before-routing check**: if the request contains vague improvement verbs ("refactor / clean up / optimize / make it better / 整理 / 重构 / 优化") **without** a concrete module/file or verifiable outcome → stop and ask for scope. Do not offer partial plans; see `skills/{{NAME}}/protocol-blocks/ambiguous-request-gate.md` if present.
 
+</always-applicable>
+
 The table below lists **additional** reads per task type.
 
-## Quick Routing (survives context truncation)
+<task-routing>
+
+**Quick Routing (survives context truncation)**
 
 | Task | Required reads | Workflow |
 |------|---------------|----------|
@@ -20,6 +31,8 @@ The table below lists **additional** reads per task type.
 | Multi-subtask / long run (≥ 3 independent subtasks) | `rules/project-rules.md` | `workflows/subagent-driven.md` |
 | <!-- FILL: task --> | <!-- FILL: `rules/<x>.md` --> | <!-- FILL: `workflows/<y>.md` --> |
 | Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+
+</task-routing>
 
 ## Auto-Triggers
 

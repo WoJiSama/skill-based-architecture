@@ -131,6 +131,46 @@ Rule of thumb:
 
 Do not copy the full official spec into project docs. Link to the canonical source when helpful, and keep local docs focused on project structure and task routing.
 
+## Progressive Rigor
+
+Not every skill needs the full `skills/<name>/` tree. Start at the smallest tier that fits the current scope, and upgrade only when a concrete pressure fires. This borrows from OpenSpec's "Most changes should stay in Lite mode" discipline — default to the cheapest structure that works, because over-structuring a small skill adds maintenance cost with no compression-survival benefit.
+
+### The three tiers
+
+| Tier | Layout | Use when | Typical SKILL.md size |
+|---|---|---|---|
+| **Single-file** | `SKILL.md` only (official minimum) | < 3 topics, no task routing needed, no lesson-capture history | ≤ 60 lines |
+| **Folder-light** | `skills/<name>/SKILL.md` + `rules/` | 3–5 topics, OR 1 recurring workflow that needs step-by-step instructions, OR a growing list of project conventions | 60–100 lines, `rules/` adds 1–3 files |
+| **Full** | `skills/<name>/{SKILL,rules,workflows,references}/` + thin shells + Cursor registration entry | ≥ 3 routed task types, gotcha log needs a home, multi-harness repo (Cursor + Claude + Codex + Gemini), or lessons-learned across multiple sessions | Close to 100 lines, multiple files per subdir |
+
+### Upgrade triggers
+
+Add structure when **any** of these fires, not before:
+
+1. **Line pressure** — `SKILL.md` crosses 100 lines despite compression attempts. Move content to a sub-file in the next tier down (e.g. workflows go to `workflows/` once you have 2+).
+2. **Recurrence pressure** — the same pitfall is recorded in Common Pitfalls twice, or the same question gets asked by the agent twice in different sessions. Promote it to `references/gotchas.md` with a dedicated section.
+3. **Procedure pressure** — you catch yourself writing "how to do X in steps" inside a rule file. Steps belong in `workflows/`, not `rules/`. Create the `workflows/` directory.
+4. **Harness-sharing pressure** — two harness entries (e.g. `AGENTS.md` and `CLAUDE.md`) need the same routing table, or you're manually keeping them in sync. Split the routing into a single canonical `SKILL.md` with thin shells pointing at it.
+5. **Cross-session lesson pressure** — you want a lesson from today to persist into a `/clear`-fresh session next week. A single-file skill with no `references/` has no durable place for it.
+
+**Downgrade is also fine.** If a skill lost a domain or shed complexity, collapse back. Structure serves the content, not the other way around. Empty `workflows/` or `references/` directories are a smell.
+
+### Why this matters
+
+Over-structuring a small skill:
+
+- Adds 5–10 files the user must open and keep up to date
+- Pushes simple "always do X" rules into `rules/` folders, then forces thin shells to point at them
+- Creates false invariants (thin shells claim the skill routes tasks, when the skill has one task)
+
+Under-structuring a growing skill:
+
+- Grows SKILL.md past 100 lines, defeating Principle 1
+- Mixes rules and workflows in one file, defeating Principle 3
+- Loses routing discipline, forcing the agent to read the whole file for every task
+
+The tier table above is the concrete decision gate. Re-evaluate on each significant skill revision, not on every edit.
+
 ## Positioning: Prompt / Context / Harness
 
 Agent reliability lives on three layers. This skill is **not** a silver bullet — it acts on the second and a slice of the third.

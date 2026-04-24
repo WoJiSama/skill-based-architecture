@@ -13,9 +13,7 @@ description: >
 
 # Skill-Based Architecture
 
-Restructure oversized single-file Skills or scattered project rules into a well-organized Skill directory.
-
-This skill builds on the official minimal Agent Skill contract (`name` + `description`) and becomes useful when a single small `SKILL.md` is no longer enough.
+Restructure oversized single-file Skills or scattered project rules into a well-organized Skill directory. Builds on the official minimal Agent Skill contract (`name` + `description`) and kicks in when a single small `SKILL.md` is no longer enough.
 
 ## When to Use
 
@@ -28,6 +26,10 @@ This skill builds on the official minimal Agent Skill contract (`name` + `descri
 - Very small projects (fewer than 3 rule/doc files)
 - Temporary repos with no long-term maintenance needs
 - Teams with a well-functioning documentation system who don't want to migrate
+
+## Progressive Rigor
+
+Grow only under pressure. Tiers: **Single-file** (`SKILL.md` only, < 3 topics) → **Folder-light** (`+ rules/`, 3–5 topics or 1 recurring workflow) → **Full** (`+ workflows/` + `references/` + thin shells; ≥ 3 routed tasks, gotcha log, or multi-harness repo). Upgrade triggers: SKILL.md > 100 lines, same pitfall surfaces twice, a task needs step-by-step instructions, or two harnesses share routing. Downgrade when content shrinks. Details: [references/layout.md § Progressive Rigor](references/layout.md#progressive-rigor).
 
 ## Target Structure
 
@@ -51,22 +53,18 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 3. **Rules ≠ Flows** — `rules/` for constraints, `workflows/` for procedures. ✓ Check: any numbered steps in `rules/`? Any "always/never" in `workflows/`? Either = mixing.
 4. **Thin shells with inline routing** — every harness entry embeds a routing table (task → reads → workflow). ✓ Check: open any shell — 3-column table within first 40 lines? No → soft pointer.
 5. **Cursor registration entry** — `.cursor/skills/<name>/SKILL.md` must exist. ✓ Check: `ls .cursor/skills/` — missing = Cursor cannot discover the skill.
-6. **Official minimum, local structure** — `name` + `description` is the official contract; this skill adds structure only when that stops being enough. ✓ Check: if your skill has < 3 topics, no task routing, and no lesson-capture need, a single-file skill already satisfies the official contract — don't add folders yet.
+6. **Progressive Rigor** — three tiers (Single-file / Folder-light / Full); grow only under pressure — see [Progressive Rigor section above](#progressive-rigor) + [details](references/layout.md#progressive-rigor). ✓ Check: can you name the specific pressure that forced the current tier? "It felt right" ≠ pressure.
 7. **Description = trigger condition** — write description with explicit quoted phrases, not passive summary ([ref](references/layout.md#description-as-trigger-condition)). ✓ Check: ≥ 2 quoted phrases + "Activate when…"? No → rewrite.
 8. **Gotchas are highest-value** — maintain costly pitfalls actively; keep them discoverable. ✓ Check: is each high-cost gotcha reachable from a Common Tasks route, not only buried in `references/`?
 9. **Progressive disclosure** — SKILL.md links one level deep; deep content pulled only when task-routed. ✓ Check: open SKILL.md and follow every link — does any target file link further to a third level that should have been reachable from SKILL.md directly? If yes, SKILL.md is hiding its routing structure.
-10. **Task Closure Protocol** — AAR is part of completion, not optional ([ref](TEMPLATES-GUIDE.md#task-closure-protocol)). ✓ Check: all 4 AAR questions answered before marking done? Skipped "nothing to record" genuinely true?
+10. **Task Closure Protocol** — AAR is part of completion, not optional ([ref](TEMPLATES-GUIDE.md#task-closure-protocol)); "behavior change" covers interaction, schema/renderer, styling, overlay/z-index, and host-compat too, not only business logic or data flow. ✓ Check: all 4 AAR questions answered before marking done? Skipped "nothing to record" genuinely true?
 11. **Generalization rule** — records must make sense outside current project context ([ref](TEMPLATES-GUIDE.md#generalization-rule)). ✓ Check: replace project name with a different one — still makes sense? No → rewrite as pattern.
 12. **Self-maintenance** — line counts signal evaluation, not automatic action. ✓ Check before splitting: topics independently navigable? Reader ever wants only one part? Both yes → split.
 13. **Activation over storage** — pitfall in `references/` alone is not "captured"; must also be on the task path. ✓ Check: trace normal route for this scenario — Agent hits the entry without hunting? No → stored, not activated.
 14. **Token efficiency** — Always-read stays 2–3 files; domain files via Common Tasks only. ✓ Check: Always Read > 3 entries? Demote lowest-frequency.
 15. **Rationalizations Table** — captures verbatim excuses from real pressure-test failures ([ref](TEMPLATES-GUIDE.md#rationalizations-to-reject), [Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)). ✓ Check: every row traces to a real failure — speculative rows dilute pressure value; remove them.
 
-**Behavior change** includes interaction, schema/renderer, styling, overlay/z-index, and host-compatibility changes — not just business logic or data flow.
-
 ## Common Pitfalls
-
-These are the most costly mistakes when using this architecture. Each has caused real failures:
 
 1. **Missing Cursor registration entry** — Formal skill at `skills/<name>/` but no `.cursor/skills/<name>/SKILL.md` → Cursor never discovers the skill; all rules/workflows silently ignored
 2. **Soft-pointer-only shell** — Thin shell says "go read SKILL.md" without an inline routing table → instruction lost after context summarization in long conversations

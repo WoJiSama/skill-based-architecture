@@ -14,7 +14,9 @@
 #   1. Structural Checks          — SKILL.md, rules/, workflows/, gotchas,
 #                                   Cursor registration entry, thin shells exist
 #   2. Line Count Budgets         — SKILL.md ≤ 100 lines, shells ≤ 60 lines,
-#                                   individual rule/workflow files within range
+#                                   gotchas/pitfall ≤ $GOTCHAS_MAX_LINES (default 400),
+#                                   Common Tasks ≤ $COMMON_TASKS_MAX_ROWS rows
+#                                   (default 10) — both env-overridable
 #   3. Placeholder Residue        — no {{NAME}} / {{SUMMARY}} leftover;
 #                                   no unreplaced <!-- FILL: --> markers
 #   4. SKILL.md Content Quality   — description ≥ 20 words, ≥ 2 quoted trigger
@@ -34,6 +36,14 @@
 # --phase N runs the subset of checks relevant to WORKFLOW.md Phase N. See
 # `WORKFLOW.md § Resuming From a Failed Phase` for the phase→section mapping.
 # Without --phase, all sections run (equivalent to Phase 8 full verify).
+#
+# ── Configurable thresholds ───────────────────────────────────────────
+# Defaults are opinionated but adjustable per-project via env. Raise only with
+# a principled reason; these caps exist to force fission/pruning rather than
+# unbounded growth. Example override:
+#     GOTCHAS_MAX_LINES=600 COMMON_TASKS_MAX_ROWS=12 bash smoke-test.sh my-skill
+GOTCHAS_MAX_LINES="${GOTCHAS_MAX_LINES:-400}"
+COMMON_TASKS_MAX_ROWS="${COMMON_TASKS_MAX_ROWS:-10}"
 
 set -euo pipefail
 
@@ -233,6 +243,38 @@ for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
   check_lines "$shell" 60 "$shell (thin shell)"
 done
 check_lines "$CURSOR_ENTRY" 60 "Cursor entry"
+
+# 2a. gotchas / pitfall files — runaway growth is the #1 disk-size failure mode.
+# Default threshold $GOTCHAS_MAX_LINES = "split into topic-specific pitfall files
+# or deprecate stale entries". A fresh migration has a near-empty gotchas.md
+# (well under the cap); this fails only after accumulation without pruning. See
+# workflows/update-rules.md § Rule Deprecation and scripts/audit-references.sh.
+for gotcha_file in "$SKILL_DIR/references"/*gotcha*.md "$SKILL_DIR/references"/*pitfall*.md; do
+  [[ -f "$gotcha_file" ]] || continue
+  check_lines "$gotcha_file" "$GOTCHAS_MAX_LINES" "$(basename "$gotcha_file") (pitfall log)"
+done
+
+# 2b. Common Tasks row count — per-task routing efficiency, not disk size.
+# Each routing row imposes cognitive cost at task-match time. > $COMMON_TASKS_MAX_ROWS
+# means the skill is doing too many things; candidate for fission (see
+# references/layout.md § Multi-Skill Projects).
+if [[ -f "$SKILL_MD" ]]; then
+  TABLE_LINES=$(awk '
+    /^## (Common Tasks|常见任务)/ { in_ct=1; next }
+    in_ct && /^## / { exit }
+    in_ct && /^\|/ { count++ }
+    END { print count+0 }
+  ' "$SKILL_MD")
+  # Subtract header + separator rows (2), floor at 0
+  CT_ROWS=$((TABLE_LINES > 2 ? TABLE_LINES - 2 : 0))
+  if [[ "$CT_ROWS" -eq 0 ]]; then
+    warn "Common Tasks routing table appears empty or non-standard format"
+  elif [[ "$CT_ROWS" -le "$COMMON_TASKS_MAX_ROWS" ]]; then
+    pass "Common Tasks: $CT_ROWS routing rows (≤ $COMMON_TASKS_MAX_ROWS)"
+  else
+    fail "Common Tasks: $CT_ROWS routing rows (exceeds $COMMON_TASKS_MAX_ROWS — evaluate fission or row consolidation)"
+  fi
+fi
 
 fi  # end section 2
 
