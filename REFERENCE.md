@@ -8,6 +8,7 @@ Look up what you need, not everything:
 
 - **Laying out a new skill?** → [`references/layout.md`](references/layout.md)
 - **Writing or debugging thin shells (AGENTS.md, CLAUDE.md, etc.)?** → [`references/thin-shells.md`](references/thin-shells.md)
+- **Updating this repo's self-hosting shell routes?** → [`references/self-hosting-routing.md`](references/self-hosting-routing.md), then run `bash scripts/sync-self-routing.sh` + `bash scripts/check-self-routing.sh`
 - **Designing Task Closure Protocol, recording lessons, or activation verification?** → [`references/protocols.md`](references/protocols.md)
 - **Picking rule file sets, navigating anti-patterns, troubleshooting, file size budgets?** → [`references/conventions.md`](references/conventions.md)
 

@@ -229,12 +229,14 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 
 然后逐个填写 `<!-- FILL: -->` 标记（用 `grep -rn 'FILL:' skills/$NAME` 列出全部）。每一处 FILL 都是必填项——留空会导致技能激活静默失败。
 
+在填写项目特定内容前，Agent 应先询问你是否要围绕目标项目的用途、模块、常见任务、边界和已知坑点进行头脑风暴。如果你同意，Agent 必须先头脑风暴，再复述一份校准后的项目总结让你纠正，然后再用本地代码和配置验证这些反馈，最后才写入 `rules/`、`workflows/`、`references/` 或 `SKILL.md`。用户反馈用于校准分析；能否进入规则或工作流，取决于本地证据是否确认。
+
 ### 预制模板目录
 
 [`templates/`](templates/) 是脚手架内容的唯一权威来源：
 
 - `templates/skill/` → 复制为 `skills/<name>/`（SKILL.md、规则 stub、工作流正文、空的 gotchas 种子）
-- `templates/skill/scripts/` → `smoke-test.sh`（48 项自动化核查）+ `test-trigger.sh`（description 触发率测试）—— 脚手架步骤自动复制到 `skills/<name>/scripts/`
+- `templates/skill/scripts/` → `smoke-test.sh`（约 50 项自动化核查）+ `test-trigger.sh`（description 触发率测试）—— 脚手架步骤自动复制到 `skills/<name>/scripts/`
 - `templates/shells/` → 所有 harness 的薄壳（AGENTS、CLAUDE、CODEX、GEMINI、`.codex/`、`.cursor/`）
 - `templates/hooks/` → 可选的 `SessionStart` hook，在 `/clear` 和 `/compact` 时重新注入 SKILL.md
 - `templates/protocol-blocks/` → Task Closure Protocol 强化块（Rationalizations 表、Red Flags、Iron Law 标题）
@@ -264,7 +266,7 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 | **5. 提取工作流** | 创建专用工作流文件 + 必需的元工作流 |
 | **6. 提取引用** | 架构概述、坑点、索引移入 `references/` |
 | **7. 创建入口** | Cursor 注册入口 + 所有工具的薄壳（含内联路由表） |
-| **8. 验证** | 运行自动化 `smoke-test.sh`（48 项核查）—— 结构、路由、占位符、激活、description 质量 |
+| **8. 验证** | 运行自动化 `smoke-test.sh`（约 50 项核查）—— 结构、路由、占位符、激活、description 质量 |
 | **9. 压力测试** | 向子 agent 施加时间/沉没成本/权威压力，将逐字合理化借口折叠入 Rationalizations 表 |
 
 支持增量迁移 —— 分轮次迁移，不阻塞日常工作。
@@ -351,7 +353,7 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 | v1.9 | 官方最小模板对齐、最小起步模板、边界示例 |
 | v1.10 | 行为变更闭环、UI/交互/z-index 触发器、AAR 遗漏示例 |
 | v1.11 | Task Closure Protocol、记录泛化规则、薄壳模板 DRY |
-| v1.12 | 会话纪律（同一会话每个新任务必须重读 SKILL.md）；自动化 `smoke-test.sh`（48 项）+ `test-trigger.sh` 放入 `templates/skill/scripts/`；迁移工作流新增第 9 阶段压力测试 |
+| v1.12 | 会话纪律（同一会话每个新任务必须重读 SKILL.md）；自动化 `smoke-test.sh`（约 50 项）+ `test-trigger.sh` 放入 `templates/skill/scripts/`；迁移工作流新增第 9 阶段压力测试 |
 
 ---
 

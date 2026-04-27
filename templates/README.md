@@ -9,7 +9,7 @@ templates/
 ├── skill/                    → becomes skills/{{NAME}}/
 │   ├── SKILL.md
 │   ├── rules/{project-rules,coding-standards,agent-behavior}.md
-│   ├── workflows/{update-rules,fix-bug,maintain-docs,subagent-driven}.md
+│   ├── workflows/{update-rules,fix-bug,change-managed,edit-templates,maintain-docs,subagent-driven}.md
 │   ├── workflows/invoke-skill.md.example  (copy-paste template for Pattern A composition; rename and adapt)
 │   ├── references/{gotchas,behavior-failures}.md
 │   └── scripts/              → automated verification (lives inside the skill)
@@ -65,7 +65,7 @@ Two kinds — each with a different "fill" mechanism:
 | `skill/rules/agent-behavior.md` | ≤ 100 lines, fully pre-filled | Universal coding defaults. Exception to the stub-only rule — ships as content. **Growth gated** by `ANTI-TEMPLATES.md § Admission Threshold` (convention-level, ~30% hostile-prompt block rate). For mechanism-level enforcement install `templates/hooks/agent-behavior-gate.sh` — blocks 100% of tested attack classes deterministically |
 | `hooks/agent-behavior-gate.sh` | ≤ 150 lines | PreToolUse gate script. False-positive mitigations (shrinking/typo-tolerance paths) live in-script; see `hooks/README.md` |
 | `hooks/README.md` | ≤ 150 lines | Per-hook rollout guidance; allowed larger because it documents optional installs + tuning |
-| `skill/workflows/fix-bug.md` (and other task-specific) | ≤ 80 lines | Project-specific workflows stay lean |
+| `skill/workflows/fix-bug.md`, `change-managed.md`, `edit-templates.md` | ≤ 100 lines | Task-specific workflows stay lean |
 | `skill/workflows/update-rules.md`, `maintain-docs.md`, `subagent-driven.md` | ≤ 250 lines | Protocol-heavy workflows allowed more room |
 | `protocol-blocks/*` | ≤ 40 lines each | One idea per block |
 | `skill/SKILL.md` | ≤ 60 lines | Same ≤ 100 line rule as downstream SKILL.md minus the filled content |

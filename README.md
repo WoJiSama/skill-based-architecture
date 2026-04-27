@@ -302,12 +302,14 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 
 Then fill every `<!-- FILL: -->` marker (list them with `grep -rn 'FILL:' skills/$NAME`). Each FILL is mandatory — leaving them unresolved causes silent skill-activation failures.
 
+Before filling project-specific content, the agent should ask whether you want to brainstorm the target project's purpose, modules, common tasks, boundaries, and known pitfalls. If you agree, it must brainstorm first, restate the calibrated summary for your correction, then verify the feedback against local code/config before writing `rules/`, `workflows/`, `references/`, or `SKILL.md`. User feedback calibrates the analysis; confirmed local evidence decides what becomes a rule or workflow.
+
 ### Pre-built Templates
 
 The [`templates/`](templates/) directory is the single source of truth for scaffold content:
 
 - `templates/skill/` → becomes `skills/<name>/` (SKILL.md, rules stubs, workflow bodies, empty gotchas seed)
-- `templates/skill/scripts/` → `smoke-test.sh` (48-check automated verifier) + `test-trigger.sh` (description trigger rate tester) — auto-copied into `skills/<name>/scripts/` by the scaffold step
+- `templates/skill/scripts/` → `smoke-test.sh` (roughly 50-check automated verifier) + `test-trigger.sh` (description trigger rate tester) — auto-copied into `skills/<name>/scripts/` by the scaffold step
 - `templates/shells/` → thin shells for every harness (AGENTS, CLAUDE, CODEX, GEMINI, `.codex/`, `.cursor/`)
 - `templates/hooks/` → optional `SessionStart` hook that re-injects SKILL.md on `/clear` and `/compact`
 - `templates/protocol-blocks/` → drop-in Task Closure Protocol reinforcement (Rationalizations table, Red Flags, Iron Law header)
@@ -337,7 +339,7 @@ Copy these instead of asking the agent to regenerate files inline — inline gen
 | **5. Extract Workflows** | Create dedicated workflow files + required meta-workflows (update-rules, maintain-docs) |
 | **6. Extract References** | Move architecture overviews, gotchas, source indexes into `references/` |
 | **7. Create Entry Points** | Cursor registration entry + thin shells for all tools with inline routing tables |
-| **8. Verify** | Run automated `smoke-test.sh` (48 checks) — structural, routing, placeholder, activation, and description quality |
+| **8. Verify** | Run automated `smoke-test.sh` (roughly 50 checks) — structural, routing, placeholder, activation, and description quality |
 | **9. Pressure-Test** | Dispatch subagents under time/sunk-cost/authority stressors; fold verbatim rationalizations into the Rationalizations table |
 
 Incremental migration is supported — migrate in rounds without blocking daily work.
@@ -549,7 +551,7 @@ Current: **v1.12**
 | v1.9 | Official minimal template alignment, minimal starter template, boundary examples |
 | v1.10 | Behavior-change closure loops, UI/interaction/z-index triggers, AAR miss examples |
 | v1.11 | Task Closure Protocol, generalization rule for records, thin shell template DRY |
-| v1.12 | Session Discipline (re-read SKILL.md for every new task in same session); automated `smoke-test.sh` (48 checks) + `test-trigger.sh` inside `templates/skill/scripts/`; Phase 9 pressure-test added to migration workflow |
+| v1.12 | Session Discipline (re-read SKILL.md for every new task in same session); automated `smoke-test.sh` (roughly 50 checks) + `test-trigger.sh` inside `templates/skill/scripts/`; Phase 9 pressure-test added to migration workflow |
 
 ---
 
@@ -583,4 +585,3 @@ The recording threshold (2/3: repeatable + costly + not obvious) filters out low
    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&legend=top-left" />
  </picture>
 </a>
-

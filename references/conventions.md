@@ -122,7 +122,7 @@ Common symptoms and their fixes:
 
 ## File Size Guidelines
 
-See [TEMPLATES-GUIDE.md § maintain-docs.md](TEMPLATES-GUIDE.md#maintain-docsmd-template) for the authoritative table with health ranges, evaluation triggers, and merge signals. Key principle: line counts are **reference values**, not hard limits — always evaluate topic separability before acting.
+See [TEMPLATES-GUIDE.md § maintain-docs.md](../TEMPLATES-GUIDE.md#maintain-docsmd-template) for the authoritative table with health ranges, evaluation triggers, and merge signals. Key principle: line counts are **reference values**, not hard limits — always evaluate topic separability before acting.
 
 ## Naming Conventions
 

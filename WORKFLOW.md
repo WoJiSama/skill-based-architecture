@@ -62,6 +62,14 @@ echo "If this step crashes, see § Resuming From a Failed Phase — do NOT rerun
 
 **Why copy instead of generate?** Inline heredoc generation lost sections under pressure (Auto-Triggers dropped, routing tables mangled, description field left as trigger-phrase-less boilerplate). The `templates/` tree is the single source of truth — see [`templates/README.md`](templates/README.md) for byte budgets, placeholder conventions, and the "would two real projects disagree?" admission test.
 
+**Step 1.5 — User brainstorm calibration gate.** Before reading code to summarize the target project or filling any `<!-- FILL: -->` marker, ask the user whether they want to brainstorm the target project's purpose, modules, common tasks, boundaries, and known pitfalls.
+
+- If the user says yes / "没问题" / otherwise agrees: **do not read code yet**. First run the brainstorm, restate a short calibrated summary, and ask the user to correct or confirm it.
+- Treat user feedback as **calibration input**, not verified fact. Use it to check whether your initial summary is aligned, then read local code/config to verify it.
+- After the brainstorm feedback, inspect real evidence (README, build files, CI, entry points, configs, module layout, tests) and classify conclusions as `Confirmed`, `Inferred`, or `Unknown`.
+- Only then write project content into `rules/`, `workflows/`, `references/`, and `SKILL.md`. `rules/` and procedural `workflows/` must come from confirmed evidence, not brainstorm-only claims.
+- If the user declines brainstorming or explicitly asks to skip it, proceed with code-first evidence scanning and mark unclear conclusions as `Unknown` instead of guessing.
+
 **Step 2 — Fill content.** Two kinds of placeholders, two different mechanisms:
 
 | Marker | How to fill |
@@ -99,6 +107,13 @@ For complex migrations (large projects, heavily scattered rules), follow the ful
 
 ## Phase 1: Audit
 
+Start with the **User brainstorm calibration gate** from Quick Start Step 1.5. This gate runs before code reading and before writing any project summary:
+
+1. Ask whether the user wants to brainstorm the target project's purpose, modules, common tasks, boundaries, and known pitfalls.
+2. If the user agrees, brainstorm first, then restate the calibrated summary and ask for corrections.
+3. Treat the user's feedback as hypotheses to verify against local evidence.
+4. Only after that feedback loop, read code/config and classify conclusions as `Confirmed`, `Inferred`, or `Unknown`.
+
 Read and inventory all existing rule sources:
 
 - `SKILL.md` (if exists)
@@ -124,7 +139,7 @@ Plan the file set based on project size:
 
 - **Minimal single-file starter** — one small `SKILL.md`, no extra directories yet; best when the skill is still short and self-contained
 - **Minimum viable set** (small projects): `rules/project-rules.md`, `workflows/update-rules.md` — start here and add files only when content justifies a separate file
-- **Typical set** (most projects): add `rules/coding-standards.md`, `workflows/fix-bug.md`, `workflows/maintain-docs.md`, `references/architecture.md`
+- **Typical set** (most projects): add `rules/coding-standards.md`, `workflows/fix-bug.md`, `workflows/change-managed.md`, `workflows/edit-templates.md`, `workflows/maintain-docs.md`, `references/architecture.md`
 - **Add domain files** as needed: `frontend-rules.md`, `backend-rules.md`, `add-page.md`, `add-controller.md`, etc.
 - **Fullstack / multi-domain**: combine; consider separate skills if domains diverge significantly
 
@@ -367,7 +382,7 @@ Each phase has a deterministic artifact. Passing the signature means the phase i
 |---|---|
 | 3 | `test -f skills/$NAME/SKILL.md && [ $(wc -l < skills/$NAME/SKILL.md) -le 100 ]` |
 | 4 | `test -f skills/$NAME/rules/project-rules.md && test -f skills/$NAME/rules/coding-standards.md` |
-| 5 | `test -f skills/$NAME/workflows/update-rules.md && test -f skills/$NAME/workflows/fix-bug.md` |
+| 5 | `test -f skills/$NAME/workflows/update-rules.md && test -f skills/$NAME/workflows/fix-bug.md && test -f skills/$NAME/workflows/change-managed.md && test -f skills/$NAME/workflows/edit-templates.md` |
 | 6 | `test -f skills/$NAME/references/gotchas.md` |
 | 7 | `test -f .cursor/skills/$NAME/SKILL.md && test -f AGENTS.md && test -f CLAUDE.md && test -f CODEX.md && test -f GEMINI.md` |
 | 7 (no placeholder residue) | `! grep -rn '{{NAME}}\|{{SUMMARY}}' skills/$NAME AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor` |
@@ -416,7 +431,7 @@ else
   START=0
   test -f "skills/$NAME/SKILL.md" && [ $(wc -l < "skills/$NAME/SKILL.md") -le 100 ] && START=3
   test -f "skills/$NAME/rules/coding-standards.md" && START=4
-  test -f "skills/$NAME/workflows/fix-bug.md" && START=5
+  test -f "skills/$NAME/workflows/fix-bug.md" && test -f "skills/$NAME/workflows/change-managed.md" && test -f "skills/$NAME/workflows/edit-templates.md" && START=5
   test -f "skills/$NAME/references/gotchas.md" && START=6
   test -f ".cursor/skills/$NAME/SKILL.md" && test -f GEMINI.md && START=7
   bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" >/dev/null 2>&1 && START=8

@@ -52,6 +52,8 @@ Each entry lists the exact files to read — don't read files not listed for you
      Rule: use real file paths the project will actually have.
      Do NOT use angle-bracket placeholders like `rules/<x>.md` — they fool the smoke-test. -->
 - Fix bug → read task-relevant `rules/*.md` + follow `workflows/fix-bug.md`; ref: `references/gotchas.md`
+- Add / refactor / optimize non-bug behavior → read task-relevant `rules/*.md` + follow `workflows/change-managed.md`
+- Edit templates / scaffolds / copied shells / hooks → read `rules/project-rules.md` + follow `workflows/edit-templates.md`
 - Multi-subtask / long autonomous run (≥ 3 independent subtasks) → follow `workflows/subagent-driven.md`
 - **Other / unlisted task** → read `rules/project-rules.md` + `rules/coding-standards.md`, then match by workflow filename (verb-noun: `add-page.md`, `fix-bug.md`, etc.). If no match, proceed with Always Read rules.
 

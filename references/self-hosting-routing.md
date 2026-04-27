@@ -1,12 +1,6 @@
----
-description: Compatibility shell — routes tasks to skill-based-architecture's self-hosted SKILL.md at repo root.
-globs: ["**/*"]
-alwaysApply: true
----
+# Self-Hosting Routing Block
 
-# Cursor Workflow Rule
-
-This repo is the **skill-based-architecture** meta-skill itself. Formal docs live at repo root. Read [SKILL.md](../../SKILL.md) first — it is the router.
+This file is the canonical source for the root thin-shell routing block in this self-hosting repository. Edit this file first, then run `bash scripts/sync-self-routing.sh`.
 
 <!-- SELF_ROUTING_BLOCK_START -->
 ## Quick Routing (survives context truncation)
@@ -23,15 +17,21 @@ This repo is the **skill-based-architecture** meta-skill itself. Formal docs liv
 | Other | `SKILL.md` | Scan `WORKFLOW.md` for closest phase |
 <!-- SELF_ROUTING_BLOCK_END -->
 
-## Auto-Triggers
+## Sync Targets
 
-- **New task in same session** → re-read `SKILL.md`, re-match the route above, re-read all required files.
-- Before declaring any non-trivial task complete → run Task Closure Protocol (see `templates/skill/workflows/update-rules.md` § Task Closure Protocol + § Rationalizations to Reject)
-- Skip only for: formatting-only, comment-only, dependency-version-only, behavior-preserving refactors
-- When adding to `templates/` → apply the "would two real projects disagree?" admission test (`templates/ANTI-TEMPLATES.md`)
+- `AGENTS.md`
+- `CLAUDE.md`
+- `CODEX.md`
+- `GEMINI.md`
+- `.codex/instructions.md`
+- `.cursor/rules/workflow.mdc`
+- `.cursor/skills/skill-based-architecture/SKILL.md`
 
-## Red Flags — STOP
+## Update Protocol
 
-- "Just this once I'll skip the AAR" → stop.
-- "I'll inline this in SKILL.md instead of linking a reference" → stop. SKILL.md stays ≤ 100 lines; content goes to `references/` or `templates/`.
-- "Let me pre-fill a gotchas example so the template feels complete" → stop. `templates/ANTI-TEMPLATES.md` forbids project-specific content in templates.
+1. Edit the block between `SELF_ROUTING_BLOCK_START` and `SELF_ROUTING_BLOCK_END` above.
+2. Run `bash scripts/sync-self-routing.sh`.
+3. Run `bash scripts/check-self-routing.sh`.
+4. Run the relevant smoke or syntax checks before closing the task.
+
+Do not hand-edit copied Quick Routing tables in target files. Local text before or after the generated block may remain harness-specific.

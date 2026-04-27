@@ -3,7 +3,7 @@
 
 ## Meta-Workflow Templates
 
-See [TEMPLATES-GUIDE.md](TEMPLATES-GUIDE.md) for the full `update-rules.md` and `maintain-docs.md` templates that every project should include. These cover rule sync, after-action review, recording thresholds, rule deprecation, file health checks, and split/merge procedures.
+See [TEMPLATES-GUIDE.md](../TEMPLATES-GUIDE.md) for the full `update-rules.md` and `maintain-docs.md` templates that every project should include. These cover rule sync, after-action review, recording thresholds, rule deprecation, file health checks, and split/merge procedures.
 
 ## Task Closure Protocol
 
@@ -12,8 +12,12 @@ A task is NOT complete until these steps are done:
 1. Main work done and verified
 2. 30-second AAR scan (all "no" = stop here)
 3. If any "yes" → apply recording threshold → apply generalization rule → record if it passes
+4. **Path integrity gate** — if any `.md` was touched, both must pass before commit from the project repo root unless noted:
+   - `bash "skills/<skill-name>/scripts/smoke-test.sh" "<skill-name>" --phase 8` (broken-link + structural checks)
+   - `(cd "skills/<skill-name>" && bash scripts/audit-references.sh --orphans)` (orphan inbound check; runs from skill root)
+5. If `rules/`/`references/` *meaning* changed, grep `workflows/` for stale reproductions and fix in same commit
 
-No workflow may skip step 2. See [TEMPLATES-GUIDE.md § Task Closure Protocol](TEMPLATES-GUIDE.md#task-closure-protocol) for the full template.
+No workflow may skip step 2. Steps 3–5 fire conditionally and are mandatory when their trigger fires. See [TEMPLATES-GUIDE.md § Task Closure Protocol](../TEMPLATES-GUIDE.md#task-closure-protocol) for the full template.
 
 ### AAR Scan Questions
 
@@ -79,7 +83,7 @@ Records must be reusable knowledge, not project-specific narratives. Before writ
 
 Pattern: `specific finding → abstract as general pattern → state consequence of not following it`
 
-See [TEMPLATES-GUIDE.md § Generalization Rule](TEMPLATES-GUIDE.md#generalization-rule) for examples of good vs bad records.
+See [TEMPLATES-GUIDE.md § Generalization Rule](../TEMPLATES-GUIDE.md#generalization-rule) for examples of good vs bad records.
 
 ## When References Alone Are Not Enough
 
@@ -126,4 +130,3 @@ Verify that `SKILL.md` Common Tasks covers the project's actual task distributio
 1. List the 5–10 most common task types in the project
 2. For each, confirm Common Tasks has a matching entry with correct file routing
 3. If a common task is missing, add it — uncovered tasks fall through to the generic "Other" route and may miss important rules/references
-

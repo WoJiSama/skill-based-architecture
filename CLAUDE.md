@@ -2,6 +2,7 @@
 
 This repo is the **skill-based-architecture** meta-skill itself. Formal docs live at the repo root (self-hosting layout, see [references/layout.md](references/layout.md)). Read [SKILL.md](SKILL.md) first — it is the router.
 
+<!-- SELF_ROUTING_BLOCK_START -->
 ## Quick Routing (survives context truncation)
 
 | Task | Required reads | Workflow |
@@ -14,6 +15,7 @@ This repo is the **skill-based-architecture** meta-skill itself. Formal docs liv
 | Fix a bug in scripts or templates | `SKILL.md` + `templates/skill/scripts/smoke-test.sh` | Run smoke-test before and after |
 | Multi-subtask / long autonomous run (≥ 3 independent subtasks) | `SKILL.md` | Dispatch via `templates/protocol-blocks/subagent-contract.md` |
 | Other | `SKILL.md` | Scan `WORKFLOW.md` for closest phase |
+<!-- SELF_ROUTING_BLOCK_END -->
 
 ## Auto-Triggers
 

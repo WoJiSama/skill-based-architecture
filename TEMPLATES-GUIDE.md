@@ -70,17 +70,22 @@ Threshold: if this change would cause someone to guess wrong on a similar task w
 
 ## Task Closure Protocol
 
-A task is NOT complete until all three steps are done:
+A task is NOT complete until all five steps are done:
 
 1. **Main work** — implementation done, verified, tests pass
 2. **30-second AAR scan** — run the 4-question checklist below; all "no" = stop here
 3. **Record if needed** — any "yes" → apply recording threshold → record if it passes
+4. **Path integrity gate** — if this task touched any `.md` file, both checks must pass *before commit*. Run these from the project repo root unless noted:
+   - `bash "skills/<skill-name>/scripts/smoke-test.sh" "<skill-name>" --phase 8` — verifies every relative `[text](path)` link resolves (Section 8: Broken Link Check) plus all earlier structural/routing/budget checks
+   - `(cd "skills/<skill-name>" && bash scripts/audit-references.sh --orphans)` — verifies no `rules/` or `references/` file is unreachable from any inbound link
+   - These together are the missing "compile-time" check for markdown links — partial path edits leave dangling references that rot silently otherwise
+5. **Cross-reference content sync** — if this task changed the *meaning* of a `rules/` or `references/` file (not just paths), grep `workflows/` for files that reproduce the changed invariant and update them in the same commit
 
-No workflow may declare completion without step 2. This is mandatory, not an optional add-on.
+No workflow may declare completion without step 2. Steps 3–5 fire conditionally (3 on AAR hits, 4 on any `.md` edit, 5 on rules/references meaning changes) and are mandatory when their trigger fires.
 
 ### Rationalizations to Reject
 
-When the Agent feels the urge to skip the AAR, these are the common excuses and their rebuttals. Every row was captured from a real pressure-test failure (see [WORKFLOW.md § Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)) — do not argue with them, just refuse.
+When the Agent feels the urge to skip steps 2–5, these are the common excuses and their rebuttals. Every row was captured from a real pressure-test failure (see [WORKFLOW.md § Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)) — do not argue with them, just refuse.
 
 | Rationalization | Reality |
 |---|---|
@@ -90,6 +95,9 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 | "The user is in a hurry" | The protocol exists *because* hurry produces the worst pitfalls. Pressure is a reason to run AAR, not skip it |
 | "I already know this lesson, don't need to record" | Recording is for future agents, not past you. Current knowledge is not durable across context boundaries |
 | "This is covered by the existing rules" | Then the scan returns "no" in 10 seconds. Faster to run it than argue about it |
+| "I only renamed one file, links are probably fine" | Markdown links have zero compile-time verification — "probably fine" is exactly when drift accumulates. The check takes ~2 seconds; running it is faster than convincing yourself you don't need to |
+| "I'll run smoke-test once at the end of the session" | Same failure mode as batched AAR: by the time you remember, you can no longer attribute breakage to a specific edit. Path integrity is per-commit, not per-session |
+| "audit-references is just for orphans, my edit can't create orphans" | Wrong premise — deleting any inbound link can orphan a previously-linked file. The script runs in seconds; assumptions about what "can't" happen are how silent rot starts |
 
 ### Red Flags — STOP
 
@@ -273,15 +281,17 @@ Use this workflow for bug fixes and debugging tasks. The key requirement is that
 2. Read the minimum necessary files
 3. Identify the root cause
 4. Implement the smallest correct fix
-5. Validate behavior
-6. Run Task Closure Protocol from `workflows/update-rules.md` — this is mandatory, not optional
-7. If the recording threshold passes, update the appropriate `rules/`, `references/`, or `workflows/` file before ending the task
-8. Records must pass the generalization check — write as reusable knowledge, not project-specific narratives (see Generalization Rule in `workflows/update-rules.md`)
-9. If the lesson is costly and task-relevant, also activate it in workflow/routing, not only store in `references/`
+5. Run Fix Impact Analysis: direct callers/signatures, indirect data flow/shared state/events, data compatibility, and blast-radius validation
+6. Validate behavior
+7. Run Task Closure Protocol from `workflows/update-rules.md` — this is mandatory, not optional
+8. If the recording threshold passes, update the appropriate `rules/`, `references/`, or `workflows/` file before ending the task
+9. Records must pass the generalization check — write as reusable knowledge, not project-specific narratives (see Generalization Rule in `workflows/update-rules.md`)
+10. If the lesson is costly and task-relevant, also activate it in workflow/routing, not only store in `references/`
 
 ## Completion Checklist
 
 - [ ] Root cause identified
+- [ ] Fix Impact Analysis completed against the actual diff
 - [ ] Code fix verified
 - [ ] Task Closure Protocol was run (AAR scan completed before declaring task done)
 - [ ] Recording threshold checked

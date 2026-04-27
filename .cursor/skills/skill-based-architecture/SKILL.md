@@ -16,15 +16,20 @@ primary: true
 
 **This is the Cursor discovery entry.** Formal skill content lives at the repo root — read [SKILL.md](../../../SKILL.md) immediately, then follow its design principles and workflow routing.
 
+<!-- SELF_ROUTING_BLOCK_START -->
 ## Quick Routing (survives context truncation)
 
 | Task | Required reads | Workflow |
 |------|---------------|----------|
 | Migrate a downstream project's rules to skill-based architecture | `SKILL.md` + `WORKFLOW.md` | Follow `WORKFLOW.md` Quick Start + 9 phases |
-| Edit or extend `templates/` | `SKILL.md` + `templates/README.md` + `templates/ANTI-TEMPLATES.md` | "结构可复用,内容禁止预制" |
-| Add or revise a skill design principle in `SKILL.md` | `SKILL.md` + `references/layout.md` | ≤ 100 lines; every principle needs `✓ Check:` |
+| Edit or extend `templates/` (shells / hooks / protocol-blocks / skill) | `SKILL.md` + `templates/README.md` + `templates/ANTI-TEMPLATES.md` | Follow "结构可复用,内容禁止预制" rule |
+| Add or revise a skill design principle in `SKILL.md` | `SKILL.md` + `references/layout.md` | Keep ≤ 100 lines; every principle needs a `✓ Check:` sentence |
+| Add or revise a reference doc | `SKILL.md` + `references/README.md` | Keep topic-focused, link from SKILL.md |
+| Add an example (before/after, scenario, behavior failure) | `examples/README.md` | Place in correct sub-file (migration / project-types / self-evolution / behavior-failures) |
 | Fix a bug in scripts or templates | `SKILL.md` + `templates/skill/scripts/smoke-test.sh` | Run smoke-test before and after |
+| Multi-subtask / long autonomous run (≥ 3 independent subtasks) | `SKILL.md` | Dispatch via `templates/protocol-blocks/subagent-contract.md` |
 | Other | `SKILL.md` | Scan `WORKFLOW.md` for closest phase |
+<!-- SELF_ROUTING_BLOCK_END -->
 
 ## Why this file exists
 

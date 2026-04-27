@@ -21,14 +21,19 @@ Threshold: if this change would cause someone to guess wrong on a similar task w
 
 ## Task Closure Protocol
 
-A task is NOT complete until all four steps are done:
+A task is NOT complete until all five steps are done:
 
 1. **Main work** — implementation done, verified, tests pass
 2. **30-second AAR scan** — run the 4-question checklist below; all "no" = stop here
 3. **Record if needed** — any "yes" → apply recording threshold → record if it passes
-4. **Cross-reference sync check** — if this task modified any file in `rules/` or `references/`, confirm the `workflows/*.md` files that link to it still describe current behavior. Run [`scripts/check-cross-references.sh`](../scripts/check-cross-references.sh) if present, or `grep -rln '<changed-file-basename>' workflows/` manually. For each hit, read the workflow's checklist and fix drift in the **same commit**. Rule edits cascade to workflows silently; this is the manual gate against misleading staleness.
+4. **Path integrity gate** — if this task touched any `.md` file in skill structure, both checks below must pass *before commit*. Run these from the project repo root unless noted. Markdown links have no compile-time verification — agents partially update path references all the time, leaving dangling links that silently rot. These two scripts are the missing "type checker":
+   - `bash "skills/<skill-name>/scripts/smoke-test.sh" "<skill-name>" --phase 8` — verifies every relative markdown file link in every skill `.md` resolves to an existing file (Section 8: Broken Link Check), plus all earlier structural/routing/budget checks
+   - `(cd "skills/<skill-name>" && bash scripts/audit-references.sh --orphans)` — verifies no file in `rules/` or `references/` is unreachable from any inbound link (orphans = stored but never activated)
+   - Together they cover both directions of drift: broken outbound links (Section 8) and dangling inbound links (orphans)
+   - Fix every failure in the same commit as the edit that caused it, not "next task"
+5. **Cross-reference content sync** — if this task changed the *meaning* of a `rules/` or `references/` file (not just paths), grep `workflows/` for files that reproduce the changed invariant and update them in the same commit. Rule meaning drifts silently otherwise; a workflow that repeats a now-wrong invariant actively misleads.
 
-No workflow may declare completion without step 2. Steps 3–4 fire conditionally (3 on AAR hits, 4 on rules/references edits) and are mandatory when their trigger fires.
+No workflow may declare completion without step 2. Steps 3–5 fire conditionally (3 on AAR hits, 4 on any `.md` edit, 5 on rules/references *meaning* changes) and are mandatory when their trigger fires.
 
 ### Rationalizations to Reject
 
@@ -47,6 +52,9 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 | "I changed `rules/X.md` — workflows can be checked next task" | Cross-reference drift compounds silently. A workflow that repeats a now-wrong invariant is worse than one missing the new invariant; it actively misleads. The check takes seconds when the edit is fresh; next task, you'll forget what you changed |
 | "I'll add the activation pointer to the workflow in a follow-up commit" | Same excuse family as "workflows can be checked next task". The moment you know where the new entry belongs is *now*; after the commit lands, the routing decision evaporates. Either declare the activation path in the same commit, or skip recording entirely |
 | "The entry is so obviously useful someone will find it" | "Obvious" is survivor bias — you already know the lesson. Future agents arriving cold see only the routing table; unindexed references are invisible. Activation is navigation, not advertising |
+| "I only renamed one file, links are probably fine" | Markdown links have zero compile-time verification — "probably fine" is exactly when drift accumulates. The check takes ~2 seconds; running it is faster than convincing yourself you don't need to |
+| "I'll run smoke-test once at the end of the session" | Same failure mode as batched AAR: by the time you remember, you can no longer attribute breakage to a specific edit. Path integrity is per-commit, not per-session |
+| "audit-references is just for orphans, my edit can't create orphans" | Wrong premise — deleting any inbound link can orphan a previously-linked file. The script runs in seconds; assumptions about what "can't" happen are how silent rot starts |
 
 ### Red Flags — STOP if you catch yourself thinking any of these
 
@@ -219,8 +227,8 @@ Deprecation steps:
 Proactive scan — do not wait for "I noticed this feels stale":
 
 ```bash
-bash scripts/audit-references.sh              # full inbound-link report
-bash scripts/audit-references.sh --orphans    # only zero-inbound files, exits 1 if any
+(cd "skills/<skill-name>" && bash scripts/audit-references.sh)              # full inbound-link report
+(cd "skills/<skill-name>" && bash scripts/audit-references.sh --orphans)    # only zero-inbound files, exits 1 if any
 ```
 
 An orphan (zero inbound links from workflows, rules, SKILL.md, or shells) is either a forgotten activation pointer or a candidate for deletion. Single-referrer files are weak links — read the referring file to confirm it's a real activation path, not a leftover mention.

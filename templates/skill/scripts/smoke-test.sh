@@ -9,7 +9,7 @@
 # Exit code: 0 = all pass, 1 = failures found.
 #
 # ═══════════════════════════════════════════════════════════════════════
-# 7 CATEGORIES of checks (see corresponding section markers below):
+# 8 CATEGORIES of checks (see corresponding section markers below):
 #
 #   1. Structural Checks          — SKILL.md, rules/, workflows/, gotchas,
 #                                   Cursor registration entry, thin shells exist
@@ -28,8 +28,12 @@
 #                                   descriptions match byte-for-byte
 #   7. Shell Routing Consistency  — AGENTS / CLAUDE / CODEX / GEMINI shells
 #                                   share the same Quick Routing task set
+#   8. Broken Link Check          — every relative markdown link [text](path)
+#                                   across all skill .md files resolves to an
+#                                   existing file. Catches "path drift" after
+#                                   partial renames or deletions.
 #
-# Roughly 48 discrete checks across these 7 categories (count varies slightly
+# Roughly 50 discrete checks across these 8 categories (count varies slightly
 # based on how many rules/workflows/gotchas files the target project has).
 # ═══════════════════════════════════════════════════════════════════════
 #
@@ -65,21 +69,21 @@ if [[ -z "$NAME" ]]; then
   exit 1
 fi
 
-# Phase→section map. Each phase runs a subset of sections 1–7 below.
+# Phase→section map. Each phase runs a subset of sections 1–8 below.
 # Phase 3: SKILL.md written         → sections 4, 6
 # Phase 4: rules extracted          → sections 1a, 2, 3
 # Phase 5: workflows extracted      → sections 1a, 2, 3
 # Phase 6: references extracted     → sections 1a, 3
-# Phase 7: thin shells + routing    → sections 1b, 1c, 5, 6, 7
+# Phase 7: thin shells + routing    → sections 1b, 1c, 5, 6, 7, 8
 # Phase 8: full verify              → all
 # (no flag)                         → all
 phase_runs() {
-  # $1 = section number (1..7). Returns 0 (run) or 1 (skip).
+  # $1 = section number (1..8). Returns 0 (run) or 1 (skip).
   [[ -z "$PHASE" ]] && return 0
   case "$PHASE" in
     3) [[ "$1" == "1" || "$1" == "2" || "$1" == "4" || "$1" == "6" ]] ;;
     4|5|6) [[ "$1" == "1" || "$1" == "2" || "$1" == "3" ]] ;;
-    7) [[ "$1" == "1" || "$1" == "3" || "$1" == "5" || "$1" == "6" || "$1" == "7" ]] ;;
+    7) [[ "$1" == "1" || "$1" == "3" || "$1" == "5" || "$1" == "6" || "$1" == "7" || "$1" == "8" ]] ;;
     8|9) return 0 ;;
     *) return 0 ;;
   esac
@@ -159,6 +163,8 @@ fi
 if sub_runs "1a-workflows"; then
   for f in "$SKILL_DIR/workflows/update-rules.md" \
            "$SKILL_DIR/workflows/fix-bug.md" \
+           "$SKILL_DIR/workflows/change-managed.md" \
+           "$SKILL_DIR/workflows/edit-templates.md" \
            "$SKILL_DIR/workflows/maintain-docs.md"; do
     if [[ -f "$f" ]]; then
       pass "$f exists"
@@ -259,16 +265,23 @@ done
 # means the skill is doing too many things; candidate for fission (see
 # references/layout.md § Multi-Skill Projects).
 if [[ -f "$SKILL_MD" ]]; then
-  TABLE_LINES=$(awk '
+  CT_COUNTS=$(awk '
     /^## (Common Tasks|常见任务)/ { in_ct=1; next }
     in_ct && /^## / { exit }
-    in_ct && /^\|/ { count++ }
-    END { print count+0 }
+    in_ct && /^\|/ { table++ }
+    in_ct && /^[[:space:]]*[-*][[:space:]]+/ { bullet++ }
+    END { print table+0, bullet+0 }
   ' "$SKILL_MD")
-  # Subtract header + separator rows (2), floor at 0
-  CT_ROWS=$((TABLE_LINES > 2 ? TABLE_LINES - 2 : 0))
+  read -r TABLE_LINES BULLET_ROWS <<< "$CT_COUNTS"
+  # Prefer markdown table rows when present (subtract header + separator rows),
+  # otherwise support the bullet-list format used by templates/skill/SKILL.md.
+  if [[ "$TABLE_LINES" -gt 0 ]]; then
+    CT_ROWS=$((TABLE_LINES > 2 ? TABLE_LINES - 2 : 0))
+  else
+    CT_ROWS="$BULLET_ROWS"
+  fi
   if [[ "$CT_ROWS" -eq 0 ]]; then
-    warn "Common Tasks routing table appears empty or non-standard format"
+    warn "Common Tasks routing appears empty or non-standard format"
   elif [[ "$CT_ROWS" -le "$COMMON_TASKS_MAX_ROWS" ]]; then
     pass "Common Tasks: $CT_ROWS routing rows (≤ $COMMON_TASKS_MAX_ROWS)"
   else
@@ -526,8 +539,21 @@ fi  # end section 6
 # ── 7. Shell Routing Table Consistency ────────────────────────────────
 if section 7 "Shell Routing Consistency"; then :
 
+if [[ -f "scripts/check-self-routing.sh" && -f "references/self-hosting-routing.md" ]]; then
+  if bash scripts/check-self-routing.sh >/dev/null; then
+    pass "self-hosting routing blocks match canonical source"
+  else
+    fail "self-hosting routing blocks drifted from references/self-hosting-routing.md"
+    echo "       Run: bash scripts/sync-self-routing.sh"
+  fi
+fi
+
 # Check that all shells reference the same set of tasks
 SHELL_FILES=(AGENTS.md CLAUDE.md CODEX.md GEMINI.md)
+[[ -f ".codex/instructions.md" ]] && SHELL_FILES+=(".codex/instructions.md")
+while IFS= read -r cursor_rule; do
+  SHELL_FILES+=("$cursor_rule")
+done < <(find .cursor/rules -maxdepth 1 -name '*.mdc' -type f 2>/dev/null | sort)
 PREV_TASKS=""
 PREV_SHELL=""
 for shell in "${SHELL_FILES[@]}"; do
@@ -548,6 +574,105 @@ for shell in "${SHELL_FILES[@]}"; do
 done
 
 fi  # end section 7
+
+# ── 8. Broken Link Check ──────────────────────────────────────────────
+# Catches "path drift": agent renames or deletes a file but only updates SOME
+# of the references to it. Section 5 covers the Common Tasks routing table only;
+# this section scans every relative markdown link [text](path) across all skill
+# .md files and verifies each target exists. Companion to audit-references.sh
+# (which finds *orphan* files — files no one links to). Together they cover
+# both directions of drift: broken outbound links here, dangling inbound links
+# there.
+if section 8 "Broken Link Check (all .md files)"; then :
+
+# Layout detection: downstream uses skills/<name>/, self-hosting puts SKILL.md
+# at repo root. Pick the right scan root.
+if [[ -d "$SKILL_DIR" ]]; then
+  LINK_SCAN_ROOT="$SKILL_DIR"
+else
+  LINK_SCAN_ROOT="."
+fi
+
+# Collect all .md files in scope. Exclude templates/ (intentional placeholder
+# paths), node_modules/, .git/, and posts/ (drafts that may reference external
+# example files). Also include harness shells and Cursor entry, which live
+# outside SCAN_ROOT in the self-hosting case.
+LINK_SCAN_FILES=()
+while IFS= read -r f; do
+  LINK_SCAN_FILES+=("$f")
+done < <(find "$LINK_SCAN_ROOT" -type f -name '*.md' \
+  -not -path '*/templates/*' \
+  -not -path '*/node_modules/*' \
+  -not -path '*/.git/*' \
+  -not -path '*/posts/*' \
+  2>/dev/null)
+
+for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex/instructions.md "$CURSOR_ENTRY"; do
+  [[ -f "$shell" ]] && LINK_SCAN_FILES+=("$shell")
+done
+while IFS= read -r mdc; do
+  LINK_SCAN_FILES+=("$mdc")
+done < <(find .cursor/rules -maxdepth 1 -name '*.mdc' -type f 2>/dev/null)
+
+# Deduplicate
+if [[ ${#LINK_SCAN_FILES[@]} -gt 0 ]]; then
+  IFS=$'\n' LINK_SCAN_FILES=($(printf '%s\n' "${LINK_SCAN_FILES[@]}" | sort -u))
+  unset IFS
+fi
+
+# Strip fenced code blocks (```...```) before scanning. Paths inside code
+# examples (e.g. `rm references/foo.md` shown as a sample command) are not
+# real references and shouldn't trigger existence checks.
+strip_fences() {
+  awk '/^```/ { in_fence = !in_fence; next } !in_fence { print }' "$1"
+}
+
+LINK_BROKEN=0
+LINK_CHECKED=0
+LINK_BROKEN_LINES=()
+
+for src in "${LINK_SCAN_FILES[@]}"; do
+  src_dir=$(dirname "$src")
+  content=$(strip_fences "$src")
+
+  # Extract markdown link targets. Pattern matches `](X` where X has no
+  # closing paren or whitespace — captures the URL portion before any
+  # title attribute like [text](url "title").
+  while IFS= read -r raw; do
+    [[ -z "$raw" ]] && continue
+    # Skip absolute URLs, mail, and anchor-only links — these are not file refs.
+    [[ "$raw" =~ ^https?:// ]] && continue
+    [[ "$raw" =~ ^mailto: ]] && continue
+    [[ "$raw" =~ ^# ]] && continue
+    # Strip anchor fragment (#section) and Claude Code line suffix (:42).
+    target="${raw%%#*}"
+    target="${target%%:[0-9]*}"
+    [[ -z "$target" ]] && continue
+    # Resolve relative to source file's directory (standard markdown semantics).
+    if [[ "$target" = /* ]]; then
+      resolved="$target"
+    else
+      resolved="$src_dir/$target"
+    fi
+    LINK_CHECKED=$((LINK_CHECKED + 1))
+    if [[ ! -e "$resolved" ]]; then
+      LINK_BROKEN=$((LINK_BROKEN + 1))
+      LINK_BROKEN_LINES+=("$src → $raw")
+    fi
+  done < <(printf '%s\n' "$content" | grep -oE '\]\([^) ]+' | sed -E 's/^\]\(//' || true)
+done
+
+if [[ "$LINK_BROKEN" -eq 0 ]]; then
+  pass "No broken markdown links ($LINK_CHECKED relative refs across ${#LINK_SCAN_FILES[@]} files)"
+else
+  fail "$LINK_BROKEN broken markdown link(s) found ($LINK_CHECKED relative refs checked):"
+  printf '       %s\n' "${LINK_BROKEN_LINES[@]}" | head -25
+  if [[ "$LINK_BROKEN" -gt 25 ]]; then
+    echo "       ... and $((LINK_BROKEN - 25)) more (output truncated)"
+  fi
+fi
+
+fi  # end section 8
 
 # ── Summary ───────────────────────────────────────────────────────────
 echo ""

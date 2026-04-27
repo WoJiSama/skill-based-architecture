@@ -4,8 +4,7 @@
 # Usage:
 #   NAME=<skill-name> bash resume.sh                 # detect and report
 #   NAME=<skill-name> bash resume.sh --advance       # also re-run the last phase's
-#                                                    # smoke-test and advance checkpoint
-#                                                    # if it passes
+#                                                    # smoke-test to keep the checkpoint honest
 #
 # Exit codes:
 #   0 — detection succeeded (even if phase=0, as long as we could read the state)
@@ -49,7 +48,10 @@ else
   if [[ -f "$SKILL_DIR/rules/project-rules.md" ]] && [[ -f "$SKILL_DIR/rules/coding-standards.md" ]]; then
     LAST=4
   fi
-  if [[ -f "$SKILL_DIR/workflows/update-rules.md" ]] && [[ -f "$SKILL_DIR/workflows/fix-bug.md" ]]; then
+  if [[ -f "$SKILL_DIR/workflows/update-rules.md" ]] && \
+     [[ -f "$SKILL_DIR/workflows/fix-bug.md" ]] && \
+     [[ -f "$SKILL_DIR/workflows/change-managed.md" ]] && \
+     [[ -f "$SKILL_DIR/workflows/edit-templates.md" ]]; then
     LAST=5
   fi
   if [[ -f "$SKILL_DIR/references/gotchas.md" ]] || \
@@ -80,7 +82,8 @@ echo "────────────────────────�
 # Presence implies a half-completed sed pass — that phase must be re-run.
 RESIDUE=""
 if [[ -d "$SKILL_DIR" ]]; then
-  RESIDUE=$(grep -rln '{{NAME}}\|{{SUMMARY}}' "$SKILL_DIR" 2>/dev/null || true)
+  RESIDUE=$(find "$SKILL_DIR" -type f \( -name '*.md' -o -name '*.mdc' \) \
+    -exec grep -l '{{NAME}}\|{{SUMMARY}}' {} + 2>/dev/null || true)
 fi
 for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
   [[ -f "$shell" ]] && grep -l '{{NAME}}\|{{SUMMARY}}' "$shell" 2>/dev/null && RESIDUE="$RESIDUE $shell"
@@ -109,7 +112,7 @@ case "$NEXT" in
   10) echo "✅ All 9 phases complete. Migration done." ;;
 esac
 
-# ── Optional: re-validate and advance ───────────────────────────────
+# ── Optional: re-validate checkpoint ────────────────────────────────
 if [[ "$MODE" == "advance" ]]; then
   echo ""
   echo "── --advance: re-validating phase $LAST ──"
