@@ -578,6 +578,7 @@ The recording threshold (2/3: repeatable + costly + not obvious) filters out low
 
 ## Star History
 
+
 <a href="https://www.star-history.com/?repos=WoJiSama%2Fskill-based-architecture&type=date&legend=top-left">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&theme=dark&legend=top-left" />
