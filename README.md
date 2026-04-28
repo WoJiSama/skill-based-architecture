@@ -311,7 +311,7 @@ The [`templates/`](templates/) directory is the single source of truth for scaff
 - `templates/skill/` → becomes `skills/<name>/` (SKILL.md, rules stubs, workflow bodies, empty gotchas seed)
 - `templates/skill/scripts/` → `smoke-test.sh` (roughly 50-check automated verifier) + `test-trigger.sh` (description trigger rate tester) — auto-copied into `skills/<name>/scripts/` by the scaffold step
 - `templates/shells/` → thin shells for every harness (AGENTS, CLAUDE, CODEX, GEMINI, `.codex/`, `.cursor/`)
-- `templates/hooks/` → optional `SessionStart` hook that re-injects SKILL.md on `/clear` and `/compact`
+- `templates/hooks/` → optional `SessionStart` hook that re-injects one router on `/clear` and `/compact`
 - `templates/protocol-blocks/` → drop-in Task Closure Protocol reinforcement (Rationalizations table, Red Flags, Iron Law header)
 
 Copy these instead of asking the agent to regenerate files inline — inline generation drops sections under pressure. See [`templates/README.md`](templates/README.md) for byte budgets and the "would two real projects disagree?" admission test, and [`templates/ANTI-TEMPLATES.md`](templates/ANTI-TEMPLATES.md) for content we intentionally do **not** pre-build.

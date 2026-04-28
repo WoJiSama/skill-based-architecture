@@ -238,7 +238,7 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 - `templates/skill/` → 复制为 `skills/<name>/`（SKILL.md、规则 stub、工作流正文、空的 gotchas 种子）
 - `templates/skill/scripts/` → `smoke-test.sh`（约 50 项自动化核查）+ `test-trigger.sh`（description 触发率测试）—— 脚手架步骤自动复制到 `skills/<name>/scripts/`
 - `templates/shells/` → 所有 harness 的薄壳（AGENTS、CLAUDE、CODEX、GEMINI、`.codex/`、`.cursor/`）
-- `templates/hooks/` → 可选的 `SessionStart` hook，在 `/clear` 和 `/compact` 时重新注入 SKILL.md
+- `templates/hooks/` → 可选的 `SessionStart` hook，在 `/clear` 和 `/compact` 时重新注入一个 router
 - `templates/protocol-blocks/` → Task Closure Protocol 强化块（Rationalizations 表、Red Flags、Iron Law 标题）
 
 **复制而不是再生**——Agent 在压力场景下会漏段落。详见 [`templates/README.md`](templates/README.md) 的字节预算和"两个真实项目会不同意吗"准入测试，以及 [`templates/ANTI-TEMPLATES.md`](templates/ANTI-TEMPLATES.md) 中**拒绝预制**的内容清单。

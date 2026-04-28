@@ -2,12 +2,14 @@
 
 This directory holds **ready-to-copy files** for downstream projects. WORKFLOW.md Quick Start copies this tree into the target project and runs a single `sed` pass to substitute placeholders. The goal: eliminate the "Agent generated the file inline and dropped half the sections" failure mode.
 
+`SKILL.md` sources intentionally use the `.template` suffix. Codex-style skill loaders may recursively scan installed skills for `SKILL.md`; leaving raw template files with placeholder frontmatter under `templates/` makes them look like broken real skills. Quick Start renames `SKILL.md.template` to `SKILL.md` after copying into the downstream project.
+
 ## Layout
 
 ```
 templates/
 ├── skill/                    → becomes skills/{{NAME}}/
-│   ├── SKILL.md
+│   ├── SKILL.md.template     (renamed to SKILL.md during Quick Start)
 │   ├── rules/{project-rules,coding-standards,agent-behavior}.md
 │   ├── workflows/{update-rules,fix-bug,change-managed,edit-templates,maintain-docs,subagent-driven}.md
 │   ├── workflows/invoke-skill.md.example  (copy-paste template for Pattern A composition; rename and adapt)
@@ -21,9 +23,9 @@ templates/
 │   ├── AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md
 │   ├── .codex/instructions.md
 │   ├── .cursor/rules/workflow.mdc
-│   └── .cursor/skills/{{NAME}}/SKILL.md
+│   └── .cursor/skills/{{NAME}}/SKILL.md.template
 ├── hooks/                    → optional SessionStart injection + mechanism-level gates
-│   ├── session-start              (bash, per-harness JSON branching — re-inject SKILL.md)
+│   ├── session-start              (bash, per-harness JSON branching — re-inject one router)
 │   ├── agent-behavior-gate.sh     (bash, PreToolUse — enforce Admission Threshold deterministically)
 │   ├── hooks.json                 (Claude Code config — SessionStart + PreToolUse)
 │   ├── hooks-cursor.json          (Cursor config — same as above, per-harness wiring)
@@ -68,7 +70,7 @@ Two kinds — each with a different "fill" mechanism:
 | `skill/workflows/fix-bug.md`, `change-managed.md`, `edit-templates.md` | ≤ 100 lines | Task-specific workflows stay lean |
 | `skill/workflows/update-rules.md`, `maintain-docs.md`, `subagent-driven.md` | ≤ 250 lines | Protocol-heavy workflows allowed more room |
 | `protocol-blocks/*` | ≤ 40 lines each | One idea per block |
-| `skill/SKILL.md` | ≤ 60 lines | Same ≤ 100 line rule as downstream SKILL.md minus the filled content |
+| `skill/SKILL.md.template` | ≤ 100 lines | Same hard cap as downstream SKILL.md; keep shorter when possible, but do not create a stricter template-only budget that conflicts with smoke-test |
 | `skill/references/gotchas.md` | ≤ 25 lines (seed) | MUST stay near-empty — content grows post-deployment |
 | `skill/references/behavior-failures.md` | ≤ 25 lines (seed) | MUST stay near-empty — agent-behavior violations logged via AAR |
 | `migration/*.sh` | ≤ 200 lines | Bridge scripts; past this, refactor into libraries |
@@ -92,5 +94,6 @@ Run these when templates change:
 
 1. **Byte budget CI** — a 5-line shell script that fails if any file exceeds its row in the budget table above.
 2. **Placeholder audit** — `grep -r '{{' templates/` lists every placeholder; must match the `sed` substitution set in WORKFLOW.md Quick Start (no orphans).
-3. **FILL audit** — `grep -r 'FILL:' templates/` must return nonzero lines for `rules/`, `references/gotchas.md`, and every shell (proof that downstream is forced to write content, not just copy).
-4. **Homogeneity spot-check** — run Quick Start against two toy projects of very different types (Go CLI + Next.js site) and `diff -r` the output. Skeleton files should be near-identical; `rules/`, `gotchas.md`, `SKILL.md` Always Read + Common Tasks must **not** be identical. If they are, the template overreached.
+3. **Loader-safety audit** — `find templates -name 'SKILL.md'` must return no rows; template sources use `SKILL.md.template` until Quick Start materializes them downstream.
+4. **FILL audit** — `grep -r 'FILL:' templates/` must return nonzero lines for `rules/`, `references/gotchas.md`, and every shell (proof that downstream is forced to write content, not just copy).
+5. **Homogeneity spot-check** — run Quick Start against two toy projects of very different types (Go CLI + Next.js site) and `diff -r` the output. Skeleton files should be near-identical; `rules/`, `gotchas.md`, `SKILL.md` Always Read + Common Tasks must **not** be identical. If they are, the template overreached.

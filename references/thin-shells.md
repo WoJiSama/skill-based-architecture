@@ -234,7 +234,7 @@ Pre-built shells for every harness above ship under [`templates/shells/`](../tem
 
 ## SessionStart Hook (Optional)
 
-Context compression (`/clear`, `/compact`) drops previously-loaded skill content from the active window. A `SessionStart` hook re-injects `SKILL.md` on each fresh session or compaction boundary, turning context loss into a self-healing event rather than a silent failure mode.
+Context compression (`/clear`, `/compact`) drops previously-loaded skill content from the active window. A `SessionStart` hook re-injects one router file on each fresh session or compaction boundary, turning context loss into a self-healing event rather than a silent failure mode.
 
 The upstream ships a ready-to-copy hook at [`templates/hooks/session-start`](../templates/hooks/session-start) plus two config shims:
 
@@ -249,7 +249,9 @@ The script branches on `$CLAUDE_HARNESS` / `$SESSION_HARNESS` and emits the JSON
 | Cursor | `{"additional_context": ...}` |
 | Copilot CLI / Gemini / OpenCode | `{"additionalContext": ...}` |
 
-**Recommended** for any harness that supports SessionStart hooks (Claude Code, Cursor). Context compression after `/clear` or `/compact` silently drops SKILL.md from context — the hook is the only defense against this. Skip only if your harness does not support SessionStart hooks or your sessions are consistently short enough that compression never triggers.
+**Recommended** for any harness that supports SessionStart hooks (Claude Code, Cursor). Context compression after `/clear` or `/compact` silently drops routing context — the hook is the only defense against this. Skip only if your harness does not support SessionStart hooks or your sessions are consistently short enough that compression never triggers.
+
+**Token policy:** inject navigation, not the knowledge base. Single-skill repos can inject the only `skills/*/SKILL.md`; multi-skill repos should inject `skills/router/SKILL.md` or set `SKILL_ROUTER_PATH`. Do not inject all skill files.
 
 ## Context Hygiene Playbook
 
@@ -308,5 +310,5 @@ For sessions longer than ~2 hours of active editing:
 
 1. **Checkpoint every ~30 minutes** — ask the agent for a one-sentence summary of completed work. This gives you a clean `/clear` boundary when needed.
 2. **Watch for routing blur** — if the agent cites file paths not in your routing table, proposes fixes that contradict known gotchas, or stops quoting `✓ Check:` sentences when closing tasks: context has compressed. Nudge with a re-read phrase; if two or more of these trigger, `/clear` is non-negotiable.
-3. **After `/compact`** — the SessionStart hook re-injects `SKILL.md` (if installed), but inline edit state is lost. Remind the agent of current file state in one short message before the next edit.
+3. **After `/compact`** — the SessionStart hook re-injects the router (if installed), but inline edit state is lost. Remind the agent of current file state in one short message before the next edit.
 4. **Before shipping a commit** — run the Task Closure Protocol. It catches drift accumulated across the session.

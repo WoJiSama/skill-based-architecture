@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash templates/hooks/session-start"
+            "command": "bash .claude/hooks/session-start"
           }
         ]
       }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash templates/hooks/agent-behavior-gate.sh"
+            "command": "bash .claude/hooks/agent-behavior-gate.sh"
           }
         ]
       }

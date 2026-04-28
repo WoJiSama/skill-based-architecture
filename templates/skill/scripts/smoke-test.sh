@@ -274,7 +274,7 @@ if [[ -f "$SKILL_MD" ]]; then
   ' "$SKILL_MD")
   read -r TABLE_LINES BULLET_ROWS <<< "$CT_COUNTS"
   # Prefer markdown table rows when present (subtract header + separator rows),
-  # otherwise support the bullet-list format used by templates/skill/SKILL.md.
+  # otherwise support the bullet-list format used by templates/skill/SKILL.md.template.
   if [[ "$TABLE_LINES" -gt 0 ]]; then
     CT_ROWS=$((TABLE_LINES > 2 ? TABLE_LINES - 2 : 0))
   else

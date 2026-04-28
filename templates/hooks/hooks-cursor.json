@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CLAUDE_HARNESS=cursor bash templates/hooks/session-start"
+            "command": "CLAUDE_HARNESS=cursor bash .cursor/hooks/session-start"
           }
         ]
       }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash templates/hooks/agent-behavior-gate.sh"
+            "command": "bash .cursor/hooks/agent-behavior-gate.sh"
           }
         ]
       }

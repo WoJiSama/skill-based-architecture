@@ -33,11 +33,13 @@ SUMMARY="<one-line project summary>"
 # 1) Copy skill tree: templates/skill/ → skills/$NAME/
 mkdir -p "skills/$NAME"
 cp -R "$UPSTREAM/templates/skill/." "skills/$NAME/"
+mv "skills/$NAME/SKILL.md.template" "skills/$NAME/SKILL.md"
 
 # 2) Copy entry shells to repo root (AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .codex/, .cursor/)
 cp -R "$UPSTREAM/templates/shells/." .
 
-# 3) Cursor registration entry: rename the {{NAME}} placeholder directory
+# 3) Cursor registration entry: materialize SKILL.md, then rename the {{NAME}} placeholder directory
+mv ".cursor/skills/{{NAME}}/SKILL.md.template" ".cursor/skills/{{NAME}}/SKILL.md"
 mv ".cursor/skills/{{NAME}}" ".cursor/skills/$NAME"
 
 # 4) Substitute mechanical placeholders (macOS sed syntax; on Linux drop the '' after -i)
@@ -48,9 +50,12 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
     -e "s/{{SUMMARY}}/$SUMMARY/g" \
     {} +
 
-# 5) (Optional) install SessionStart hook — re-injects SKILL.md on /clear and /compact
-# cp "$UPSTREAM/templates/hooks/session-start" .claude/
-# cp "$UPSTREAM/templates/hooks/hooks.json" .claude/
+# 5) (Optional) install hooks — SessionStart re-injects one router on /clear and /compact
+# mkdir -p .claude/hooks
+# cp "$UPSTREAM/templates/hooks/session-start" .claude/hooks/session-start
+# cp "$UPSTREAM/templates/hooks/agent-behavior-gate.sh" .claude/hooks/agent-behavior-gate.sh
+# chmod +x .claude/hooks/session-start .claude/hooks/agent-behavior-gate.sh
+# cp "$UPSTREAM/templates/hooks/hooks.json" .claude/hooks.json
 
 # 6) Checkpoint: scaffold done — equivalent to completing Phases 3–7 in one pass
 echo "phase=7" > .migration-state
@@ -60,7 +65,7 @@ echo "Next: fill every <!-- FILL: --> marker with real project content, then run
 echo "If this step crashes, see § Resuming From a Failed Phase — do NOT rerun from scratch."
 ```
 
-**Why copy instead of generate?** Inline heredoc generation lost sections under pressure (Auto-Triggers dropped, routing tables mangled, description field left as trigger-phrase-less boilerplate). The `templates/` tree is the single source of truth — see [`templates/README.md`](templates/README.md) for byte budgets, placeholder conventions, and the "would two real projects disagree?" admission test.
+**Why copy instead of generate?** Inline heredoc generation lost sections under pressure (Auto-Triggers dropped, routing tables mangled, description field left as trigger-phrase-less boilerplate). The `templates/` tree is the single source of truth — see [`templates/README.md`](templates/README.md) for byte budgets, placeholder conventions, and the "would two real projects disagree?" admission test. Template source files use `SKILL.md.template` so skill loaders do not treat them as real skills when this repo is installed; Quick Start renames them into real `SKILL.md` files after copying.
 
 **Step 1.5 — User brainstorm calibration gate.** Before reading code to summarize the target project or filling any `<!-- FILL: -->` marker, ask the user whether they want to brainstorm the target project's purpose, modules, common tasks, boundaries, and known pitfalls.
 
@@ -163,7 +168,7 @@ The new `SKILL.md` should contain **only**:
 
 **Description field:** Write it as a trigger condition, not a passive summary. Include ≥ 2 quoted trigger phrases (e.g. `"add a new page"`, `"fix frontend bug"`) and concrete activation conditions. See [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition) for examples.
 
-**Core Principles format:** Each principle should end with a `✓ Check:` sentence — a concrete question the Agent can ask itself after execution to verify it followed the principle. Pure declarative principles ("do X") get remembered before acting but have no post-execution hook. Adding a verification sentence turns each principle into a self-test the Agent can run during AAR. See the `templates/skill/SKILL.md` Core Principles section for the format.
+**Core Principles format:** Each principle should end with a `✓ Check:` sentence — a concrete question the Agent can ask itself after execution to verify it followed the principle. Pure declarative principles ("do X") get remembered before acting but have no post-execution hook. Adding a verification sentence turns each principle into a self-test the Agent can run during AAR. See the `templates/skill/SKILL.md.template` Core Principles section for the format.
 
 **Target: ≤ 100 lines.** If longer, content belongs in sub-files.
 
@@ -358,7 +363,7 @@ Take its answer literally and fold it into the workflow text. The subagent's own
 - Any captured rationalizations added to the Rationalizations table verbatim
 - Final re-run: under maximum pressure, the subagent runs the Task Closure Protocol and cites the relevant rule/workflow
 
-**Recommended:** install `templates/hooks/session-start` so SKILL.md and Task Closure Protocol are re-injected on `/clear` and `/compact`. Context compression is itself a pressure source — without the hook, a single `/compact` can silently disable all routing and protocol enforcement.
+**Recommended:** install `templates/hooks/session-start` so the router and Task Closure Protocol are re-injected on `/clear` and `/compact`. Context compression is itself a pressure source — without the hook, a single `/compact` can silently disable all routing and protocol enforcement. Multi-skill projects should create `skills/router/SKILL.md` or set `SKILL_ROUTER_PATH`; do not inject every skill.
 
 **Checkpoint — end of Phase 9:** `echo "phase=9" > .migration-state` (migration complete)
 
@@ -468,7 +473,7 @@ When upstream adds new templates, hooks, protocol-blocks, or principles, existin
 
 ### What requires judgment (do not overwrite)
 
-- **`SKILL.md`** — project-specific Common Tasks, Known Gotchas, Core Principles live here. Compare upstream `templates/skill/SKILL.md` against downstream `skills/<name>/SKILL.md` and **surgically merge** new sections (e.g., add `agent-behavior.md` to Always Read list, add Ambiguous Request Gate to Common Tasks preamble). Do not replace the file.
+- **`SKILL.md`** — project-specific Common Tasks, Known Gotchas, Core Principles live here. Compare upstream `templates/skill/SKILL.md.template` against downstream `skills/<name>/SKILL.md` and **surgically merge** new sections (e.g., add `agent-behavior.md` to Always Read list, add Ambiguous Request Gate to Common Tasks preamble). Do not replace the file.
 - **Shells** (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`) — same pattern. Downstream shells have project routing tables; upstream has preamble improvements. Add the Always Read preamble and route-before-routing check, but keep the downstream's task rows intact.
 - **`smoke-test.sh`** — usually safe to overwrite (it's a verification tool), but `diff` first to catch project-specific extensions.
 

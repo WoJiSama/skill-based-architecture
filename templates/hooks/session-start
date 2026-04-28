@@ -1,32 +1,71 @@
 #!/usr/bin/env bash
-# session-start — re-inject the {{NAME}} skill at startup/clear/compact.
+# session-start — re-inject the smallest skill router at startup/clear/compact.
 # Adapted from obra/superpowers (hooks/session-start) with attribution.
 #
-# The agent's context is summarized on /clear and /compact; without this hook,
-# the SKILL.md routing table and Task Closure Protocol can drift out of memory.
-# This hook reads the formal SKILL.md and emits it back into the agent's
-# context window in the JSON shape each harness expects.
+# The agent's context is summarized on /clear and /compact. Without this hook,
+# the router and Task Closure Protocol can drift out of memory. This hook reads
+# exactly one router file and emits it back into the agent's context window in
+# the JSON shape each harness expects. It never injects every skill.
 #
-# Install (Claude Code):  copy templates/hooks/hooks.json into .claude/
-# Install (Cursor):       copy templates/hooks/hooks-cursor.json into .cursor/
+# Install (Claude Code):  copy script to .claude/hooks/ and config to .claude/hooks.json
+# Install (Cursor):       copy script to .cursor/hooks/ and config to .cursor/hooks.json
 # Install (other):        call this script from your harness's session-start hook
 
 set -euo pipefail
 
-SKILL_PATH="${SKILL_PATH:-skills/{{NAME}}/SKILL.md}"
 HARNESS="${CLAUDE_HARNESS:-${SESSION_HARNESS:-claude}}"
 
-if [[ ! -f "$SKILL_PATH" ]]; then
-  # Fail silently — do not break the session if the skill is missing
+pick_skill_path() {
+  local -a candidates=()
+
+  # Explicit router wins. Use this for multi-skill repos.
+  if [[ -n "${SKILL_ROUTER_PATH:-}" ]]; then
+    [[ -f "$SKILL_ROUTER_PATH" ]] && printf '%s\n' "$SKILL_ROUTER_PATH"
+    return 0
+  fi
+
+  # Backward-compatible explicit path.
+  if [[ -n "${SKILL_PATH:-}" ]]; then
+    [[ -f "$SKILL_PATH" ]] && printf '%s\n' "$SKILL_PATH"
+    return 0
+  fi
+
+  # Conventional router location for multi-skill repos.
+  candidates+=("skills/router/SKILL.md")
+
+  local path
+  for path in "${candidates[@]}"; do
+    if [[ -f "$path" ]]; then
+      printf '%s\n' "$path"
+      return 0
+    fi
+  done
+
+  # Single-skill fallback: safe because it injects exactly one SKILL.md.
+  shopt -s nullglob
+  local -a skill_files=(skills/*/SKILL.md)
+  shopt -u nullglob
+  if [[ "${#skill_files[@]}" -eq 1 ]]; then
+    printf '%s\n' "${skill_files[0]}"
+    return 0
+  fi
+
+  return 1
+}
+
+INJECT_PATH="$(pick_skill_path || true)"
+
+if [[ -z "$INJECT_PATH" ]]; then
+  # Fail silently — do not break the session if no unambiguous router exists.
   exit 0
 fi
 
-# JSON-escape the skill body
+# JSON-escape the router body.
 SKILL_BODY=$(python3 -c '
 import json, sys
 with open(sys.argv[1], "r") as f:
     print(json.dumps(f.read()))
-' "$SKILL_PATH")
+' "$INJECT_PATH")
 
 case "$HARNESS" in
   cursor)

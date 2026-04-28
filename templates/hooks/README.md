@@ -4,10 +4,23 @@ Two hooks ship here. Both are **opt-in**. Copy the relevant JSON into your harne
 
 | Hook | Script | Fires on | Purpose |
 |---|---|---|---|
-| SessionStart | `session-start` | startup / `/clear` / `/compact` | Re-inject `skills/{{NAME}}/SKILL.md` into context so routing survives context summarization |
+| SessionStart | `session-start` | startup / `/clear` / `/compact` | Re-inject one router file into context so routing survives context summarization |
 | PreToolUse (optional) | `agent-behavior-gate.sh` | every Write/Edit | Mechanism-level enforcement of the Admission Threshold for `rules/agent-behavior.md` |
 
 See `SECURITY.md` for the trust boundary around hook-injected files.
+
+## SessionStart injection policy
+
+The SessionStart hook injects **navigation, not the knowledge base**. It never reads every `skills/*/SKILL.md`.
+
+Resolution order:
+
+1. `SKILL_ROUTER_PATH` — explicit router for multi-skill repos
+2. `SKILL_PATH` — backward-compatible explicit single-skill path
+3. `skills/router/SKILL.md` — conventional multi-skill router
+4. Exactly one `skills/*/SKILL.md` — single-skill fallback
+
+If multiple skill entries exist and no router path is configured, the hook injects nothing rather than guessing. Create `skills/router/SKILL.md` or set `SKILL_ROUTER_PATH=skills/<router>/SKILL.md` in the hook command.
 
 ## When to install agent-behavior-gate.sh
 
@@ -20,7 +33,7 @@ This hook turns the gate into a mechanism:
 | Solo maintainer, Sonnet/Opus, reviews every diff | adequate | overkill |
 | Team repo, any committer, any model | 70% bypass rate | 100% blocked |
 | Downstream using Haiku-class models | 89% bypass rate | 100% blocked |
-| Automated pipeline, no human review | unsafe | safe |
+| Automated pipeline, no human review | unsafe | still unsafe — add CODEOWNERS/CI |
 
 **Recommendation:** solo experimental repos — skip; team or product repos — install.
 
@@ -42,11 +55,15 @@ What still triggers the gate:
 ## Install — Claude Code
 
 ```bash
-# Either copy the hooks config standalone…
+# Copy scripts and config.
+mkdir -p .claude/hooks
+cp templates/hooks/session-start .claude/hooks/session-start
+cp templates/hooks/agent-behavior-gate.sh .claude/hooks/agent-behavior-gate.sh
+chmod +x .claude/hooks/session-start .claude/hooks/agent-behavior-gate.sh
 cp templates/hooks/hooks.json .claude/hooks.json
 
-# …or merge the two "hooks" arrays into your existing .claude/settings.json.
-# Both approaches work — settings.json takes precedence if both exist.
+# Or merge the two "hooks" arrays into your existing .claude/settings.json.
+# If you remove the optional PreToolUse matcher, copying agent-behavior-gate.sh is unnecessary.
 
 # ensure jq is available (parsing tool call JSON)
 which jq || brew install jq  # or: apt-get install jq
@@ -57,6 +74,10 @@ which jq || brew install jq  # or: apt-get install jq
 ## Install — Cursor
 
 ```bash
+mkdir -p .cursor/hooks
+cp templates/hooks/session-start .cursor/hooks/session-start
+cp templates/hooks/agent-behavior-gate.sh .cursor/hooks/agent-behavior-gate.sh
+chmod +x .cursor/hooks/session-start .cursor/hooks/agent-behavior-gate.sh
 cp templates/hooks/hooks-cursor.json .cursor/hooks.json
 ```
 
