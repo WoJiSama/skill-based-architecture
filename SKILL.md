@@ -63,6 +63,7 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 13. **Activation over storage** — pitfall in `references/` alone is not "captured"; must also be on the task path. ✓ Check: trace normal route for this scenario — Agent hits the entry without hunting? No → stored, not activated.
 14. **Token efficiency** — Always-read stays 2–3 files; domain files via Common Tasks only. ✓ Check: Always Read > 3 entries? Demote lowest-frequency.
 15. **Rationalizations Table** — captures verbatim excuses from real pressure-test failures ([ref](TEMPLATES-GUIDE.md#rationalizations-to-reject), [Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)). ✓ Check: every row traces to a real failure — speculative rows dilute pressure value; remove them.
+16. **Response discipline** — output short, precise, direct answers; avoid process narration, self-congratulation, gratuitous confirmations, and requirement restatement. Correct objective errors neutrally; do not infer user stance. ✓ Check: does each sentence serve the explicit request? No → delete it.
 
 ## Common Pitfalls
 

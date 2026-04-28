@@ -25,7 +25,7 @@ These files apply to every task. Read them first:
 2. `rules/coding-standards.md`
 3. `rules/agent-behavior.md`
 
-<!-- FILL: keep to 2–3 files max. Domain-specific rules do NOT go here. agent-behavior.md is pre-filled universal defaults (Karpathy) — remove it only if your project explicitly overrides those defaults. -->
+<!-- FILL: keep to 2–3 files max. Domain-specific rules do NOT go here. agent-behavior.md is pre-filled universal defaults — remove it only if your project explicitly overrides those defaults. -->
 
 ## Session Discipline
 

@@ -2,7 +2,7 @@
 
 Universal coding-behavior defaults for any agent working inside this skill. Pre-filled, not `FILL` placeholders: these apply regardless of project. Delete or override a principle only if this project explicitly needs different behavior (write the override in `rules/project-rules.md` with reasoning).
 
-Origin: principles 1–4 condensed from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) (Andrej Karpathy's observations on LLM coding pitfalls, 2025); principle 5 from [OthmanAdi/planning-with-files](https://github.com/OthmanAdi/planning-with-files) 3-Strike Error Protocol.
+Origin: principles 1–4 condensed from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) (Andrej Karpathy's observations on LLM coding pitfalls, 2025); principle 5 from [OthmanAdi/planning-with-files](https://github.com/OthmanAdi/planning-with-files); principle 6 from this project's response-discipline rule.
 
 **Before adding new principles, read the admission threshold in `templates/ANTI-TEMPLATES.md § Admission Threshold for Behavioral Principles`.** This file is capped at 100 lines; growth requires evidence of a real miss or an equal-weight replacement, not borrowing from an admired project.
 
@@ -47,13 +47,7 @@ Origin: principles 1–4 condensed from [forrestchang/andrej-karpathy-skills](ht
 
 **Define success criteria. Loop until verified.**
 
-Transform imperative tasks into verifiable goals:
-
-| Imperative (weak) | Verifiable (strong) |
-|---|---|
-| "Add validation" | "Write tests for invalid inputs, then make them pass" |
-| "Fix the bug" | "Write a test that reproduces it, then make it pass" |
-| "Refactor X" | "Ensure test suite passes before and after — no behavior change" |
+Transform imperative tasks into verifiable goals: "fix the bug" → reproduce then pass; "refactor X" → before/after checks pass; "add validation" → invalid-input tests pass.
 
 For multi-step tasks, state the plan with per-step verification:
 
@@ -80,6 +74,12 @@ Principle 4 says "loop until verified." Unbounded looping on the same approach i
 
 Origin: condensed from [OthmanAdi/planning-with-files](https://github.com/OthmanAdi/planning-with-files) 3-Strike Error Protocol.
 
+## 6. Response Discipline
+**Short, precise, direct. No performative wrapping.**
+- Output only useful task content; avoid process narration, self-congratulation, gratuitous confirmations/apologies, and requirement restatement.
+- Correct objective errors neutrally. Do not infer the user's stance or motive; distinguish questions from claims before challenging.
+✓ Check: can every sentence justify its utility to the user's explicit request? If not, delete it.
+
 ## Observable Signals — Is This Working?
 
 These defaults are being activated (not just stored) if diffs and sessions show:
@@ -95,6 +95,6 @@ If none of these signals appear across several sessions, the defaults are stored
 
 ## When to override
 
-These defaults bias toward caution over speed. For trivial edits (typo fix, one-line comment, dependency version bump), use judgment — the full rigor isn't always warranted. But for any non-trivial change, all five apply.
+These defaults bias toward caution over speed. For trivial edits (typo fix, one-line comment, dependency version bump), use judgment — the full rigor isn't always warranted. But for any non-trivial change, all six apply.
 
 Project-specific overrides go in `rules/project-rules.md` and must cite the reason (e.g. "rapid prototyping phase, simplicity first suspended until Milestone 2").

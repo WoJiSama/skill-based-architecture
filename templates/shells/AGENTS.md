@@ -15,7 +15,7 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 
 - `skills/{{NAME}}/rules/project-rules.md`
 - `skills/{{NAME}}/rules/coding-standards.md`
-- `skills/{{NAME}}/rules/agent-behavior.md` — universal behavior defaults (Think / Simplicity / Surgical / Goal-Driven / Three-Strike)
+- `skills/{{NAME}}/rules/agent-behavior.md` — universal behavior defaults (Think / Simplicity / Surgical / Goal-Driven / Three-Strike / Response)
 
 **Route-before-routing check**: if the request contains vague improvement verbs ("refactor / clean up / optimize / make it better / 整理 / 重构 / 优化") **without** a concrete module/file or verifiable outcome → stop and ask for scope. Do not offer partial plans; see `skills/{{NAME}}/protocol-blocks/ambiguous-request-gate.md` if present.
 
