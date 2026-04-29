@@ -11,4 +11,4 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 
 **New task in same session** → re-read `skills/{{NAME}}/SKILL.md`, re-match Common Tasks route, re-read all required files. "I already read it" is not valid — context compresses, routes differ.
 
-Conflicts → formal docs in `skills/{{NAME}}/` win.
+Conflicts between loaded project instructions → formal docs in `skills/{{NAME}}/` win. This does not override harness-native skill name precedence.

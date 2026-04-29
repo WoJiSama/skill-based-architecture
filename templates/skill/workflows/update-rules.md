@@ -20,11 +20,10 @@ Threshold: if this change would cause someone to guess wrong on a similar task w
 > **The trigger table itself is a living document:** when you discover a new change-to-update mapping, add it to this table.
 
 ## Task Closure Protocol
-
-A task is NOT complete until all five steps are done:
+A task is NOT complete until all six gates are done:
 
 1. **Main work** — implementation done, verified, tests pass
-2. **30-second AAR scan** — run the 4-question checklist below; all "no" = stop here
+2. **30-second AAR scan** — run the checklist below; all "no" = stop here
 3. **Record if needed** — any "yes" → apply recording threshold → record if it passes
 4. **Path integrity gate** — if this task touched any `.md` file in skill structure, both checks below must pass *before commit*. Run these from the project repo root unless noted. Markdown links have no compile-time verification — agents partially update path references all the time, leaving dangling links that silently rot. These two scripts are the missing "type checker":
    - `bash "skills/<skill-name>/scripts/smoke-test.sh" "<skill-name>" --phase 8` — verifies every relative markdown file link in every skill `.md` resolves to an existing file (Section 8: Broken Link Check), plus all earlier structural/routing/budget checks
@@ -32,8 +31,9 @@ A task is NOT complete until all five steps are done:
    - Together they cover both directions of drift: broken outbound links (Section 8) and dangling inbound links (orphans)
    - Fix every failure in the same commit as the edit that caused it, not "next task"
 5. **Cross-reference content sync** — if this task changed the *meaning* of a `rules/` or `references/` file (not just paths), grep `workflows/` for files that reproduce the changed invariant and update them in the same commit. Rule meaning drifts silently otherwise; a workflow that repeats a now-wrong invariant actively misleads.
+6. **External fact freshness** — if the edit adds or changes a claim about an external tool, framework, hosted service, API, model, CLI, or official behavior, verify against the primary source, add/refresh `<!-- external-fact: verified=YYYY-MM-DD source=https://official.example/docs -->`, then run `bash "skills/<skill-name>/scripts/check-external-facts.sh" .`. Project-internal facts do not need this marker.
 
-No workflow may declare completion without step 2. Steps 3–5 fire conditionally (3 on AAR hits, 4 on any `.md` edit, 5 on rules/references *meaning* changes) and are mandatory when their trigger fires.
+No workflow may declare completion without step 2. Steps 3–6 fire conditionally (3 on AAR hits, 4 on any `.md` edit, 5 on rules/references *meaning* changes, 6 on external facts) and are mandatory when their trigger fires.
 
 ### Rationalizations to Reject
 
@@ -41,7 +41,7 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 
 | Rationalization | Reality |
 |---|---|
-| "This task was small — AAR is overkill" | Small tasks are where lessons hide. The 4-question scan takes 30 seconds; skipping it is slower than doing it |
+| "This task was small — AAR is overkill" | Small tasks are where lessons hide. The AAR scan takes 30 seconds; skipping it is slower than doing it |
 | "I'll run AAR at the end of the session" | You will forget. The scan must happen at task closure, not batched |
 | "Nothing new happened, just a routine fix" | If nothing new happened, the scan returns "no" on all four questions in 30 seconds. Do it anyway |
 | "The user is in a hurry" | The protocol exists *because* hurry produces the worst pitfalls. Pressure is a reason to run AAR, not skip it |
@@ -49,12 +49,13 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 | "This is covered by the existing rules" | Then the scan returns "no" in 10 seconds. Faster to run it than argue about it |
 | "I already read SKILL.md for the previous task" | The new task may match a different route. Context compresses silently. Re-read costs seconds; skipping costs hours of wrong-direction work |
 | "User said 'record this' — I'll also archive the full session as YYYY-MM-DD-session-notes.md in `references/`" | "Record" means extract a **generalized, reusable lesson** into `rules/` or `references/<topic>.md`. Dated session narratives belong in `git log` / `CHANGELOG`, never in `references/`. `references/` rejects date-named narrative files — they violate the generalization rule (project-specific story, not reusable knowledge) and the activation rule (no routing path will ever read them) |
-| "I changed `rules/X.md` — workflows can be checked next task" | Cross-reference drift compounds silently. A workflow that repeats a now-wrong invariant is worse than one missing the new invariant; it actively misleads. The check takes seconds when the edit is fresh; next task, you'll forget what you changed |
+| "I changed `rules/<x>.md` — workflows can be checked next task" | Cross-reference drift compounds silently. A workflow that repeats a now-wrong invariant is worse than one missing the new invariant; it actively misleads. The check takes seconds when the edit is fresh; next task, you'll forget what you changed |
 | "I'll add the activation pointer to the workflow in a follow-up commit" | Same excuse family as "workflows can be checked next task". The moment you know where the new entry belongs is *now*; after the commit lands, the routing decision evaporates. Either declare the activation path in the same commit, or skip recording entirely |
 | "The entry is so obviously useful someone will find it" | "Obvious" is survivor bias — you already know the lesson. Future agents arriving cold see only the routing table; unindexed references are invisible. Activation is navigation, not advertising |
 | "I only renamed one file, links are probably fine" | Markdown links have zero compile-time verification — "probably fine" is exactly when drift accumulates. The check takes ~2 seconds; running it is faster than convincing yourself you don't need to |
 | "I'll run smoke-test once at the end of the session" | Same failure mode as batched AAR: by the time you remember, you can no longer attribute breakage to a specific edit. Path integrity is per-commit, not per-session |
 | "audit-references is just for orphans, my edit can't create orphans" | Wrong premise — deleting any inbound link can orphan a previously-linked file. The script runs in seconds; assumptions about what "can't" happen are how silent rot starts |
+| "The official docs probably haven't changed" | Volatile external behavior is exactly where stale rules come from. If the rule depends on a tool/vendor/runtime, refresh the primary source and update the `external-fact` date |
 
 ### Red Flags — STOP if you catch yourself thinking any of these
 
@@ -66,9 +67,7 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 
 ## After-Action Review
 
-The 30-second scan from step 2 of the Task Closure Protocol.
-
-Skip only for: formatting-only, comment-only, dependency-version-only, or behavior-preserving refactors.
+The 30-second scan from step 2 of the Task Closure Protocol. Skip only for: formatting-only, comment-only, dependency-version-only, or behavior-preserving refactors.
 
 Checklist:
 
@@ -76,8 +75,9 @@ Checklist:
 - [ ] **New pitfall** — Did you hit a problem that wastes significant time if you don't know about it upfront?
 - [ ] **Missing rule** — Did the absence of a rule cause you to take a wrong turn?
 - [ ] **Outdated/obsolete rule** — Did you find an existing rule that is inaccurate or no longer applicable?
+- [ ] **External fact** — Did this task rely on a vendor/tool/runtime fact that could have changed since it was written?
 
-If any answer is "yes", apply the recording threshold before writing anything down. If all answers are "no", stop here. The review should stay lightweight, but it is still part of task closure.
+If any answer is "yes", apply the relevant gate before writing anything down: recording threshold for new lessons, direct update for outdated rules, external-fact freshness for volatile external claims. If all answers are "no", stop here. The review should stay lightweight, but it is still part of task closure.
 
 ### Recording Threshold
 
@@ -205,6 +205,7 @@ When an error occurs during a task and is corrected:
 4. **Outdated rule** → update the rule content directly (an outdated rule is more harmful than a missing one — no threshold needed)
 5. **Obsolete rule** → follow the Rule Deprecation process below
 6. **Rule not followed** → check if the rule is prominent enough; consider moving it to Always Read or bolding key constraints
+7. **External fact changed** → update the rule/reference and refresh its `external-fact` marker in the same commit
 
 ## Rule Deprecation
 

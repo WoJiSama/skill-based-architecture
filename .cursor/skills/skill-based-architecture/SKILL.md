@@ -2,13 +2,11 @@
 name: skill-based-architecture
 description: >
   This skill should be used when the user asks to "organize the project rules",
-  "clean up scattered documentation", "refactor project rules",
-  "consolidate scattered rules", "create skill-based architecture",
-  "restructure skill documentation", or "migrate rules to skills directory".
-  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across
-  multiple entry files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.),
-  documentation feels hard to navigate or maintain, or the user requests
-  rule consolidation or documentation cleanup.
+  "clean up scattered documentation", "refactor project rules", "整理项目规则",
+  "清理散乱的文档", "重构项目规则", "把规则迁移到 skills 目录", or "创建 skill-based architecture".
+  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across entry
+  files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.), documentation is hard to
+  navigate, or the user requests rule consolidation / documentation cleanup.
 primary: true
 ---
 

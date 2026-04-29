@@ -2,6 +2,10 @@
 
 Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
 
+<!-- external-fact: verified=2026-04-28 source=https://code.claude.com/docs/en/skills -->
+
+Conflicts between loaded project instructions → formal docs in `skills/{{NAME}}/` win. This does not override Claude native skill name precedence: personal `~/.claude/skills/<same-name>` overrides project `.claude/skills/<same-name>`.
+
 <!-- The <always-applicable> and <task-routing> XML tags below are load-bearing.
      Rationale: LLMs parse XML-tag blocks as discrete hard-constraint sections
      more reliably than plain markdown headings, especially after context

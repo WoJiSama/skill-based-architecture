@@ -4,7 +4,7 @@ Drop this block into any project workflow that enforces Task Closure Protocol, A
 
 | Rationalization | Reality |
 |---|---|
-| "This task was small — AAR is overkill" | Small tasks are where lessons hide. The 4-question scan takes 30 seconds; skipping is slower than doing |
+| "This task was small — AAR is overkill" | Small tasks are where lessons hide. The AAR scan takes 30 seconds; skipping is slower than doing |
 | "I'll run AAR at the end of the session" | You will forget. The scan must happen at task closure, not batched |
 | "Nothing new happened, just a routine fix" | If nothing new happened, the scan returns "no" on all four questions in 30 seconds. Do it anyway |
 | "The user is in a hurry" | The protocol exists *because* hurry produces the worst pitfalls. Pressure is a reason to run AAR, not skip it |

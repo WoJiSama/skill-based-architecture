@@ -31,7 +31,7 @@ project/
 ---
 name: <project-name>
 description: >
-  This skill should be used when the user asks to "<trigger phrase 1>",
+  This skill should be used when the user asks to "<trigger phrase 1 in real user language>",
   "<trigger phrase 2>", or "<trigger phrase 3>".
   Activate when <condition 1> or <condition 2>.
 primary: true
@@ -91,13 +91,14 @@ description: Helps with API testing
 ```yaml
 description: >
   This skill should be used when the user asks to "test an API endpoint",
-  "write integration tests for REST APIs", or "debug a failing HTTP request".
+  "write integration tests for REST APIs", "测试 API 接口", or "调试失败的 HTTP 请求".
   Activate when the task involves HTTP status codes, request/response payloads,
   or API authentication flows.
 ```
 
 Guidelines:
-- **≥ 20 words** — short descriptions fail to activate reliably
+- **Enough length** — aim for ≥ 20 English-style words or ≥ 40 CJK characters; short descriptions fail to activate reliably
+- **Use the user's actual language(s)** — if users ask in Chinese, include Chinese quoted phrases alongside English; do not rely on translation / semantic similarity alone
 - **Include quoted trigger phrases** — exact phrases the user would say
 - **Third-person format** — "This skill should be used when…" not "I help with…"
 - **Include activation conditions** — describe the context, not just the action
@@ -194,13 +195,13 @@ Three "no"s = this is a harness problem, not a model problem. Re-tuning the prom
 
 ### What This Skill Does **Not** Cover
 
-Treat these as orthogonal concerns — do **not** extend this meta-skill's templates to address them:
+Treat these as orthogonal concerns — do **not** extend this meta-skill's templates beyond the narrow migration scaffolding already provided:
 
 - **Tool-execution stability** (browser clicks that silently no-op, API calls that return half-complete responses, page DOM changing under the agent). Use a verification-focused skill (e.g. superpowers' `verification-before-completion`) or a dedicated tool-agent harness.
-- **Long-chain checkpoint / resume.** If a 9-phase migration fails at phase 5, this skill's answer is "re-read `WORKFLOW.md` and restart the phase", not "resume from phase 5 state". Projects that need real resumption should add a state file alongside the skill; scope is project-specific and **must not** be pre-built in `templates/` (see `templates/ANTI-TEMPLATES.md`).
+- **General long-chain checkpoint / resume.** This repo provides a narrow migration recovery path (`.migration-state`, per-phase smoke checks, and `templates/migration/resume.sh`) because failed migration phases otherwise pollute the generated skill tree. Broader application workflows still need project-specific state, validation, and recovery inside that project's own `rules/` or `workflows/`.
 - **Multi-agent orchestration.** See superpowers' `subagent-driven-development` or equivalent. This skill only routes *within one agent's session*.
 
-Adding state / validation / recovery primitives to a downstream project is that project's own engineering work — it belongs in the project's `rules/` or `workflows/`, not in this meta-skill.
+Adding state / validation / recovery primitives beyond the migration scaffold is that downstream project's own engineering work — it belongs in the project's `rules/` or `workflows/`, not in this meta-skill.
 
 ## Multi-Skill Projects
 

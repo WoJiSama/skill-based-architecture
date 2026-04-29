@@ -18,6 +18,7 @@ templates/
 │       ├── smoke-test.sh                (fully automated structural + routing checks)
 │       ├── test-trigger.sh              (description trigger rate testing)
 │       ├── check-cross-references.sh    (workflows → rules/references staleness heuristic)
+│       ├── check-external-facts.sh      (source-date freshness check for volatile external facts)
 │       └── audit-references.sh          (orphan + low-inbound detection for rules/ and references/)
 ├── shells/                   → becomes repo-root entry files
 │   ├── AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md
@@ -71,6 +72,7 @@ Two kinds — each with a different "fill" mechanism:
 | `skill/workflows/update-rules.md`, `maintain-docs.md`, `subagent-driven.md` | ≤ 250 lines | Protocol-heavy workflows allowed more room |
 | `protocol-blocks/*` | ≤ 40 lines each | One idea per block |
 | `skill/SKILL.md.template` | ≤ 100 lines | Same hard cap as downstream SKILL.md; keep shorter when possible, but do not create a stricter template-only budget that conflicts with smoke-test |
+| `skill/scripts/check-external-facts.sh` | ≤ 120 lines | Small freshness gate; keep network-free and marker-based |
 | `skill/references/gotchas.md` | ≤ 25 lines (seed) | MUST stay near-empty — content grows post-deployment |
 | `skill/references/behavior-failures.md` | ≤ 25 lines (seed) | MUST stay near-empty — agent-behavior violations logged via AAR |
 | `migration/*.sh` | ≤ 200 lines | Bridge scripts; past this, refactor into libraries |

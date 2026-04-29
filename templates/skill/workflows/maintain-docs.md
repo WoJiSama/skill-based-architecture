@@ -20,7 +20,7 @@ Check line counts for all files under `skills/{{NAME}}/` and flag those that may
 | `rules/*.md` | 50–200 lines | > 200 lines | < 30 lines |
 | `workflows/*.md` | 30–150 lines | > 150 lines | < 15 lines |
 | `references/*.md` | 50–300 lines | > 300 lines | < 30 lines |
-| Thin shells | ≤ 60 lines | > 60 lines = content leaking in | — |
+| Thin shells | Routing + compatibility notes only | Rule/workflow bodies or project-specific process detail | — |
 
 Note: these numbers are **reference values**, not hard thresholds. A 250-line rules file with a single coherent topic is perfectly fine to keep.
 
@@ -40,6 +40,16 @@ For each file that exceeds the trigger:
 2. **Staleness scan** — are any entries about technology/patterns that have since been removed from the project? Delete stale entries or mark `<!-- DEPRECATED: reason, YYYY-MM -->`.
 3. **Structural scan** — are entries grouped under meaningful headings, or piled at the bottom? Re-anchor orphan entries under the correct H2/H3 section.
 4. **Tag audit** — do entries carry `**[topic]**` tags? If a file has > 50% untagged entries, tag them during this pass to make the next scan faster.
+
+## Step 1c: External Fact Freshness
+
+External vendor/tool/runtime facts age differently from project rules. A rule like "tool X scans path Y" can go stale even when this repo never changes.
+
+1. Facts about external tools, official behavior, hosted services, model names, APIs, CLIs, or framework semantics must carry a nearby marker:
+   `<!-- external-fact: verified=YYYY-MM-DD source=https://official.example/docs -->`
+2. Run `bash scripts/check-external-facts.sh` from the skill root, or `bash skills/{{NAME}}/scripts/check-external-facts.sh .` from the repo root.
+3. If a marker is older than the freshness window, refresh from the primary source and update the date, or delete/scope the stale claim.
+4. Do not mark project-internal facts; freshness for those is handled by code inspection, tests, and cross-reference checks.
 
 A gotchas file that's too long to scan quickly defeats its purpose — the whole point is "brief, scannable list." The same applies to any file that agents read as part of task routing.
 
@@ -93,7 +103,7 @@ Run after any split, merge, rename, or deletion of files under `skills/{{NAME}}/
 - [ ] All links in SKILL.md's Always Read and Common Tasks are valid
 - [ ] All `workflows/*.md` "Read First" sections reference existing files
 - [ ] Cross-references between rules/references files point to valid targets
-- [ ] Thin shells still use `skills/*/SKILL.md` auto-discovery (not broken by rename)
+- [ ] Thin shells still point to the current `skills/{{NAME}}/SKILL.md` or documented multi-skill router
 - [ ] No orphaned files (file exists but no entry links to it)
 - [ ] No duplicated content (each rule maintained in exactly one place)
 - [ ] If a file was deleted, no other file still references it

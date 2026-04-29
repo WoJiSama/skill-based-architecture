@@ -30,6 +30,7 @@ This file exists so future maintainers (including agents) have to pass through a
 
 ### Trigger phrases in the `description` field
 - **Why rejected:** these are the single highest-value piece of project knowledge for skill activation, and they must come from real user language. A generic "This skill should be used when the user asks to 'do X'" trains the agent to never match.
+- **Language rule:** if users ask in Chinese or another non-English language, the quoted phrases must include that language. English-only examples are not neutral defaults for multilingual teams.
 - **Where it should go:** `<!-- FILL: -->` comment forcing the author to stop and think about what their users actually say.
 
 ### Concrete subagent task specs (worked examples of Goal/Inputs/Outputs/Forbidden/Acceptance)

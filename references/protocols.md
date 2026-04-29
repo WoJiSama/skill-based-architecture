@@ -16,8 +16,9 @@ A task is NOT complete until these steps are done:
    - `bash "skills/<skill-name>/scripts/smoke-test.sh" "<skill-name>" --phase 8` (broken-link + structural checks)
    - `(cd "skills/<skill-name>" && bash scripts/audit-references.sh --orphans)` (orphan inbound check; runs from skill root)
 5. If `rules/`/`references/` *meaning* changed, grep `workflows/` for stale reproductions and fix in same commit
+6. If the edit adds or changes an external vendor/tool/runtime fact, verify against a primary source, add or refresh `<!-- external-fact: verified=YYYY-MM-DD source=... -->`, and run `scripts/check-external-facts.sh`
 
-No workflow may skip step 2. Steps 3–5 fire conditionally and are mandatory when their trigger fires. See [TEMPLATES-GUIDE.md § Task Closure Protocol](../TEMPLATES-GUIDE.md#task-closure-protocol) for the full template.
+No workflow may skip step 2. Steps 3–6 fire conditionally and are mandatory when their trigger fires. See [TEMPLATES-GUIDE.md § Task Closure Protocol](../TEMPLATES-GUIDE.md#task-closure-protocol) for the full template.
 
 ### AAR Scan Questions
 
@@ -25,6 +26,7 @@ No workflow may skip step 2. Steps 3–5 fire conditionally and are mandatory wh
 2. Was the debugging or design cost high?
 3. Would a future agent miss this by reading code alone?
 4. Did an existing rule turn out to be inaccurate or obsolete?
+5. Did the task rely on an external fact that could have changed since the rule was written?
 
 Skip only for: formatting-only, comment-only, dependency-version-only, or behavior-preserving refactors.
 
@@ -116,8 +118,8 @@ Phase 8 checks structural correctness, but doesn't verify the skill actually act
 
 | Check | Pass criteria |
 |---|---|
-| Length | ≥ 20 words |
-| Trigger phrases | At least 2 quoted trigger phrases (e.g. "refactor project rules") |
+| Length | ≥ 20 words or ≥ 40 CJK characters |
+| Trigger phrases | At least 2 quoted trigger phrases in the user's actual language(s) (e.g. "refactor project rules", "重构项目规则") |
 | Format | Third-person: "This skill should be used when…" |
 | Specificity | Mentions concrete conditions, not just category labels |
 

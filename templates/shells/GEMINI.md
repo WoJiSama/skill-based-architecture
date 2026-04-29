@@ -2,6 +2,8 @@
 
 Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
 
+Conflicts between loaded project instructions → formal docs in `skills/{{NAME}}/` win. This does not override harness-native skill name precedence.
+
 <!-- The <always-applicable> and <task-routing> XML tags below are load-bearing.
      Rationale: LLMs parse XML-tag blocks as discrete hard-constraint sections
      more reliably than plain markdown headings, especially after context

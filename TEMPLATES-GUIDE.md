@@ -17,7 +17,7 @@ Use this when a project has only one small skill and does **not** yet need the f
 ---
 name: <project-name>
 description: >
-  This skill should be used when the user asks to "<trigger phrase 1>",
+  This skill should be used when the user asks to "<trigger phrase 1 in real user language>",
   "<trigger phrase 2>", or "<trigger phrase 3>".
   Activate when <condition 1> or <condition 2>.
 ---
@@ -70,26 +70,27 @@ Threshold: if this change would cause someone to guess wrong on a similar task w
 
 ## Task Closure Protocol
 
-A task is NOT complete until all five steps are done:
+A task is NOT complete until all six gates are done:
 
 1. **Main work** — implementation done, verified, tests pass
-2. **30-second AAR scan** — run the 4-question checklist below; all "no" = stop here
+2. **30-second AAR scan** — run the checklist below; all "no" = stop here
 3. **Record if needed** — any "yes" → apply recording threshold → record if it passes
 4. **Path integrity gate** — if this task touched any `.md` file, both checks must pass *before commit*. Run these from the project repo root unless noted:
    - `bash "skills/<skill-name>/scripts/smoke-test.sh" "<skill-name>" --phase 8` — verifies every relative `[text](path)` link resolves (Section 8: Broken Link Check) plus all earlier structural/routing/budget checks
    - `(cd "skills/<skill-name>" && bash scripts/audit-references.sh --orphans)` — verifies no `rules/` or `references/` file is unreachable from any inbound link
    - These together are the missing "compile-time" check for markdown links — partial path edits leave dangling references that rot silently otherwise
 5. **Cross-reference content sync** — if this task changed the *meaning* of a `rules/` or `references/` file (not just paths), grep `workflows/` for files that reproduce the changed invariant and update them in the same commit
+6. **External fact freshness** — if the edit adds or changes a claim about an external tool, framework, hosted service, API, model, CLI, or official behavior, verify against the primary source, add or refresh `<!-- external-fact: verified=YYYY-MM-DD source=https://official.example/docs -->`, then run `scripts/check-external-facts.sh`
 
-No workflow may declare completion without step 2. Steps 3–5 fire conditionally (3 on AAR hits, 4 on any `.md` edit, 5 on rules/references meaning changes) and are mandatory when their trigger fires.
+No workflow may declare completion without step 2. Steps 3–6 fire conditionally (3 on AAR hits, 4 on any `.md` edit, 5 on rules/references meaning changes, 6 on external facts) and are mandatory when their trigger fires.
 
 ### Rationalizations to Reject
 
-When the Agent feels the urge to skip steps 2–5, these are the common excuses and their rebuttals. Every row was captured from a real pressure-test failure (see [WORKFLOW.md § Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)) — do not argue with them, just refuse.
+When the Agent feels the urge to skip steps 2–6, these are the common excuses and their rebuttals. Every row was captured from a real pressure-test failure (see [WORKFLOW.md § Phase 9](WORKFLOW.md#phase-9-pressure-test-the-skill)) — do not argue with them, just refuse.
 
 | Rationalization | Reality |
 |---|---|
-| "This task was small — AAR is overkill" | Small tasks are where lessons hide. The 4-question scan takes 30 seconds; skipping is slower than doing |
+| "This task was small — AAR is overkill" | Small tasks are where lessons hide. The AAR scan takes 30 seconds; skipping is slower than doing |
 | "I'll run AAR at the end of the session" | You will forget. The scan must happen at task closure, not batched |
 | "Nothing new happened, just a routine fix" | If nothing new happened, the scan returns "no" on all four questions in 30 seconds. Do it anyway |
 | "The user is in a hurry" | The protocol exists *because* hurry produces the worst pitfalls. Pressure is a reason to run AAR, not skip it |
@@ -98,6 +99,7 @@ When the Agent feels the urge to skip steps 2–5, these are the common excuses 
 | "I only renamed one file, links are probably fine" | Markdown links have zero compile-time verification — "probably fine" is exactly when drift accumulates. The check takes ~2 seconds; running it is faster than convincing yourself you don't need to |
 | "I'll run smoke-test once at the end of the session" | Same failure mode as batched AAR: by the time you remember, you can no longer attribute breakage to a specific edit. Path integrity is per-commit, not per-session |
 | "audit-references is just for orphans, my edit can't create orphans" | Wrong premise — deleting any inbound link can orphan a previously-linked file. The script runs in seconds; assumptions about what "can't" happen are how silent rot starts |
+| "The official docs probably haven't changed" | Volatile external behavior is exactly where stale rules come from. Refresh the primary source and update the `external-fact` date |
 
 ### Red Flags — STOP
 
@@ -123,6 +125,7 @@ Checklist:
 - [ ] **New pitfall** — Did you hit a problem that wastes significant time if you don't know about it upfront?
 - [ ] **Missing rule** — Did the absence of a rule cause you to take a wrong turn?
 - [ ] **Outdated/obsolete rule** — Did you find an existing rule that is inaccurate or no longer applicable?
+- [ ] **External fact** — Did this task rely on a vendor/tool/runtime fact that could have changed since it was written?
 
 If any answer is "yes", apply the recording threshold before writing anything down. If all answers are "no", stop here. The review should stay lightweight, but it is still part of task closure.
 
@@ -326,7 +329,7 @@ Check line counts for all files under `skills/<name>/` and flag those that may n
 | `rules/*.md` | 50–200 lines | > 200 lines | < 30 lines |
 | `workflows/*.md` | 30–150 lines | > 150 lines | < 15 lines |
 | `references/*.md` | 50–300 lines | > 300 lines | < 30 lines |
-| Thin shells | ≤ 15 lines | > 15 lines = content leaking in | — |
+| Thin shells | Routing + compatibility notes only | Rule/workflow bodies or project-specific process detail | — |
 
 Note: these numbers are **reference values**, not hard thresholds. A 250-line rules file with a single coherent topic is perfectly fine to keep.
 
@@ -411,7 +414,7 @@ Run after any split, merge, rename, or deletion of files under `skills/<name>/`:
 - [ ] All links in SKILL.md's Always Read and Common Tasks are valid
 - [ ] All `workflows/*.md` "Read First" sections reference existing files
 - [ ] Cross-references between rules/references files point to valid targets
-- [ ] Thin shells still use `skills/*/SKILL.md` auto-discovery (not broken by rename)
+- [ ] Thin shells still point to the current `skills/<name>/SKILL.md` or documented multi-skill router
 - [ ] No orphaned files (file exists but no entry links to it)
 - [ ] No duplicated content (each rule maintained in exactly one place)
 - [ ] If a file was deleted, no other file still references it

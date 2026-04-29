@@ -27,4 +27,4 @@ The table below lists **additional** reads per task type.
 
 Before declaring any non-trivial task complete → run Task Closure Protocol (see `skills/{{NAME}}/workflows/update-rules.md`).
 
-Conflicts → formal docs in `skills/{{NAME}}/` win.
+Conflicts between loaded project instructions → formal docs in `skills/{{NAME}}/` win. This does not override harness-native skill name precedence.

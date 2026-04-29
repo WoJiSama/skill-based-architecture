@@ -1,37 +1,56 @@
 # Skill-Based Architecture
 
+<p align="left">
+  <a href="https://github.com/WoJiSama/skill-based-architecture/stargazers">
+    <img alt="GitHub stars" src="https://img.shields.io/github/stars/WoJiSama/skill-based-architecture?style=flat&logo=github">
+  </a>
+  <a href="LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/WoJiSama/skill-based-architecture?style=flat">
+  </a>
+  <img alt="Status" src="https://img.shields.io/badge/status-alpha-orange">
+  <img alt="Commit activity" src="https://img.shields.io/github/commit-activity/m/WoJiSama/skill-based-architecture?style=flat">
+  <a href="https://github.com/WoJiSama/skill-based-architecture/commits">
+    <img alt="Last commit" src="https://img.shields.io/github/last-commit/WoJiSama/skill-based-architecture?style=flat&logo=github">
+  </a>
+  <img alt="Skill-Based Architecture" src="https://img.shields.io/badge/Skill--Based-Architecture-blue">
+</p>
+
 **English** | [中文](README.zh-CN.md)
 
-> A **meta-skill that produces skills.** Point it at any codebase and it distills the project's rules, workflows, and hard-won lessons into a dedicated `skills/<name>/` directory — a **project skill** that becomes the single source of truth every AI agent (Cursor, Claude Code, Codex, Windsurf, Gemini) consults before every task.
+> A **meta-skill for turning scattered AI-agent rules into a maintainable project skill.** It audits rule sources such as `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, README notes, and local workflow docs, then consolidates durable rules, repeatable workflows, and costly gotchas under `skills/<name>/`.
 
-**The output is the point.** What you get is not just a tidier docs folder — it is *the skill that understands your project best*: routable, self-maintaining, lesson-capturing, and triggered automatically when the task matches.
+**The output is a project rule system, not another README.** `SKILL.md` routes the task; `rules/` holds stable constraints; `workflows/` holds procedures; `references/` holds architecture notes and gotchas. Tool-specific entry files stay as thin compatibility shells that point agents to the right task path without duplicating rule bodies.
 
 ```
-your project  ──►  skill-based-architecture  ──►  skills/<your-project>/   ◄── the skill that knows your project best
-                       (meta-skill)                ├── SKILL.md  (router, ≤100 lines)
-                                                   ├── rules/    (what is always true)
-                                                   ├── workflows/(how to do things)
-                                                   └── references/gotchas.md  (costly lessons)
+scattered project guidance
+AGENTS.md / CLAUDE.md / .cursor/rules / README notes
+        │
+        ▼
+skill-based-architecture  (meta-skill)
+        │
+        ▼
+skills/<project>/
+├── SKILL.md          # router: Always Read + Common Tasks
+├── rules/            # stable constraints
+├── workflows/        # repeatable procedures
+├── references/       # architecture, gotchas, indexes
+└── docs/             # optional reports and prompts
+
+tool entry files
+AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md / .cursor/rules / .codex
+        └── thin shells: route to skills/<project>/, no duplicated rule bodies
 ```
-
----
-
-## Community support
-
-Learn AI on LinuxDO — [LinuxDO](https://linux.do/)
-
----
 
 ## Why This Exists
 
-AI coding agents (Cursor, Claude Code, Codex, Windsurf, etc.) rely on project documentation to understand rules, conventions, and workflows. But as projects grow, that documentation inevitably becomes a mess:
+AI coding agents (Cursor, Claude Code, Codex, Windsurf, OpenCode, etc.) rely on project documentation to understand rules, conventions, and workflows. But as projects grow, that documentation inevitably becomes a mess:
 
 | Symptom | What Actually Happens |
 |---------|----------------------|
 | Single SKILL.md with 400+ lines | Agent reads **everything** on every task — wastes tokens, slows responses, hard to maintain |
 | Rules scattered across AGENTS.md, .cursor/rules/, CLAUDE.md | Duplicated content, contradictory rules, no single source of truth |
 | Rules only grow, never shrink | Useful rules get buried by obsolete ones; agents can't distinguish what matters |
-| Skill never triggers automatically | Description is a passive summary instead of explicit activation conditions |
+| Skill activation is unreliable | Description is a passive summary instead of explicit activation conditions |
 | Hard-won lessons buried in docs | Costly pitfalls (30+ min debugging) never surface during task execution |
 | Agent skips after-action review | Lessons discovered during work are lost; the same mistakes happen again |
 | Records are project-specific | Lessons written as narratives instead of reusable, transferable knowledge |
@@ -45,9 +64,9 @@ Skill-Based Architecture provides a **structural pattern** for organizing AI age
 1. **Minimizes token waste** — agents read 2-3 core files per task instead of everything
 2. **Eliminates duplication** — one source of truth per rule, thin shells everywhere else
 3. **Routes by task** — a "Common Tasks" table directs agents to exactly the files they need
-4. **Captures lessons automatically** — built-in After-Action Review with recording thresholds
+4. **Captures lessons consistently** — built-in After-Action Review with recording thresholds
 5. **Self-maintains** — health checks, split/merge procedures, and deprecation workflows keep docs lean
-6. **Works everywhere** — compatible with Cursor, Claude Code, Codex, Windsurf, and OpenClaw
+6. **Works across harnesses** — compatible with Cursor, Claude Code, Codex, Windsurf, Gemini, OpenCode, and AGENTS.md-based tools
 
 ---
 
@@ -65,7 +84,7 @@ The `skills/<name>/` directory this meta-skill produces is not a flat document �
 
 - **Grow beyond the initial scaffold.** Hooks (SessionStart, PreToolUse gates), behavior defaults, new rule files, references — all propagate via `WORKFLOW.md § Upgrading`. The skill is a **living system** that co-evolves with the project.
 
-In short: the output is not "a skill file" — it is a **project-scoped skill operating system** your agents (and you) can keep building on. Everything you layer in becomes available to every agent on every task, without context waste.
+In short: the output is not "a skill file" — it is a **project-scoped skill operating system** your agents (and you) can keep building on. New rules and workflows become reachable through the supported entry paths without copying the same rule body into every tool-specific file.
 
 ---
 
@@ -81,7 +100,7 @@ Agent reliability lives on three layers. This skill is **not** a silver bullet �
 
 **When an agent feels unstable, the root cause is rarely the model.** Run the four-primitive audit: does the system have **state** tracking, node-level **validation**, **orchestration** with checkpoints, and **recovery** paths? Three "no"s = harness problem, not model problem. Prompt re-tuning cannot patch a missing harness.
 
-This skill does **not** cover tool-execution recovery, long-chain checkpoint/resume, or multi-agent orchestration — those are project-specific engineering that must live in each project's own `rules/` or `workflows/`, not in this meta-skill's templates. Full discussion and out-of-scope list in [references/layout.md § Positioning](references/layout.md#positioning-prompt--context--harness).
+This skill does **not** cover general tool-execution recovery, arbitrary checkpoint/resume outside its migration scaffold, or multi-agent orchestration — those are project-specific engineering that must live in each project's own `rules/` or `workflows/`, not in this meta-skill's templates. Full discussion and out-of-scope list in [references/layout.md § Positioning](references/layout.md#positioning-prompt--context--harness).
 
 ---
 
@@ -97,7 +116,7 @@ skills/<name>/
 └── docs/             # Optional: prompts, reports, external docs
 ```
 
-Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.cursor/rules/*.mdc`, `.codex/`) become **thin shells** — under 15 lines each, containing only a routing table and a pointer to the formal skill.
+Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`, `.codex/`) become **thin shells** — compatibility entry points with inline routing and pointers to the formal skill, not duplicated rule bodies.
 
 ---
 
@@ -107,7 +126,7 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `.cursor/rules/*.mdc`, `.cod
 
 Instead of dumping all documentation on the agent, SKILL.md uses a two-layer system:
 
-- **Always Read** (2-3 files, ~150 lines) — loaded for every task
+- **Always Read** (2-3 short files) — loaded for every task
 - **Common Tasks** (task-routed) — agent reads ONLY the files listed for the current task
 
 ```md
@@ -123,7 +142,7 @@ Instead of dumping all documentation on the agent, SKILL.md uses a two-layer sys
 
 ### Thin Shells with Inline Routing
 
-Every entry file (AGENTS.md, CLAUDE.md, .cursor/rules/*.mdc) embeds a **routing table** — not just "go read SKILL.md". This survives context summarization in long conversations where natural-language instructions get lost.
+Every entry file (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.codex/instructions.md`, `.cursor/rules/*.mdc`) embeds a **routing table** — not just "go read SKILL.md". This survives context summarization in long conversations where natural-language instructions get lost.
 
 ```md
 | Task | Required reads | Workflow |
@@ -143,10 +162,12 @@ description: Helps with API testing
 # Good — reliable activation
 description: >
   This skill should be used when the user asks to "test an API endpoint",
-  "write integration tests for REST APIs", or "debug a failing HTTP request".
+  "write integration tests for REST APIs", "测试 API 接口", or "调试失败的 HTTP 请求".
   Activate when the task involves HTTP status codes, request/response payloads,
   or API authentication flows.
 ```
+
+Write trigger phrases in the language users actually use. If your team asks in Chinese, include Chinese quoted phrases; do not rely on the agent translating English-only descriptions every time.
 
 ### Session Discipline
 
@@ -161,8 +182,10 @@ This rule is enforced at three levels: SKILL.md itself, each workflow's mandator
 Every non-trivial task runs a mandatory 30-second After-Action Review before completion:
 
 1. **Main work done** — implementation verified, tests pass
-2. **AAR scan** — 4 questions: new pattern? new pitfall? missing rule? outdated rule?
+2. **AAR scan** — check: new pattern? new pitfall? missing rule? outdated rule? external fact?
 3. **Record if needed** — apply recording threshold (2/3: repeatable + costly + not obvious from code)
+
+For doc/rule edits, the closure path also runs the relevant integrity gates: link checks, inbound orphan checks, cross-reference review, and `external-fact` freshness checks for volatile vendor/tool/runtime claims.
 
 This prevents the common failure where agents "finish" tasks without capturing expensive lessons.
 
@@ -197,6 +220,7 @@ Built-in mechanisms prevent documentation from degrading over time:
 - **Fragment consolidation** — merge tiny files that belong together
 - **Rule deprecation** — explicit workflow for removing obsolete rules
 - **Reference integrity** — link checking after any rename, split, or deletion
+- **External fact freshness** — source-bound vendor/tool/runtime claims carry verification dates and are checked for staleness
 
 ### Activation Over Storage
 
@@ -205,6 +229,17 @@ A costly pitfall recorded only in `references/` is **not fully captured** — fu
 - Add a completion check in the relevant `workflows/*.md`
 - Update `SKILL.md` Common Tasks routing to point at the reference
 - If the lesson is a stable constraint, promote it to `rules/`
+
+### Behavior Activation Signals
+
+The skill is working only if agent behavior changes, not just if files exist:
+
+- Vague requests trigger clarification before scanning or editing
+- Diffs stay surgical, with no drive-by formatting, renames, or refactors
+- Solutions stay simple until real pressure justifies structure
+- Completion cites concrete checks, not "looks good" or "should work"
+
+If these signals do not appear across real tasks, do not add more rule text. Record the miss as a behavior failure and put the fix on the relevant task path.
 
 ### Checkpoint-Based Migration Recovery
 
@@ -225,7 +260,7 @@ Together these close the "state / validation / recovery" gap called out in [refe
 Not every project needs this architecture. Skip it if:
 
 - **Short-lived solo project (< 2 weeks)** — no recurring tasks, no rules worth capturing
-- **Total rule content < 50 lines** — a single `CLAUDE.md` or `.cursorrules` file is enough
+- **Total rule content < 50 lines** — a single `CLAUDE.md`, `AGENTS.md`, or `.cursor/rules/workflow.mdc` file is enough
 - **Single harness only** — you only use one AI tool and don't need cross-tool compatibility
 - **No team sharing** — you're the only person using AI agents on this codebase, and it's small enough to keep in your head
 
@@ -235,47 +270,46 @@ In these cases, start with a plain `CLAUDE.md` or `.cursor/rules/workflow.mdc`. 
 
 ## Quick Start
 
-### Option 0 — Claude Code one-line install (recommended)
+### Step 1 — Clone It Locally
+
+Pick the location your agent can read. The flow is the same in every case: first make this meta-skill available locally, then trigger it from the target project.
+
+| Use case | Clone target |
+|---|---|
+| Cursor user-level skill | `~/.cursor/skills/skill-based-architecture` |
+| Cursor project-level skill | `.cursor/skills/skill-based-architecture` |
+| Claude Code / Codex / Gemini / Windsurf / AGENTS.md-based agents | `skills/skill-based-architecture` inside the target project, or `../skill-based-architecture` next to it |
 
 ```bash
-/plugin marketplace add WoJiSama/skill-based-architecture
-/plugin install skill-based-architecture@skill-based-architecture
-```
-
-The repository ships `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` so Claude Code can discover and install it in a single command. After install, activate in any project by saying "Use skill-based-architecture to refactor the project rules".
-
-### Option 1 — Install as a Cursor user-level skill
-
-Clone into your Cursor skills directory so the skill is available in every project:
-
-```bash
+# Cursor user-level install
 git clone https://github.com/WoJiSama/skill-based-architecture.git \
   ~/.cursor/skills/skill-based-architecture
-```
 
-Then in any project:
-
-> "Use skill-based-architecture to refactor the project rules"
-
-### Option 2 — Install as a project-level skill
-
-```bash
+# Cursor project-level install
 git clone https://github.com/WoJiSama/skill-based-architecture.git \
   .cursor/skills/skill-based-architecture
+
+# Generic project-local install
+git clone https://github.com/WoJiSama/skill-based-architecture.git \
+  skills/skill-based-architecture
 ```
 
-### Option 3 — Use with Codex / Gemini / Windsurf
-
-Copy the files into any location your agent reads from, then reference the skill in your `CLAUDE.md`, `AGENTS.md`, or equivalent entry file:
+If your agent does not discover skills automatically, add a short pointer in `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, or the equivalent entry file:
 
 ```md
 For rule restructuring tasks, use the skill at `skills/skill-based-architecture/`.
 Read `skills/skill-based-architecture/SKILL.md` first.
 ```
 
-### Trigger Phrases
+If you cloned the repo next to the target project instead, replace the path with `../skill-based-architecture/SKILL.md`.
 
-Once installed, activate with any of these:
+### Step 2 — Trigger It From the Target Project
+
+In the target project, ask the agent to use the local meta-skill:
+
+> "Use skill-based-architecture to refactor the project rules"
+
+Equivalent trigger phrases also work:
 
 - "Organize the project rules"
 - "Refactor the project rules into a skill-based architecture"
@@ -309,7 +343,7 @@ Before filling project-specific content, the agent should ask whether you want t
 The [`templates/`](templates/) directory is the single source of truth for scaffold content:
 
 - `templates/skill/` → becomes `skills/<name>/` (SKILL.md, rules stubs, workflow bodies, empty gotchas seed)
-- `templates/skill/scripts/` → `smoke-test.sh` (roughly 50-check automated verifier) + `test-trigger.sh` (description trigger rate tester) — auto-copied into `skills/<name>/scripts/` by the scaffold step
+- `templates/skill/scripts/` → `smoke-test.sh`, `test-trigger.sh`, `check-cross-references.sh`, `check-external-facts.sh`, and `audit-references.sh` — auto-copied into `skills/<name>/scripts/` by the scaffold step
 - `templates/shells/` → thin shells for every harness (AGENTS, CLAUDE, CODEX, GEMINI, `.codex/`, `.cursor/`)
 - `templates/hooks/` → optional `SessionStart` hook that re-injects one router on `/clear` and `/compact`
 - `templates/protocol-blocks/` → drop-in Task Closure Protocol reinforcement (Rationalizations table, Red Flags, Iron Law header)
@@ -318,31 +352,16 @@ Copy these instead of asking the agent to regenerate files inline — inline gen
 
 ---
 
-## How It Works — Migration Process
+## What Happens After You Trigger It
 
-### Decision: Which Path?
+The README only shows the operating shape. The detailed migration checklist lives in [WORKFLOW.md](WORKFLOW.md).
 
-| Condition | Path |
-|-----------|------|
-| Total rules < 150 lines, no duplication, no recurring pitfalls | **Minimal single SKILL.md** — use the starter template |
-| Rules > 150 lines but no duplication | **Quick Start scaffold** — run the script, fill TODOs |
-| Rules > 150 lines AND duplicated across files | **Full 9-phase migration** |
+1. **Audit current guidance** — find rule sources such as `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, README notes, and existing docs.
+2. **Create the project skill** — copy the scaffold into `skills/<name>/`, then fill `SKILL.md`, `rules/`, `workflows/`, and `references/` with project-specific evidence.
+3. **Wire entry files** — create thin shells for the tools you use, keeping rule bodies in `skills/<name>/`.
+4. **Validate** — run the copied scripts for structure, routing, placeholders, links, orphaned references, and external-fact freshness.
 
-### Full Migration (9 Phases)
-
-| Phase | What Happens |
-|-------|-------------|
-| **1. Audit** | Inventory all rule sources: SKILL.md, AGENTS.md, CLAUDE.md, .cursor/rules/, README, docs/ |
-| **2. Design** | Plan the file set based on project size (minimal, typical, or domain-specific) |
-| **3. Write SKILL.md** | Create the <= 100-line entry with Always Read + Common Tasks + Known Gotchas |
-| **4. Extract Rules** | Move stable constraints into `rules/` (project-rules, coding-standards, domain rules) |
-| **5. Extract Workflows** | Create dedicated workflow files + required meta-workflows (update-rules, maintain-docs) |
-| **6. Extract References** | Move architecture overviews, gotchas, source indexes into `references/` |
-| **7. Create Entry Points** | Cursor registration entry + thin shells for all tools with inline routing tables |
-| **8. Verify** | Run automated `smoke-test.sh` (roughly 50 checks) — structural, routing, placeholder, activation, and description quality |
-| **9. Pressure-Test** | Dispatch subagents under time/sunk-cost/authority stressors; fold verbatim rationalizations into the Rationalizations table |
-
-Incremental migration is supported — migrate in rounds without blocking daily work.
+Use the full [WORKFLOW.md](WORKFLOW.md) when you are actually performing a migration; keep the README as the short orientation page.
 
 ---
 
@@ -355,23 +374,33 @@ Incremental migration is supported — migrate in rounds without blocking daily 
 | Architecture, pitfalls, indexes | `references/` | System design, gotchas, route tables, third-party notes |
 | Edge cases, footguns, costly bugs | `references/gotchas.md` | Lifecycle pitfalls, timing dependencies, framework quirks |
 | Prompts, reports, external material | `docs/` | Templates, generated reports |
-| Editor/tool config | `.cursor/`, `.claude/`, `.codex/` | Thin shells only — no rule content |
+| Editor/tool config | `.cursor/`, `.claude/`, `.codex/` | Thin shells, hooks, or registration stubs only — no rule content |
 
 ---
 
 ## Tool Compatibility
 
+<!-- external-fact: verified=2026-04-28 source=https://docs.cursor.com/en/context -->
+<!-- external-fact: verified=2026-04-28 source=https://code.claude.com/docs/en/skills -->
+<!-- external-fact: verified=2026-04-28 source=https://developers.openai.com/codex/guides/agents-md -->
+<!-- external-fact: verified=2026-04-28 source=https://docs.windsurf.com/windsurf/cascade/memories -->
+<!-- external-fact: verified=2026-04-28 source=https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md -->
+<!-- external-fact: verified=2026-04-28 source=https://opencode.ai/docs/rules/ -->
+
 | Tool | Discovery Mechanism | Required Entry | Inline Routing? |
 |---|---|---|---|
-| **Cursor** | Scans `.cursor/skills/` only | `.cursor/skills/<name>/SKILL.md` | Yes |
+| **Cursor** | Uses project skill registration under `.cursor/skills/` for this scaffold | `.cursor/skills/<name>/SKILL.md` | Yes |
 | **Cursor rules** | `.cursor/rules/*.mdc` | `.cursor/rules/workflow.mdc` | Yes |
-| **Claude Code** | Reads `CLAUDE.md` at repo root | `CLAUDE.md` | Yes |
-| **Codex CLI** | Reads `AGENTS.md` + `.codex/instructions.md` | Both files | Yes |
-| **Windsurf** | Reads `.windsurf/rules/` | `.windsurf/rules/*.md` | Yes |
+| **Claude Code** | Reads root `CLAUDE.md`; native skills scan `.claude/skills/` with enterprise > personal > project same-name precedence | `CLAUDE.md`; optional `.claude/skills/<project-name>/SKILL.md` stub | Yes |
+| **Codex CLI** | Reads the `AGENTS.md` hierarchy; `AGENTS.override.md` can override project guidance | `AGENTS.md`; keep `CODEX.md` / `.codex/instructions.md` only as compatibility mirrors if your harness reads them | Yes |
+| **Windsurf** | Reads workspace memories/rules such as `.windsurf/rules/`; can also infer memories from `AGENTS.md` | `.windsurf/rules/*.md` or shared `AGENTS.md` shell | Yes |
 | **Gemini CLI** | Reads `GEMINI.md` at repo root (+ parent/child dirs) | `GEMINI.md` | Yes |
+| **OpenCode** | Reads `AGENTS.md` | `AGENTS.md` shared shell | Yes |
 | **Other agents** | Reads `AGENTS.md` | `AGENTS.md` | Yes |
 
 All entry files **must** contain inline routing tables — natural-language-only instructions get lost during context summarization.
+
+For Claude Code native skills, avoid generic project skill names that may collide with `~/.claude/skills/`: a personal skill with the same name overrides the project native skill. The project `skills/<name>/` directory remains the source of truth through `CLAUDE.md` and optional SessionStart routing.
 
 ---
 
@@ -477,30 +506,31 @@ skills/
 | 2 | **One skill, one folder** | All formal docs under `skills/<name>/`, no scattering |
 | 3 | **Rules != Flows** | `rules/` for constraints, `workflows/` for procedures — never mix |
 | 4 | **Thin shells with inline routing** | Entry files embed routing tables that survive context summarization |
-| 5 | **Description = trigger condition** | Explicit activation phrases, not passive summaries |
+| 5 | **Description = trigger condition** | Explicit activation phrases in users' real language(s), not passive summaries |
 | 6 | **Two-layer routing** | Always Read (2-3 files) + Common Tasks (task-specific reads) |
 | 7 | **Session Discipline** | Every new task in the same session must re-read SKILL.md and re-match routing; "I already read it" is not valid |
 | 8 | **Task Closure Protocol** | AAR is part of task completion, not an optional extra |
 | 9 | **Recording threshold** | 2/3 criteria (repeatable + costly + not obvious) before recording |
 | 10 | **Generalization rule** | Records must be reusable knowledge, not project-specific narratives |
 | 11 | **Activation over storage** | Pitfalls must appear in the task path, not just in reference files |
-| 12 | **Self-maintaining** | Line counts signal evaluation; split only when topics are separable |
+| 12 | **Self-maintaining** | Line counts trigger evaluation; link/orphan/cross-reference/external-fact gates prevent rot |
 | 13 | **Start minimal, grow structured** | Use the minimal template first; upgrade when rules sprawl |
 
 ---
 
 ## Files in This Repo
 
-| File | Content | Lines |
-|------|---------|-------|
-| [SKILL.md](SKILL.md) | Skill entry: when to use, target structure, core principles, common pitfalls | ~99 |
-| [WORKFLOW.md](WORKFLOW.md) | Migration guide: decision tree, quick-start scaffold, full 9-phase process, incremental migration | ~330 |
-| [REFERENCE.md](REFERENCE.md) | Stub + index — redirects to [`references/`](references/) (layout, thin-shells, protocols, conventions) | ~20 |
-| [references/](references/) | Templates, thin shells, protocols, conventions — split across 4 topic files | ~690 |
-| [TEMPLATES-GUIDE.md](TEMPLATES-GUIDE.md) | Minimal starter template, update-rules.md, fix-bug.md, maintain-docs.md meta-workflow templates | ~372 |
-| [EXAMPLES.md](EXAMPLES.md) | Stub + index — redirects to [`examples/`](examples/) (migration, project-types, self-evolution) | ~20 |
-| [examples/](examples/) | 16 before/after scenarios, split by topic across 3 files | ~720 |
-| [skill.yaml](skill.yaml) | Machine-readable metadata for tool discovery | ~45 |
+| File | Content |
+|------|---------|
+| [SKILL.md](SKILL.md) | Skill entry: when to use, target structure, core principles, common pitfalls |
+| [WORKFLOW.md](WORKFLOW.md) | Migration guide: decision tree, quick-start scaffold, full 9-phase process, downstream upgrade |
+| [REFERENCE.md](REFERENCE.md) | Stub + index — redirects to [`references/`](references/) |
+| [references/](references/) | Layout, thin shells, protocols, conventions, multi-skill routing, skill composition, and self-hosting routing |
+| [TEMPLATES-GUIDE.md](TEMPLATES-GUIDE.md) | Annotated guide for template families and Task Closure Protocol |
+| [templates/](templates/) | Byte-for-byte scaffold files copied into downstream projects |
+| [EXAMPLES.md](EXAMPLES.md) | Stub + index — redirects to [`examples/`](examples/) |
+| [examples/](examples/) | Migration, project-type, self-evolution, and behavior-failure examples |
+| [skill.yaml](skill.yaml) | Machine-readable metadata for tool discovery |
 
 ---
 
@@ -512,7 +542,7 @@ These are the most costly mistakes when using this architecture. Each has caused
 |---------|--------|-----|
 | **Missing Cursor registration entry** | Cursor never discovers the skill; all rules silently ignored | Create `.cursor/skills/<name>/SKILL.md` |
 | **Soft-pointer-only shell** | Instruction lost after context summarization | Embed inline routing table in every entry file |
-| **Vague description** | Skill exists but agent never activates it | Write >= 20 words with >= 2 quoted trigger phrases |
+| **Vague / wrong-language description** | Skill exists but agent never activates it | Write enough detail with >= 2 quoted phrases in users' real language(s) |
 | **Stored but not activated** | Pitfall in `references/` but not in any workflow | Also surface in workflow checklist or SKILL.md routing |
 | **Task Closure skipped** | Lessons not captured; same mistakes repeat | Use Task Closure Protocol as completion gate |
 | **Route skipping in multi-task sessions** | Agent reads SKILL.md for task 1, skips re-reading for task 2 ("I already know the rules"), works from partial/stale memory for hours | Session Discipline rule in SKILL.md + re-read trigger in all thin shells |
@@ -524,34 +554,12 @@ These are the most costly mistakes when using this architecture. Each has caused
 
 | Anti-Pattern | Why It Hurts | Fix |
 |---|---|---|
-| Fat thin shell (50+ lines) | Two places to update; defeats single source of truth | Strip back to <= 15 lines |
+| Rule bodies inside thin shells | Two places to update; defeats single source of truth | Keep shells to routing, always-read pointers, and compatibility notes |
 | SKILL.md as second README | Redundant context; exceeds 100 lines | Keep setup in README; SKILL.md only navigates |
 | Rules and workflows mixed | Hard to find checklists; hard to update constraints | Constraints in `rules/`, procedures in `workflows/` |
 | Mega sub-file (500+ lines) | Same problem as oversized SKILL.md, one level down | Split by subdomain |
 | Over-splitting (20 files, 10 lines each) | Navigation overhead exceeds benefit | Merge related files; aim for 50-200 lines |
 | Record everything | Rules bloat with low-value noise | Apply recording threshold: 2/3 criteria |
-
----
-
-## Version History
-
-Current: **v1.12**
-
-| Version | Highlights |
-|---------|------------|
-| v1.0 | Basic directory structure and migration workflow |
-| v1.1 | Thin shell templates, anti-patterns, multi-project support |
-| v1.2 | Content classification guidelines, incremental migration |
-| v1.3 | Self-evolution (AAR), self-maintenance (doc health checks), token efficiency |
-| v1.4 | Two-layer routing (Always Read + Common Tasks), monorepo support |
-| v1.5 | Skill auto-discovery via wildcard scanning |
-| v1.6 | Enhanced update-rules / maintain-docs templates with recording thresholds |
-| v1.7 | Task-closing hooks, activation over storage, fix-bug template |
-| v1.8 | Description as trigger condition, gotchas as first-class content, auto-triggers |
-| v1.9 | Official minimal template alignment, minimal starter template, boundary examples |
-| v1.10 | Behavior-change closure loops, UI/interaction/z-index triggers, AAR miss examples |
-| v1.11 | Task Closure Protocol, generalization rule for records, thin shell template DRY |
-| v1.12 | Session Discipline (re-read SKILL.md for every new task in same session); automated `smoke-test.sh` (roughly 50 checks) + `test-trigger.sh` inside `templates/skill/scripts/`; Phase 9 pressure-test added to migration workflow |
 
 ---
 
@@ -572,17 +580,22 @@ Yes. Round 1: create `skills/<name>/` and extract rules. Round 2: extract workfl
 Keep it as a single file using the minimal starter template. Upgrade only when content starts to sprawl, duplicate, or accumulate non-obvious lessons.
 
 **Q: How do I prevent documentation bloat?**
-The recording threshold (2/3: repeatable + costly + not obvious) filters out low-value records. The deprecation workflow in `update-rules.md` removes obsolete rules. The `maintain-docs.md` health checks catch oversized files.
+The recording threshold (2/3: repeatable + costly + not obvious) filters out low-value records. The deprecation workflow in `update-rules.md` removes obsolete rules. `maintain-docs.md`, reference audits, cross-reference checks, and `check-external-facts.sh` catch oversized files, orphaned references, stale links, and stale external claims.
+
+---
+
+## Community support
+
+Learn AI on LinuxDO — [LinuxDO](https://linux.do/)
 
 ---
 
 ## Star History
 
-
 <a href="https://www.star-history.com/?repos=WoJiSama%2Fskill-based-architecture&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&theme=dark&legend=top-left&v=20260427" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&legend=top-left&v=20260427" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&legend=top-left&v=20260427" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=WoJiSama/skill-based-architecture&type=date&legend=top-left" />
  </picture>
 </a>

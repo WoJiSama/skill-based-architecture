@@ -5,16 +5,14 @@ compatibility:
   - claude
   - codex
   - gemini
-  - openclaw
+  - opencode
 description: >
   This skill should be used when the user asks to "organize the project rules",
-  "clean up scattered documentation", "refactor project rules",
-  "consolidate scattered rules", "create skill-based architecture",
-  "restructure skill documentation", or "migrate rules to skills directory".
-  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across
-  multiple entry files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.),
-  documentation feels hard to navigate or maintain, or the user requests
-  rule consolidation or documentation cleanup.
+  "clean up scattered documentation", "refactor project rules", "整理项目规则",
+  "清理散乱的文档", "重构项目规则", "把规则迁移到 skills 目录", or "创建 skill-based architecture".
+  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across entry
+  files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.), documentation is hard to
+  navigate, or the user requests rule consolidation / documentation cleanup.
 
 entry: SKILL.md
 
@@ -28,22 +26,24 @@ triggers:
   - SKILL.md exceeds ~150 lines
   - Project rules scattered across AGENTS.md, .cursor/rules/, CLAUDE.md, etc.
   - User requests skill-based architecture or rule consolidation
+  - 用户要求整理项目规则、清理散乱文档、重构规则或迁移规则到 skills 目录
 
 files:
   - SKILL.md       # Skill entry: when to use, target structure, core principles
-  - WORKFLOW.md    # Migration procedure: 9 phases + quick start scaffold
+  - WORKFLOW.md    # Migration procedure: quick start, phases, and downstream upgrades
   - REFERENCE.md   # Stub + index, redirects to references/
   - references/    # Layout, thin-shells, protocols, conventions split by topic
   - TEMPLATES-GUIDE.md   # Minimal starter + full templates for update-rules, fix-bug, maintain-docs
   - EXAMPLES.md    # Stub + index, redirects to examples/
-  - examples/      # 16 before/after scenarios split by topic (migration / project-types / self-evolution)
+  - examples/      # Numbered examples and behavior-failure scenarios split by topic
   - README.md      # Bilingual overview for humans (EN + ZH)
 
 compatible_tools:
   - cursor
   - claude
   - codex
-  - openclaw
+  - gemini
+  - opencode
 
 install:
   user_level: ~/.cursor/skills/skill-based-architecture/

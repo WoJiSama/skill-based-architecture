@@ -19,8 +19,9 @@
 #                                   (default 10) — both env-overridable
 #   3. Placeholder Residue        — no {{NAME}} / {{SUMMARY}} leftover;
 #                                   no unreplaced <!-- FILL: --> markers
-#   4. SKILL.md Content Quality   — description ≥ 20 words, ≥ 2 quoted trigger
-#                                   phrases, Common Tasks has Other fallback,
+#   4. SKILL.md Content Quality   — description ≥ 20 words or enough CJK chars,
+#                                   ≥ 2 quoted trigger phrases in real user
+#                                   language(s), Common Tasks has Other fallback,
 #                                   Known Gotchas section exists
 #   5. Routing Completeness       — every file referenced in Common Tasks
 #                                   actually exists on disk
@@ -48,6 +49,8 @@
 #     GOTCHAS_MAX_LINES=600 COMMON_TASKS_MAX_ROWS=12 bash smoke-test.sh my-skill
 GOTCHAS_MAX_LINES="${GOTCHAS_MAX_LINES:-400}"
 COMMON_TASKS_MAX_ROWS="${COMMON_TASKS_MAX_ROWS:-10}"
+DESCRIPTION_MIN_WORDS="${DESCRIPTION_MIN_WORDS:-20}"
+DESCRIPTION_MIN_CJK_CHARS="${DESCRIPTION_MIN_CJK_CHARS:-40}"
 
 set -euo pipefail
 
@@ -334,7 +337,9 @@ if [[ -f "$SKILL_MD" ]]; then
     fail "SKILL.md missing YAML frontmatter"
   fi
 
-  # 4b. description is ≥ 20 words
+  # 4b. description is long enough for reliable activation.
+  # English-like text uses word count; Chinese/Japanese/Korean text may not
+  # contain spaces, so accept a CJK character threshold as an alternative.
   # Extract YAML description: multi-line value (stops at next top-level key or ---)
   DESC=$(awk '
     /^description:/ { found=1; sub(/^description:[[:space:]]*>?[[:space:]]*/, ""); if ($0 != "") print; next }
@@ -343,10 +348,14 @@ if [[ -f "$SKILL_MD" ]]; then
     found { print }
   ' "$SKILL_MD" | tr -s ' \n' ' ')
   WORD_COUNT=$(echo "$DESC" | wc -w | tr -d ' ')
-  if [[ "$WORD_COUNT" -ge 20 ]]; then
-    pass "description is $WORD_COUNT words (≥ 20)"
+  CJK_COUNT=0
+  if command -v perl &>/dev/null; then
+    CJK_COUNT=$(printf '%s' "$DESC" | perl -CS -Mutf8 -ne '$n += (() = /\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/g); END { print $n || 0 }' 2>/dev/null || printf '0')
+  fi
+  if [[ "$WORD_COUNT" -ge "$DESCRIPTION_MIN_WORDS" || "$CJK_COUNT" -ge "$DESCRIPTION_MIN_CJK_CHARS" ]]; then
+    pass "description length OK ($WORD_COUNT words, $CJK_COUNT CJK chars; need ≥ $DESCRIPTION_MIN_WORDS words or ≥ $DESCRIPTION_MIN_CJK_CHARS CJK chars)"
   else
-    fail "description is only $WORD_COUNT words (need ≥ 20 for reliable activation)"
+    fail "description is too short ($WORD_COUNT words, $CJK_COUNT CJK chars; need ≥ $DESCRIPTION_MIN_WORDS words or ≥ $DESCRIPTION_MIN_CJK_CHARS CJK chars)"
   fi
 
   # 4c. description has quoted trigger phrases

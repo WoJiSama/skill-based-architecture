@@ -166,7 +166,7 @@ The new `SKILL.md` should contain **only**:
 6. Rule priority (SKILL.md > rules/ > workflows/ > references/ > .cursor)
 7. Project boundaries (2–5 bullets)
 
-**Description field:** Write it as a trigger condition, not a passive summary. Include ≥ 2 quoted trigger phrases (e.g. `"add a new page"`, `"fix frontend bug"`) and concrete activation conditions. See [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition) for examples.
+**Description field:** Write it as a trigger condition, not a passive summary. Include ≥ 2 quoted trigger phrases in the language users actually use (e.g. `"add a new page"`, `"fix frontend bug"`, `"修复前端 bug"`) and concrete activation conditions. See [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition) for examples.
 
 **Core Principles format:** Each principle should end with a `✓ Check:` sentence — a concrete question the Agent can ask itself after execution to verify it followed the principle. Pure declarative principles ("do X") get remembered before acting but have no post-execution hook. Adding a verification sentence turns each principle into a self-test the Agent can run during AAR. See the `templates/skill/SKILL.md.template` Core Principles section for the format.
 
@@ -253,7 +253,7 @@ See [REFERENCE.md](REFERENCE.md) for full templates.
 
 ### 7a: Cursor Registration Entry
 
-Cursor's agent_skill discovery **only scans `.cursor/skills/`**. If the formal skill is at `skills/<name>/`, Cursor will never find it unless you create a registration entry:
+This scaffold registers Cursor-facing project skills under `.cursor/skills/`. If the formal skill is at `skills/<name>/`, create a Cursor registration entry so Cursor has a tool-specific activation surface:
 
 Create `.cursor/skills/<name>/SKILL.md` with:
 - YAML frontmatter (`name`, `description`) matching the formal skill
@@ -266,9 +266,13 @@ Update root entries. Each must contain an **inline routing table** — not just 
 
 - **AGENTS.md** — project summary + inline routing table
 - **CLAUDE.md** — inline routing table + pointer to formal skill
-- **CODEX.md** / **.codex/instructions.md** — inline routing table + pointer to formal skill
+- **CODEX.md** / **.codex/instructions.md** — compatibility mirrors with inline routing table + pointer to formal skill (keep `AGENTS.md` as the required Codex CLI entry)
 - **GEMINI.md** — inline routing table + pointer to formal skill
 - **.cursor/rules/*.mdc** — `alwaysApply: true` + pointer to formal skill + inline routing table
+
+<!-- external-fact: verified=2026-04-28 source=https://code.claude.com/docs/en/skills -->
+
+Claude Code note: `CLAUDE.md` is the required entry for this architecture. A native `.claude/skills/<name>/SKILL.md` may be added as a Claude-only registration stub, but rule/workflow bodies still live in `skills/<name>/`. Avoid generic native skill names because Claude Code resolves same-name skills as enterprise > personal (`~/.claude/skills`) > project (`.claude/skills`).
 
 An inline routing table looks like:
 
@@ -285,7 +289,7 @@ This table survives context truncation because it is embedded directly in the en
 ### 7c: Key Rules
 
 - No duplicated rule bodies — shells route, they don't contain rules
-- No standalone source of truth in `.cursor/`, `.claude/`, or `.codex/`
+- No standalone source of truth in `.cursor/`, `.claude/`, or `.codex/`; those locations may contain only thin shells, hooks, or native registration stubs
 - Adding a new skill = dropping a folder into `skills/` + creating `.cursor/skills/<name>/SKILL.md` + updating thin shells
 
 **Checkpoint — end of Phase 7:**
@@ -302,9 +306,10 @@ A standalone copyable checklist is available at [`templates/checklists/post-migr
 - [ ] `skills/<name>/SKILL.md` exists and is ≤ 100 lines
 - [ ] `.cursor/skills/<name>/SKILL.md` registration entry exists (required for Cursor discovery)
 - [ ] All important rules migrated out of old locations
-- [ ] `.cursor/`, `.claude/`, `.codex/` contain only thin shells
+- [ ] `.cursor/`, `.claude/`, `.codex/` contain only thin shells, hooks, or registration stubs
+- [ ] If `.claude/skills/<name>/SKILL.md` exists, it only points to `skills/<name>/` and uses a project-specific name that avoids likely user-level collisions
 - [ ] `AGENTS.md`, `CLAUDE.md`, `CODEX.md` each have an **inline routing table** (not just "go read SKILL.md")
-- [ ] `.codex/instructions.md` exists and has inline routing table
+- [ ] `.codex/instructions.md` exists as a compatibility mirror and has inline routing table
 - [ ] `.cursor/rules/*.mdc` has `alwaysApply: true` entry pointing to skill with inline routing table
 - [ ] `README.md` is overview + navigation, not a rule manual
 - [ ] All file references and links are valid
@@ -312,7 +317,7 @@ A standalone copyable checklist is available at [`templates/checklists/post-migr
 
 ### Activation Checks (see [references/protocols.md § Skill Activation Verification](references/protocols.md#skill-activation-verification))
 
-- [ ] `description` field is ≥ 20 words with at least 2 quoted trigger phrases
+- [ ] `description` field is ≥ 20 words or ≥ 40 CJK characters, with at least 2 quoted trigger phrases in the user's actual language(s)
 - [ ] `description` in `.cursor/skills/<name>/SKILL.md` matches the formal skill's description
 - [ ] Common Tasks covers the project's 5–10 most common task types
 - [ ] Known Gotchas section exists (even if empty at initial migration — it will grow via AAR)

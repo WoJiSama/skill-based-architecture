@@ -2,13 +2,11 @@
 name: skill-based-architecture
 description: >
   This skill should be used when the user asks to "organize the project rules",
-  "clean up scattered documentation", "refactor project rules",
-  "consolidate scattered rules", "create skill-based architecture",
-  "restructure skill documentation", or "migrate rules to skills directory".
-  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across
-  multiple entry files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.),
-  documentation feels hard to navigate or maintain, or the user requests
-  rule consolidation or documentation cleanup.
+  "clean up scattered documentation", "refactor project rules", "整理项目规则",
+  "清理散乱的文档", "重构项目规则", "把规则迁移到 skills 目录", or "创建 skill-based architecture".
+  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across entry
+  files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.), documentation is hard to
+  navigate, or the user requests rule consolidation / documentation cleanup.
 ---
 
 # Skill-Based Architecture
@@ -54,7 +52,7 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 4. **Thin shells with inline routing** — every harness entry embeds a routing table (task → reads → workflow). ✓ Check: open any shell — 3-column table within first 40 lines? No → soft pointer.
 5. **Cursor registration entry** — `.cursor/skills/<name>/SKILL.md` must exist. ✓ Check: `ls .cursor/skills/` — missing = Cursor cannot discover the skill.
 6. **Progressive Rigor** — three tiers (Single-file / Folder-light / Full); grow only under pressure — see [Progressive Rigor section above](#progressive-rigor) + [details](references/layout.md#progressive-rigor). ✓ Check: can you name the specific pressure that forced the current tier? "It felt right" ≠ pressure.
-7. **Description = trigger condition** — write description with explicit quoted phrases, not passive summary ([ref](references/layout.md#description-as-trigger-condition)). ✓ Check: ≥ 2 quoted phrases + "Activate when…"? No → rewrite.
+7. **Description = trigger condition** — write quoted phrases in the user's actual language(s), not passive summary ([ref](references/layout.md#description-as-trigger-condition)). ✓ Check: ≥ 2 real user phrases + "Activate when…"? No → rewrite.
 8. **Gotchas are highest-value** — maintain costly pitfalls actively; keep them discoverable. ✓ Check: is each high-cost gotcha reachable from a Common Tasks route, not only buried in `references/`?
 9. **Progressive disclosure** — SKILL.md links one level deep; deep content pulled only when task-routed. ✓ Check: open SKILL.md and follow every link — does any target file link further to a third level that should have been reachable from SKILL.md directly? If yes, SKILL.md is hiding its routing structure.
 10. **Task Closure Protocol** — AAR is part of completion, not optional ([ref](TEMPLATES-GUIDE.md#task-closure-protocol)); "behavior change" covers interaction, schema/renderer, styling, overlay/z-index, and host-compat too, not only business logic or data flow. ✓ Check: all 4 AAR questions answered before marking done? Skipped "nothing to record" genuinely true?
@@ -69,7 +67,7 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 
 1. **Missing Cursor registration entry** — Formal skill at `skills/<name>/` but no `.cursor/skills/<name>/SKILL.md` → Cursor never discovers the skill; all rules/workflows silently ignored
 2. **Soft-pointer-only shell** — Thin shell says "go read SKILL.md" without an inline routing table → instruction lost after context summarization in long conversations
-3. **Vague description** — Description written as passive summary instead of trigger conditions with quoted phrases → skill exists but Agent never activates it (see [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition))
+3. **Vague / wrong-language description** — Description written as passive summary or only in a language users do not ask in → skill exists but Agent never activates it (see [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition))
 4. **Stored but not activated** — Costly pitfall recorded in `references/` but not surfaced in any workflow checklist or SKILL.md routing → future agents still miss it
 5. **Task Closure Protocol skipped** — Agent considers itself "done" after main work, skips the 30-second AAR scan → lessons not captured; use Task Closure Protocol to make AAR a completion gate, not an optional add-on
 6. **Project-specific records** — Lessons written as project narratives ("in our product module, we found…") instead of reusable knowledge → useless outside current context; apply generalization rule before recording

@@ -50,7 +50,7 @@ description: Use when the user asks to "add a UI page", "style a component", "fi
 description: Use when the user asks to "add a content page", "edit article", "publish draft", ...
 ```
 
-**Check:** grep each skill's trigger phrases. If two skills share a phrase verbatim, rewrite one.
+**Check:** grep each skill's trigger phrases in every supported user language. If two skills share a phrase verbatim, rewrite one.
 
 ## Shared resources — where they live in a multi-skill repo
 

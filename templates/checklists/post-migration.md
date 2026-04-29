@@ -8,7 +8,8 @@ Copy this file into your project and run through it after completing the migrati
 - [ ] `.cursor/skills/<name>/SKILL.md` registration entry exists (required for Cursor discovery)
 - [ ] `.cursor/skills/<name>/SKILL.md` description matches formal SKILL.md description **exactly**
 - [ ] All important rules migrated out of old locations (no orphaned content)
-- [ ] `.cursor/`, `.claude/`, `.codex/` contain only thin shells (no rule bodies)
+- [ ] `.cursor/`, `.claude/`, `.codex/` contain only thin shells, hooks, or registration stubs (no rule bodies)
+- [ ] If `.claude/skills/<name>/SKILL.md` exists, it only points to `skills/<name>/` and uses a project-specific name that avoids likely user-level collisions
 - [ ] Every thin shell has an **inline routing table** (not just "go read SKILL.md"):
   - [ ] `AGENTS.md`
   - [ ] `CLAUDE.md`
@@ -24,7 +25,7 @@ Copy this file into your project and run through it after completing the migrati
 
 ## Activation Checks
 
-- [ ] `description` field is ≥ 20 words with at least 2 quoted trigger phrases
+- [ ] `description` field is ≥ 20 words or ≥ 40 CJK characters, with at least 2 quoted trigger phrases in the user's actual language(s)
 - [ ] Common Tasks covers the project's 5–10 most common task types
 - [ ] Common Tasks includes an "Other / unlisted task" fallback row
 - [ ] Known Gotchas section exists (even if empty at initial migration — it will grow via AAR)
@@ -36,6 +37,7 @@ Copy this file into your project and run through it after completing the migrati
 - [ ] `references/gotchas.md` exists (can be empty at start)
 - [ ] `workflows/update-rules.md` includes Rationalizations to Reject table
 - [ ] `workflows/subagent-driven.md` exists with project-specific Forbidden Zones + Acceptance commands (if applicable)
+- [ ] External vendor/tool/runtime claims carry `external-fact` markers and `bash skills/<name>/scripts/check-external-facts.sh .` passes
 
 ## Hook Checks (if harness supports SessionStart)
 
@@ -49,3 +51,11 @@ Copy this file into your project and run through it after completing the migrati
 - [ ] Verify it reads the correct files (check which files it opened)
 - [ ] Verify it follows the expected workflow
 - [ ] On completion, verify it runs the Task Closure Protocol (30-second AAR scan)
+
+## Behavior Activation Checks
+
+- [ ] Vague requests make the agent ask for scope / success criteria before scanning or editing
+- [ ] Code diffs stay surgical: no drive-by formatting, renames, refactors, or comment churn
+- [ ] Solutions stay simple until real project pressure justifies extra structure
+- [ ] Final answers cite concrete validation commands or manual checks
+- [ ] If any signal is missing across real tasks, record it as a behavior failure and activate the fix in the relevant workflow or routing path

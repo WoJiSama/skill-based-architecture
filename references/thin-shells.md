@@ -3,7 +3,7 @@
 
 ## .cursor/skills/\<name\>/SKILL.md Registration Entry Template
 
-**Required for Cursor discovery.** Cursor's agent_skill mechanism only scans `.cursor/skills/`. If the formal skill lives at `skills/<name>/`, this registration entry is mandatory — without it the skill is invisible to Cursor.
+**Cursor-facing registration entry.** This scaffold keeps the formal skill at `skills/<name>/` and creates `.cursor/skills/<name>/SKILL.md` as the Cursor-facing activation surface. Keep this file as a thin registration shell; rule and workflow bodies stay in the formal skill.
 
 ```md
 ---
@@ -36,6 +36,8 @@ All thin shells share the same core content. Copy this body into each entry file
 
 ```md
 Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
+
+Conflicts between loaded project instructions → formal docs in `skills/<name>/` win. This does not override harness-native skill name precedence.
 
 <always-applicable>
 
@@ -116,7 +118,7 @@ Each template below shows **only the tool-specific parts**. Combine each with th
 
 ### AGENTS.md
 
-`AGENTS.md` is the **universal entry** — all AI agents (Cursor, Claude Code, Codex, etc.) read it.
+`AGENTS.md` is the **universal entry** for AGENTS.md-based tools and a safe shared shell for tools that support root instruction files.
 
 ```md
 # AGENTS.md
@@ -142,7 +144,7 @@ One-sentence project summary.
 # CODEX.md
 
 <!-- Paste common body here -->
-<!-- Note: Auto-Triggers section is optional for Codex -->
+<!-- Compatibility mirror for harnesses that explicitly read CODEX.md. -->
 ```
 
 ### .cursor/rules/*.mdc
@@ -164,7 +166,8 @@ alwaysApply: true
 ### .codex/instructions.md
 
 ```md
-<!-- No file header needed — Codex reads this file directly -->
+<!-- Compatibility mirror for harnesses that explicitly load .codex/instructions.md. -->
+<!-- Current Codex CLI guidance uses AGENTS.md as the required project instruction file. -->
 <!-- Paste common body here (routing + auto-triggers) -->
 ```
 
@@ -203,9 +206,24 @@ Gemini CLI reads `GEMINI.md` at the repo root (configurable via `.gemini/setting
 }
 ```
 
+### Claude Code Native Skills
+
+<!-- external-fact: verified=2026-04-28 source=https://code.claude.com/docs/en/skills -->
+
+Claude Code has two relevant mechanisms:
+
+- `CLAUDE.md` memory/instructions — required compatibility shell for this architecture.
+- Native skills in `.claude/skills/<skill-name>/SKILL.md` — optional Claude-only registration surface.
+
+Keep `CLAUDE.md` as the mandatory project entry. If you also create a native Claude project skill, make it a thin registration stub that points to `skills/<name>/SKILL.md`; do not duplicate rule bodies under `.claude/skills/`.
+
+Current Claude Code same-name precedence is **enterprise > personal (`~/.claude/skills`) > project (`.claude/skills`)**. Plugin skills use a `plugin-name:skill-name` namespace. If a skill and `.claude/commands/` command share a name, the skill wins.
+
+Implication: a project `.claude/skills/review` does not override a user's `~/.claude/skills/review`. Prefer project-specific names such as `<project>-review` or `<project>-workflow`, and rely on root `CLAUDE.md` + SessionStart hook to route project rules.
+
 ### .claude/ Directory Note
 
-`.claude/` in Claude Code primarily holds `settings.json` (permissions) and `commands/` (custom slash commands), not rule content. Place all instructions in the root `CLAUDE.md` (thin shell pointing to the skill). If any instruction-like files exist in `.claude/`, follow the thin-shell principle:
+`.claude/` should contain settings, hooks, commands, and optional native skill stubs only. Place all rule/workflow bodies in `skills/<name>/`. If any instruction-like files exist in `.claude/`, follow the thin-shell principle:
 
 ```md
 # .claude/CLAUDE.md (if used)
@@ -216,13 +234,20 @@ See root `CLAUDE.md` for entry point.
 
 ## Tool Compatibility Summary
 
+<!-- external-fact: verified=2026-04-28 source=https://docs.cursor.com/en/context -->
+<!-- external-fact: verified=2026-04-28 source=https://code.claude.com/docs/en/skills -->
+<!-- external-fact: verified=2026-04-28 source=https://developers.openai.com/codex/guides/agents-md -->
+<!-- external-fact: verified=2026-04-28 source=https://docs.windsurf.com/windsurf/cascade/memories -->
+<!-- external-fact: verified=2026-04-28 source=https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md -->
+<!-- external-fact: verified=2026-04-28 source=https://opencode.ai/docs/rules/ -->
+
 | Tool | Discovery mechanism | Required entry | Must have inline routing? |
 |---|---|---|---|
-| **Cursor** | Scans `.cursor/skills/` only | `.cursor/skills/<name>/SKILL.md` | Yes |
+| **Cursor** | Uses project skill registration under `.cursor/skills/` for this scaffold | `.cursor/skills/<name>/SKILL.md` | Yes |
 | **Cursor rules** | `.cursor/rules/*.mdc` (`alwaysApply: true`) | `.cursor/rules/workflow.mdc` | Yes |
-| **Claude Code** | Reads `CLAUDE.md` at repo root | `CLAUDE.md` | Yes |
-| **Codex CLI** | Reads `AGENTS.md` + `.codex/instructions.md` | Both files | Yes |
-| **Windsurf** | Reads `.windsurf/rules/` | `.windsurf/rules/*.md` | Yes |
+| **Claude Code** | Reads root `CLAUDE.md`; native skills scan `.claude/skills/` with enterprise > personal > project same-name precedence | `CLAUDE.md`; optional `.claude/skills/<project-name>/SKILL.md` stub | Yes |
+| **Codex CLI** | Reads the `AGENTS.md` hierarchy; `AGENTS.override.md` can override project guidance | `AGENTS.md`; keep `CODEX.md` / `.codex/instructions.md` only as compatibility mirrors if your harness reads them | Yes |
+| **Windsurf** | Reads workspace memories/rules such as `.windsurf/rules/`; can also infer memories from `AGENTS.md` | `.windsurf/rules/*.md` or shared `AGENTS.md` shell | Yes |
 | **Gemini CLI** | Reads `GEMINI.md` at repo root (+ parent/child dirs) | `GEMINI.md` | Yes |
 | **Copilot CLI** | Reads `AGENTS.md` | `AGENTS.md` (shared shell) | Yes |
 | **OpenCode** | Reads `AGENTS.md` | `AGENTS.md` (shared shell) | Yes |
@@ -230,7 +255,7 @@ See root `CLAUDE.md` for entry point.
 
 **All entries must contain inline routing tables** — natural-language-only instructions ("Scan skills/") get lost during context summarization in long conversations.
 
-Pre-built shells for every harness above ship under [`templates/shells/`](../templates/shells/) — downstream projects should `cp -R` the tree rather than regenerate the files inline.
+Pre-built shells for the scaffolded harnesses ship under [`templates/shells/`](../templates/shells/); tools that read `AGENTS.md` can share that shell. Downstream projects should `cp -R` the tree rather than regenerate the files inline.
 
 ## SessionStart Hook (Optional)
 

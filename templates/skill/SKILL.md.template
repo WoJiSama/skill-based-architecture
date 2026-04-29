@@ -1,9 +1,9 @@
 ---
 name: {{NAME}}
 description: >
-  <!-- FILL: Rewrite as trigger conditions — ≥ 2 quoted user phrases + concrete activation conditions (not passive summary). Copy the final block byte-for-byte into .cursor/skills/{{NAME}}/SKILL.md — smoke-test enforces equality. -->
+  <!-- FILL: Rewrite as trigger conditions — ≥ 2 quoted phrases in the user's real language(s) + concrete activation conditions. Copy the final block byte-for-byte into .cursor/skills/{{NAME}}/SKILL.md — smoke-test enforces equality. -->
   This skill should be used when the user asks to "<trigger phrase 1>",
-  "<trigger phrase 2>", or "<trigger phrase 3>".
+  "<trigger phrase 2>", or "<trigger phrase 3 / 中文触发短语>".
   Activate when <condition 1> or <condition 2>.
 primary: true
 ---

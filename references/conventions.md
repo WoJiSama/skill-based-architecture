@@ -91,7 +91,7 @@ Both are valuable. The key difference: rules are constraints agents must follow;
 
 | Anti-pattern | Why it hurts | Fix |
 |---|---|---|
-| **Fat thin shell** — "compatibility shell" grows to 50+ lines with extra notes | Defeats single-source-of-truth; two places to update | Strip back to ≤ 15 lines: reading order + conflict rule only |
+| **Fat thin shell** — "compatibility shell" grows rule bodies or project-specific process detail | Defeats single-source-of-truth; two places to update | Strip back to routing, auto-triggers, compatibility notes, and conflict rule only |
 | **SKILL.md as second README** — repeats project setup, tech stack, onboarding | Agent reads redundant context; SKILL.md exceeds 100 lines | Keep setup in README; SKILL.md only navigates rules/workflows |
 | **Rules ↔ Workflows mixed** — `backend-rules.md` contains step-by-step procedures | Hard to find the checklist when needed; hard to update constraints independently | Constraints → `rules/`, procedures → `workflows/` |
 | **Implicit cross-skill dependency** — Skill A silently requires reading Skill B first | Agent misses context if it only reads one skill | Each skill self-contained; shared content → `skills/shared/` |
@@ -109,7 +109,7 @@ Common symptoms and their fixes:
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
-| Skill never triggers | Description too vague or too short (< 20 words) | Rewrite with ≥ 2 quoted trigger phrases + concrete activation conditions |
+| Skill never triggers | Description too vague, too short (< 20 words or < 40 CJK chars), or missing the language users ask in | Rewrite with ≥ 2 quoted trigger phrases in the user's actual language(s) + concrete activation conditions |
 | Agent forgets rules in long conversations | Thin shells lack inline routing tables | Embed routing table in every entry file — natural language instructions get lost in context summarization |
 | Agent keeps making the same mistake | Pitfall stored in `references/` but not in the task execution path | Surface the lesson in workflow checklist, SKILL.md routing, or a concise rule |
 | AAR never runs | Auto-Triggers require agent to judge "behavior-changing"; agent defaults to skipping | Use Task Closure Protocol: trigger on "any non-trivial task", not "behavior-changing tasks" |
