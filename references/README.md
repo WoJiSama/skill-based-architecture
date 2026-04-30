@@ -8,7 +8,7 @@ The root [`REFERENCE.md`](../REFERENCE.md) used to be a single 683-line document
 |---|---|---|
 | [layout.md](layout.md) | Recommended directory layout, `SKILL.md` template, project boundaries, multi-skill projects, Prompt/Context/Harness positioning | Starting a new skill or deciding where things belong |
 | [thin-shells.md](thin-shells.md) | `.cursor` registration entry, common thin-shell body, per-tool shell templates (AGENTS/CLAUDE/CODEX/GEMINI), tool compatibility matrix, SessionStart hook | Wiring a skill into a new harness or debugging silent activation |
-| [self-hosting-routing.md](self-hosting-routing.md) | Canonical Quick Routing block for this repo's root thin shells, plus sync/check protocol | Updating this repo's AGENTS/CLAUDE/CODEX/GEMINI/Cursor/Codex routing tables |
+| [self-hosting-routing.yaml](self-hosting-routing.yaml) | Canonical YAML route manifest for this repo's root thin-shell bootstraps, plus sync/check protocol | Updating this repo's AGENTS/CLAUDE/CODEX/GEMINI/Cursor/Codex routing |
 | [protocols.md](protocols.md) | Meta-workflow templates, Task Closure Protocol, recording threshold (2/3), recording destination guide, generalization rule, when references alone are not enough, skill activation verification | Designing self-evolution behavior or deciding where to record a new lesson |
 | [conventions.md](conventions.md) | Common rule file sets by project type, decision guide, what to preserve vs remove, anti-patterns, troubleshooting, file size guidelines, naming conventions, optional CI validation | Migration decisions, size budgets, or diagnosing a broken skill |
 

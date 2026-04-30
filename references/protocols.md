@@ -59,8 +59,9 @@ Use the lightest useful destination:
 - Stable constraint or convention → `rules/`
 - Pitfall, lifecycle gotcha, architecture note, source index → `references/`
 - Ordered task step or completion check → `workflows/`
-- Task routing or always-read set changed → `SKILL.md`
-- Tool entry routing changed → thin shells (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
+- Task routing changed → `routing.yaml`, then `scripts/sync-routing.sh`
+- Always-read set changed → `routing.yaml`, then `scripts/sync-routing.sh`
+- Tool entry routing or Always Read changed → `routing.yaml`, then regenerate thin-shell generated blocks (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
 
 Prefer appending to an existing file over creating a new one. Create a new file only when the topic is distinct enough to stay readable on its own.
 
@@ -99,14 +100,14 @@ If a lesson is both:
 then do **not** leave it buried in `references/` only. Also surface it in at least one activation path:
 
 - add or update a completion check in the relevant `workflows/*.md`
-- update `SKILL.md` Common Tasks routing so the task points at the pitfall/reference file
+- update `routing.yaml` so generated Common Tasks and thin-shell blocks point at the pitfall/reference file
 - if the lesson is really a stable constraint, promote a concise summary into `rules/`
 
 Rule of thumb:
 
 - `references/` stores the explanation
 - `workflows/` prevents omission at task closure
-- `SKILL.md` and thin shells make the right file more likely to be read
+- `routing.yaml`-generated `SKILL.md` Always Read, Common Tasks, and thin-shell bootstraps make the right file more likely to be read
 
 If a future agent could still miss the lesson while following the normal task path, the knowledge is stored but not yet activated.
 
@@ -121,14 +122,18 @@ Phase 8 checks structural correctness, but doesn't verify the skill actually act
 | Length | ≥ 20 words or ≥ 40 CJK characters |
 | Trigger phrases | At least 2 quoted trigger phrases in the user's actual language(s) (e.g. "refactor project rules", "重构项目规则") |
 | Format | Third-person: "This skill should be used when…" |
-| Specificity | Mentions concrete conditions, not just category labels |
+| Scope | Coarse domain / intent-cluster activation; not "helps with development" and not a list of every workflow |
+| Specificity | Mentions concrete activation conditions, not just category labels |
 
 A description that fails these checks may silently never fire — the skill exists but the Agent never picks it up.
+
+Run `scripts/check-description-routing.sh` after editing frontmatter. It catches obvious over-broad descriptions, workflow keyword stuffing, duplicate quoted trigger phrases across multiple skills, and multiple `primary: true` skills.
 
 ### Routing Coverage Check
 
 Verify that `SKILL.md` Common Tasks covers the project's actual task distribution:
 
 1. List the 5–10 most common task types in the project
-2. For each, confirm Common Tasks has a matching entry with correct file routing
+2. For each, confirm `routing.yaml` has a matching entry with correct file routing
 3. If a common task is missing, add it — uncovered tasks fall through to the generic "Other" route and may miss important rules/references
+4. Run `scripts/sync-routing.sh --check` so generated `SKILL.md` Always Read / Common Tasks and thin-shell blocks cannot drift

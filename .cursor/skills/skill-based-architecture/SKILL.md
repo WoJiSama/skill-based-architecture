@@ -2,11 +2,11 @@
 name: skill-based-architecture
 description: >
   This skill should be used when the user asks to "organize the project rules",
-  "clean up scattered documentation", "refactor project rules", "整理项目规则",
-  "清理散乱的文档", "重构项目规则", "把规则迁移到 skills 目录", or "创建 skill-based architecture".
-  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across entry
-  files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.), documentation is hard to
-  navigate, or the user requests rule consolidation / documentation cleanup.
+  "clean up scattered documentation", "把规则迁移到 skills 目录", "优化 skill 路由",
+  "提高 description 命中率", or "减少薄壳重复维护".
+  Activate when a SKILL.md is too large, rules are duplicated across agent entry
+  files, task routing or trigger_examples miss natural user language, or
+  templates / thin shells / validation scripts need drift-resistant maintenance.
 primary: true
 ---
 
@@ -17,16 +17,14 @@ primary: true
 <!-- SELF_ROUTING_BLOCK_START -->
 ## Quick Routing (survives context truncation)
 
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Migrate a downstream project's rules to skill-based architecture | `SKILL.md` + `WORKFLOW.md` | Follow `WORKFLOW.md` Quick Start + 9 phases |
-| Edit or extend `templates/` (shells / hooks / protocol-blocks / skill) | `SKILL.md` + `templates/README.md` + `templates/ANTI-TEMPLATES.md` | Follow "结构可复用,内容禁止预制" rule |
-| Add or revise a skill design principle in `SKILL.md` | `SKILL.md` + `references/layout.md` | Keep ≤ 100 lines; every principle needs a `✓ Check:` sentence |
-| Add or revise a reference doc | `SKILL.md` + `references/README.md` | Keep topic-focused, link from SKILL.md |
-| Add an example (before/after, scenario, behavior failure) | `examples/README.md` | Place in correct sub-file (migration / project-types / self-evolution / behavior-failures) |
-| Fix a bug in scripts or templates | `SKILL.md` + `templates/skill/scripts/smoke-test.sh` | Run smoke-test before and after |
-| Multi-subtask / long autonomous run (≥ 3 independent subtasks) | `SKILL.md` | Dispatch via `templates/protocol-blocks/subagent-contract.md` |
-| Other | `SKILL.md` | Scan `WORKFLOW.md` for closest phase |
+Task routes live in `references/self-hosting-routing.yaml`.
+
+For every new task:
+1. Read `SKILL.md`.
+2. Read `references/self-hosting-routing.yaml`.
+3. Match by `labels`, `trigger_examples`, and task intent.
+4. Read only that route's `required_reads`, then follow its `workflow`.
+5. If no route matches, use the `other` route.
 <!-- SELF_ROUTING_BLOCK_END -->
 
 ## Why this file exists

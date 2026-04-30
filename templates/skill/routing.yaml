@@ -1,0 +1,119 @@
+# Canonical Routing Manifest
+#
+# This file is the source of truth for task routing and always-read files.
+# Edit this file first, then run:
+#
+#   bash scripts/sync-routing.sh
+#
+# From the repo root, run:
+#
+#   bash skills/<name>/scripts/sync-routing.sh <name>
+#
+# Generated outputs:
+# - SKILL.md Always Read list
+# - SKILL.md Common Tasks summary
+# - thin-shell Always Read lists
+# - thin-shell bootstrap blocks in AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md
+# - .codex/instructions.md
+# - .cursor/rules/*.mdc
+# - .cursor/skills/<name>/SKILL.md
+#
+# Do not hand-edit generated Always Read lists, route summaries, or bootstrap blocks.
+
+# FILL: Keep this to 2-3 files that apply to every task. Domain-specific rules
+# belong in task required_reads below, not here.
+always_read:
+  - rules/project-rules.md
+  - rules/coding-standards.md
+  - rules/agent-behavior.md
+
+# FILL: Replace scaffold rows with this project's real 3-8 recurring task types.
+# Keep an "other" fallback route.
+tasks:
+  - id: fix-bug
+    labels:
+      en: Fix bug
+      zh: 修复 bug / 排查异常
+    route: read task-relevant `rules/*.md` + follow `workflows/fix-bug.md`; ref `references/gotchas.md`
+    required_reads:
+      - rules/project-rules.md
+      - rules/coding-standards.md
+    workflow: workflows/fix-bug.md
+    trigger_examples:
+      - 这个接口报错了
+      - 测试挂了
+      - fix this failing test
+
+  - id: change-managed
+    labels:
+      en: Add / refactor / optimize non-bug behavior
+      zh: 新增 / 重构 / 优化非 bug 行为
+    route: read task-relevant `rules/*.md` + follow `workflows/change-managed.md`
+    required_reads:
+      - rules/*.md
+    workflow: workflows/change-managed.md
+    trigger_examples:
+      - 优化这个模块
+      - 帮我加一个功能
+      - refactor this flow
+
+  - id: profile-project
+    labels:
+      en: Profile / refresh project understanding
+      zh: 梳理 / 刷新项目理解
+    route: follow `workflows/profile-project.md`; write only evidence-labeled conclusions
+    required_reads:
+      - rules/project-rules.md
+    workflow: workflows/profile-project.md
+    trigger_examples:
+      - 帮我理解这个项目
+      - 重新梳理项目规则
+      - refresh the project profile
+
+  - id: update-upstream
+    labels:
+      en: Update from skill-based-architecture upstream
+      zh: 从上游 skill-based-architecture 更新
+    route: follow `workflows/update-upstream.md`; agent compares, patches, and validates without asking user to diff
+    required_reads:
+      - rules/project-rules.md
+    workflow: workflows/update-upstream.md
+    trigger_examples:
+      - 上游项目更新了,帮我更新一下
+      - 更新 skill-based-architecture 模板
+      - refresh from upstream
+
+  - id: subagent-driven
+    labels:
+      en: Multi-subtask / long run
+      zh: 多子任务 / 长任务
+    route: follow `workflows/subagent-driven.md`
+    required_reads:
+      - rules/project-rules.md
+    workflow: workflows/subagent-driven.md
+    trigger_examples:
+      - 这个任务比较大,分几路做
+      - 多个独立子任务并行
+      - run multiple subtasks
+
+  - id: fill-task
+    labels:
+      en: "<!-- FILL: task label -->"
+      zh: "<!-- FILL: task label -->"
+    route: "<!-- FILL: read `rules/example-rules.md` + follow `workflows/example-workflow.md` -->"
+    required_reads:
+      - "<!-- FILL: rules/example-rules.md -->"
+    workflow: "<!-- FILL: workflows/example-workflow.md -->"
+    trigger_examples:
+      - "<!-- FILL: real user phrase -->"
+
+  - id: other
+    labels:
+      en: Other / unlisted task
+      zh: 其他 / 未列出的任务
+    route: read `rules/project-rules.md` + `rules/coding-standards.md`, then match by workflow filename; if no match, proceed with Always Read rules
+    required_reads:
+      - rules/project-rules.md
+    workflow: Check `workflows/` for closest match
+    trigger_examples:
+      - 其他没有明确路由的任务

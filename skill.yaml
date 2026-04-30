@@ -8,11 +8,11 @@ compatibility:
   - opencode
 description: >
   This skill should be used when the user asks to "organize the project rules",
-  "clean up scattered documentation", "refactor project rules", "整理项目规则",
-  "清理散乱的文档", "重构项目规则", "把规则迁移到 skills 目录", or "创建 skill-based architecture".
-  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across entry
-  files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.), documentation is hard to
-  navigate, or the user requests rule consolidation / documentation cleanup.
+  "clean up scattered documentation", "把规则迁移到 skills 目录", "优化 skill 路由",
+  "提高 description 命中率", or "减少薄壳重复维护".
+  Activate when a SKILL.md is too large, rules are duplicated across agent entry
+  files, task routing or trigger_examples miss natural user language, or
+  templates / thin shells / validation scripts need drift-resistant maintenance.
 
 entry: SKILL.md
 
@@ -26,7 +26,9 @@ triggers:
   - SKILL.md exceeds ~150 lines
   - Project rules scattered across AGENTS.md, .cursor/rules/, CLAUDE.md, etc.
   - User requests skill-based architecture or rule consolidation
+  - User asks to improve skill routing, description hit rate, or trigger examples
   - 用户要求整理项目规则、清理散乱文档、重构规则或迁移规则到 skills 目录
+  - 用户要求优化 skill 路由、提高 description 命中率、减少薄壳重复维护
 
 files:
   - SKILL.md       # Skill entry: when to use, target structure, core principles
@@ -37,6 +39,7 @@ files:
   - EXAMPLES.md    # Stub + index, redirects to examples/
   - examples/      # Numbered examples and behavior-failure scenarios split by topic
   - README.md      # Bilingual overview for humans (EN + ZH)
+  - references/self-hosting-routing.yaml  # Self-hosting routing source
 
 compatible_tools:
   - cursor

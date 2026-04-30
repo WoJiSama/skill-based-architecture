@@ -4,13 +4,17 @@ When a repo owns **multiple skills** in `skills/` (not just one), the routing, t
 
 ## When you need multiple skills
 
-A single project skill is enough when the whole project shares one set of rules and one routing table. Split into multiple skills when **any** of these is true:
+A single project skill is enough when the whole project shares one set of rules and one routing manifest. Split into multiple skills when **any** of these is true:
 
 - Two subsystems have **non-overlapping trigger phrases** (a user asking about "billing" and "onboarding" should land on different Common Tasks)
 - Two subsystems have **contradicting rules** (frontend rules say "prefer Web Components", backend rules say irrelevant) — forcing them into one skill loads conflicting constraints on every task
 - One subsystem is a **standalone reusable library** that could be extracted later — giving it its own skill is a low-cost pre-split
 
 One skill with multiple domains (`rules/frontend-rules.md` + `rules/backend-rules.md`) is NOT multi-skill — it's one skill covering several domains. Multi-skill means separate `skills/<name>/` directories each with their own SKILL.md + rules + workflows.
+
+**Default shape:** one `primary: true` project skill with workflow routing inside `SKILL.md`. Do **not** create separate skills for ordinary workflow verbs like `fix-bug`, `add-feature`, `review`, or `update-docs`; those are usually `workflows/*.md` under the same project skill because they share project rules, gotchas, validation commands, and Task Closure Protocol.
+
+Split only when the trigger language and rule set form a separate domain: for example `skills/app`, `skills/deploy`, `skills/data-migration`, or `skills/template-builder`. If the proposed child skill still reads the same Always Read files and only differs by procedure, keep it as a workflow.
 
 ## The `primary: true` default
 
@@ -30,7 +34,7 @@ If no skill has `primary: true`, the Agent has to match description-by-descripti
 
 ## Description discipline — no overlapping trigger phrases
 
-With multiple skills, trigger phrases are the disambiguator. Two skills with overlapping triggers guarantee mis-routing.
+With multiple skills, trigger phrases are the disambiguator between domains, not a workflow keyword inventory. Two skills with overlapping triggers guarantee mis-routing.
 
 **Bad** (both fire on "add page"):
 ```yaml
@@ -50,7 +54,7 @@ description: Use when the user asks to "add a UI page", "style a component", "fi
 description: Use when the user asks to "add a content page", "edit article", "publish draft", ...
 ```
 
-**Check:** grep each skill's trigger phrases in every supported user language. If two skills share a phrase verbatim, rewrite one.
+**Check:** run `scripts/check-description-routing.sh` or grep each skill's trigger phrases in every supported user language. If two skills share a phrase verbatim, rewrite one.
 
 ## Shared resources — where they live in a multi-skill repo
 
@@ -58,7 +62,7 @@ Some resources apply across all skills in the repo:
 
 | Resource | Layout in multi-skill repo |
 |---|---|
-| Root shells (`AGENTS.md`, `CLAUDE.md`, etc.) | ONE set at repo root. Each shell's Always Read preamble lists the Always Read of the primary skill. Each shell's routing table has rows from ALL skills, prefixed or grouped. |
+| Root shells (`AGENTS.md`, `CLAUDE.md`, etc.) | ONE set at repo root. Each shell's Always Read preamble is generated from the primary skill's `routing.yaml`. Each shell points to the router / `routing.yaml` manifest rather than carrying copied rows. |
 | Protocol-blocks | `protocol-blocks/` at **repo root** (not inside any one skill). Each skill's workflows link to them with relative paths like `../../protocol-blocks/reboot-check.md`. |
 | Hooks (`.claude/hooks/`) | ONE set at repo root. A hook that gates one skill's file uses env vars or path checks to scope its effect. |
 | References | Per-skill under each `skills/<name>/references/`. Only move to repo root if a reference legitimately applies to all skills (rare). |
@@ -110,6 +114,7 @@ Fission procedure: see [`references/layout.md § Multi-Skill Projects`](layout.m
 ## Anti-patterns
 
 - **Creating multiple skills for a single-domain project just because it feels modular.** If the skills always read each other's files on every task, the split is fake. Merge.
+- **Workflow-as-skill explosion.** `skills/fix-bug`, `skills/add-feature`, `skills/review`, and `skills/update-docs` usually duplicate the same project rules and compete for activation. Keep them as workflows unless their rules and trigger language truly diverge.
 - **Listing every skill's rules in every shell's Always Read preamble.** Pollutes every session with everyone else's rules. Only the primary skill's Always Read goes in the shell preamble; other skills are routed to explicitly.
 - **Identical description text across skills.** The Agent can't distinguish. Every skill's description must be uniquely identifying.
 - **`primary: true` on multiple skills.** The `primary` is an exclusive designation; more than one is a config bug.
@@ -145,4 +150,4 @@ repo-root/
         └── ...
 ```
 
-The `AGENTS.md` routing table shows rows for all three skills, each prefixed by the skill name so the Agent knows which `skills/<name>/` to Read for that task.
+The router's manifest shows rows for all three skills, each prefixed by the skill name so the Agent knows which `skills/<name>/` to read for that task.

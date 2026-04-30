@@ -4,7 +4,7 @@
 # Example: bash smoke-test.sh my-project
 #          bash smoke-test.sh my-project --phase 4   # run only Phase 4 subset
 #
-# Zero manual input required. Parses SKILL.md Common Tasks as the source of truth.
+# Zero manual input required. Checks routing.yaml-generated blocks plus SKILL.md Common Tasks.
 # Supports both English and Chinese (中文) section names.
 # Exit code: 0 = all pass, 1 = failures found.
 #
@@ -21,14 +21,14 @@
 #                                   no unreplaced <!-- FILL: --> markers
 #   4. SKILL.md Content Quality   — description ≥ 20 words or enough CJK chars,
 #                                   ≥ 2 quoted trigger phrases in real user
-#                                   language(s), Common Tasks has Other fallback,
-#                                   Known Gotchas section exists
-#   5. Routing Completeness       — every file referenced in Common Tasks
-#                                   actually exists on disk
+#                                   language(s), not too broad / workflow-stuffed,
+#                                   Common Tasks + Known Gotchas sections exist
+#   5. Routing Completeness       — routing.yaml generated summary/bootstraps match;
+#                                   every file referenced in Common Tasks exists
 #   6. Description Consistency    — SKILL.md and .cursor/skills/<name>/SKILL.md
 #                                   descriptions match byte-for-byte
 #   7. Shell Routing Consistency  — AGENTS / CLAUDE / CODEX / GEMINI shells
-#                                   share the same Quick Routing task set
+#                                   point at routing.yaml bootstrap
 #   8. Broken Link Check          — every relative markdown link [text](path)
 #                                   across all skill .md files resolves to an
 #                                   existing file. Catches "path drift" after
@@ -123,6 +123,7 @@ section() {
 
 SKILL_DIR="skills/$NAME"
 SKILL_MD="$SKILL_DIR/SKILL.md"
+ROUTING_YAML="$SKILL_DIR/routing.yaml"
 CURSOR_ENTRY=".cursor/skills/$NAME/SKILL.md"
 
 PASS=0
@@ -134,9 +135,9 @@ fail() { ((FAIL++)); echo "  ❌ $1"; }
 warn() { ((WARN++)); echo "  ⚠️  $1"; }
 
 # ── 1. Structural Checks ─────────────────────────────────────────────
-has_routing_table() {
+has_routing_bootstrap() {
   local file="$1"
-  grep -q '^|' "$file" 2>/dev/null
+  grep -q 'routing.yaml' "$file" 2>/dev/null
 }
 
 if section 1 "Structural Checks"; then :
@@ -147,6 +148,11 @@ if sub_runs "1a-skill"; then
     pass "$SKILL_MD exists"
   else
     fail "$SKILL_MD missing"
+  fi
+  if [[ -f "$ROUTING_YAML" ]]; then
+    pass "$ROUTING_YAML exists"
+  else
+    fail "$ROUTING_YAML missing (routing source of truth)"
   fi
 fi
 
@@ -164,17 +170,40 @@ fi
 
 # 1a-workflows. workflows/*.md (Phase 5+)
 if sub_runs "1a-workflows"; then
-  for f in "$SKILL_DIR/workflows/update-rules.md" \
-           "$SKILL_DIR/workflows/fix-bug.md" \
-           "$SKILL_DIR/workflows/change-managed.md" \
-           "$SKILL_DIR/workflows/edit-templates.md" \
-           "$SKILL_DIR/workflows/maintain-docs.md"; do
-    if [[ -f "$f" ]]; then
-      pass "$f exists"
+  if [[ -f "$SKILL_DIR/workflows/update-rules.md" ]]; then
+    pass "$SKILL_DIR/workflows/update-rules.md exists"
+  else
+    fail "$SKILL_DIR/workflows/update-rules.md missing"
+  fi
+
+  if [[ -f "$ROUTING_YAML" ]]; then
+    ROUTED_WORKFLOWS=()
+    while IFS= read -r workflow; do
+      [[ -n "$workflow" ]] || continue
+      [[ "$workflow" == *"FILL:"* ]] && continue
+      [[ "$workflow" == workflows/* ]] || continue
+      ROUTED_WORKFLOWS+=("${workflow%%#*}")
+    done < <(awk '
+      /^[[:space:]]+workflow:/ {
+        sub(/^[[:space:]]+workflow:[[:space:]]*/, "")
+        gsub(/^"|"$/, "")
+        print
+      }
+    ' "$ROUTING_YAML")
+
+    if [[ ${#ROUTED_WORKFLOWS[@]} -eq 0 ]]; then
+      warn "routing.yaml has no concrete workflows/*.md entries yet"
     else
-      fail "$f missing"
+      UNIQUE_ROUTED_WORKFLOWS=($(printf '%s\n' "${ROUTED_WORKFLOWS[@]}" | sort -u))
+      for workflow in "${UNIQUE_ROUTED_WORKFLOWS[@]}"; do
+        if [[ -f "$SKILL_DIR/$workflow" ]]; then
+          pass "$SKILL_DIR/$workflow exists (from routing.yaml)"
+        else
+          fail "$SKILL_DIR/$workflow missing (referenced by routing.yaml)"
+        fi
+      done
     fi
-  done
+  fi
 fi
 
 # 1a-gotchas. references/gotchas.md or equivalent (Phase 6+)
@@ -205,18 +234,18 @@ if sub_runs "1c"; then
   for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
     if [[ ! -f "$shell" ]]; then
       fail "$shell missing"
-    elif has_routing_table "$shell"; then
-      pass "$shell exists with routing table"
+    elif has_routing_bootstrap "$shell"; then
+      pass "$shell exists with routing.yaml bootstrap"
     else
-      fail "$shell exists but has no routing table (no '|' table rows found)"
+      fail "$shell exists but does not point at routing.yaml"
     fi
   done
 
   if [[ -f ".codex/instructions.md" ]]; then
-    if has_routing_table ".codex/instructions.md"; then
-      pass ".codex/instructions.md exists with routing table"
+    if has_routing_bootstrap ".codex/instructions.md"; then
+      pass ".codex/instructions.md exists with routing.yaml bootstrap"
     else
-      fail ".codex/instructions.md exists but no routing table"
+      fail ".codex/instructions.md exists but does not point at routing.yaml"
     fi
   else
     fail ".codex/instructions.md missing"
@@ -248,6 +277,7 @@ check_lines() {
 }
 
 check_lines "$SKILL_MD" 100 "SKILL.md"
+check_lines "$ROUTING_YAML" 120 "routing.yaml"
 for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
   check_lines "$shell" 60 "$shell (thin shell)"
 done
@@ -286,9 +316,9 @@ if [[ -f "$SKILL_MD" ]]; then
   if [[ "$CT_ROWS" -eq 0 ]]; then
     warn "Common Tasks routing appears empty or non-standard format"
   elif [[ "$CT_ROWS" -le "$COMMON_TASKS_MAX_ROWS" ]]; then
-    pass "Common Tasks: $CT_ROWS routing rows (≤ $COMMON_TASKS_MAX_ROWS)"
+    pass "Common Tasks: $CT_ROWS routes (≤ $COMMON_TASKS_MAX_ROWS)"
   else
-    fail "Common Tasks: $CT_ROWS routing rows (exceeds $COMMON_TASKS_MAX_ROWS — evaluate fission or row consolidation)"
+    fail "Common Tasks: $CT_ROWS routes (exceeds $COMMON_TASKS_MAX_ROWS — evaluate fission or route consolidation)"
   fi
 fi
 
@@ -401,6 +431,21 @@ if [[ -f "$SKILL_MD" ]]; then
       fi
     fi
   fi
+
+  # 4h. Description scope + multi-skill overlap checks.
+  DESC_CHECK="$SKILL_DIR/scripts/check-description-routing.sh"
+  if [[ ! -f "$DESC_CHECK" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    DESC_CHECK="$SCRIPT_DIR/check-description-routing.sh"
+  fi
+  if [[ -f "$DESC_CHECK" ]]; then
+    if CHECK_OUTPUT=$(bash "$DESC_CHECK" "$NAME" 2>&1); then
+      pass "description routing discipline check passed"
+    else
+      fail "description routing discipline check failed"
+      printf '%s\n' "$CHECK_OUTPUT" | sed 's/^/       /' | head -40
+    fi
+  fi
 fi
 
 fi  # end section 4
@@ -409,6 +454,20 @@ fi  # end section 4
 if section 5 "Routing Completeness (auto-parsed from Common Tasks)"; then :
 
 if [[ -f "$SKILL_MD" ]]; then
+  ROUTING_SYNC="$SKILL_DIR/scripts/sync-routing.sh"
+  if [[ ! -f "$ROUTING_SYNC" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    ROUTING_SYNC="$SCRIPT_DIR/sync-routing.sh"
+  fi
+  if [[ -f "$ROUTING_YAML" && -f "$ROUTING_SYNC" ]]; then
+    if ROUTING_OUTPUT=$(bash "$ROUTING_SYNC" "$NAME" --check 2>&1); then
+      pass "routing.yaml generated blocks are in sync"
+    else
+      fail "routing.yaml generated blocks drifted"
+      printf '%s\n' "$ROUTING_OUTPUT" | sed 's/^/       /' | head -50
+    fi
+  fi
+
   # Extract file references from Common Tasks / 常见任务 section
   IN_COMMON_TASKS=false
   REFERENCED_FILES=()
@@ -548,37 +607,27 @@ fi  # end section 6
 # ── 7. Shell Routing Table Consistency ────────────────────────────────
 if section 7 "Shell Routing Consistency"; then :
 
-if [[ -f "scripts/check-self-routing.sh" && -f "references/self-hosting-routing.md" ]]; then
+if [[ -f "scripts/check-self-routing.sh" && -f "references/self-hosting-routing.yaml" ]]; then
   if bash scripts/check-self-routing.sh >/dev/null; then
-    pass "self-hosting routing blocks match canonical source"
+    pass "self-hosting routing bootstraps match canonical source"
   else
-    fail "self-hosting routing blocks drifted from references/self-hosting-routing.md"
+    fail "self-hosting routing bootstraps drifted from references/self-hosting-routing.yaml"
     echo "       Run: bash scripts/sync-self-routing.sh"
   fi
 fi
 
-# Check that all shells reference the same set of tasks
+# Check that all shells point at the routing manifest instead of carrying hand-maintained tables.
 SHELL_FILES=(AGENTS.md CLAUDE.md CODEX.md GEMINI.md)
 [[ -f ".codex/instructions.md" ]] && SHELL_FILES+=(".codex/instructions.md")
 while IFS= read -r cursor_rule; do
   SHELL_FILES+=("$cursor_rule")
 done < <(find .cursor/rules -maxdepth 1 -name '*.mdc' -type f 2>/dev/null | sort)
-PREV_TASKS=""
-PREV_SHELL=""
 for shell in "${SHELL_FILES[@]}"; do
   if [[ ! -f "$shell" ]]; then continue; fi
-  # Extract task column from routing table (first column after | )
-  # Skip header rows (containing "Task" or "任务" or "---")
-  TASKS=$(grep '^|' "$shell" | grep -v '^| Task' | grep -v '任务类型' | grep -v '^|---' | awk -F'|' '{print $2}' | tr -d ' ' | sort)
-  if [[ -z "$PREV_TASKS" ]]; then
-    PREV_TASKS="$TASKS"
-    PREV_SHELL="$shell"
-    continue
-  fi
-  if [[ "$TASKS" == "$PREV_TASKS" ]]; then
-    pass "$shell routing table matches $PREV_SHELL"
+  if grep -q 'routing.yaml' "$shell"; then
+    pass "$shell points at routing.yaml"
   else
-    warn "$shell routing table differs from $PREV_SHELL (may be intentional)"
+    fail "$shell does not point at routing.yaml"
   fi
 done
 
@@ -586,7 +635,7 @@ fi  # end section 7
 
 # ── 8. Broken Link Check ──────────────────────────────────────────────
 # Catches "path drift": agent renames or deletes a file but only updates SOME
-# of the references to it. Section 5 covers the Common Tasks routing table only;
+# of the references to it. Section 5 covers the generated Common Tasks summary only;
 # this section scans every relative markdown link [text](path) across all skill
 # .md files and verifies each target exists. Companion to audit-references.sh
 # (which finds *orphan* files — files no one links to). Together they cover

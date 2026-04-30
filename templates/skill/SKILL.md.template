@@ -1,7 +1,7 @@
 ---
 name: {{NAME}}
 description: >
-  <!-- FILL: Rewrite as trigger conditions — ≥ 2 quoted phrases in the user's real language(s) + concrete activation conditions. Copy the final block byte-for-byte into .cursor/skills/{{NAME}}/SKILL.md — smoke-test enforces equality. -->
+  <!-- FILL: Domain-level activation only — ≥ 2 quoted phrases in the user's real language(s) + concrete activation conditions. Do NOT list every workflow; Common Tasks routes after activation. Copy byte-for-byte into .cursor/skills/{{NAME}}/SKILL.md. -->
   This skill should be used when the user asks to "<trigger phrase 1>",
   "<trigger phrase 2>", or "<trigger phrase 3 / 中文触发短语>".
   Activate when <condition 1> or <condition 2>.
@@ -21,11 +21,13 @@ primary: true
 ## Always Read
 
 These files apply to every task. Read them first:
+<!-- ALWAYS_READ_START -->
 1. `rules/project-rules.md`
 2. `rules/coding-standards.md`
 3. `rules/agent-behavior.md`
+<!-- ALWAYS_READ_END -->
 
-<!-- FILL: keep to 2–3 files max. Domain-specific rules do NOT go here. agent-behavior.md is pre-filled universal defaults — remove it only if your project explicitly overrides those defaults. -->
+<!-- FILL: edit routing.yaml always_read, then run scripts/sync-routing.sh. Keep to 2–3 files max. Domain-specific rules do NOT go here. agent-behavior.md is pre-filled universal defaults — remove it only if your project explicitly overrides those defaults. -->
 
 ## Session Discipline
 
@@ -46,17 +48,16 @@ These files apply to every task. Read them first:
 
 Each entry lists the exact files to read — don't read files not listed for your task:
 
-<!-- FILL: add 3–8 real recurring task types for this project, in the format below.
-     Format example (DO NOT keep this comment — replace with real tasks):
-       Add page → read `rules/frontend-rules.md` + follow `workflows/add-page.md`
-       Add API endpoint → read `rules/backend-rules.md` + follow `workflows/add-endpoint.md`; ref: `references/gotchas.md`
-     Rule: use real file paths the project will actually have.
-     Do NOT use angle-bracket placeholders like `rules/<x>.md` — they fool the smoke-test. -->
-- Fix bug → read task-relevant `rules/*.md` + follow `workflows/fix-bug.md`; ref: `references/gotchas.md`
-- Add / refactor / optimize non-bug behavior → read task-relevant `rules/*.md` + follow `workflows/change-managed.md`
-- Edit templates / scaffolds / copied shells / hooks → read `rules/project-rules.md` + follow `workflows/edit-templates.md`
-- Multi-subtask / long autonomous run (≥ 3 independent subtasks) → follow `workflows/subagent-driven.md`
-- **Other / unlisted task** → read `rules/project-rules.md` + `rules/coding-standards.md`, then match by workflow filename (verb-noun: `add-page.md`, `fix-bug.md`, etc.). If no match, proceed with Always Read rules.
+<!-- FILL: edit routing.yaml, then run scripts/sync-routing.sh. Keep 3–8 real recurring task types and an Other fallback. -->
+<!-- ROUTING_SUMMARY_START -->
+- Fix bug / 修复 bug / 排查异常 (`fix-bug`) -> reads `rules/project-rules.md`, `rules/coding-standards.md`; workflow `workflows/fix-bug.md`; read task-relevant `rules/*.md` + follow `workflows/fix-bug.md`; ref `references/gotchas.md`; triggers: "这个接口报错了", "测试挂了", "fix this failing test"
+- Add / refactor / optimize non-bug behavior / 新增 / 重构 / 优化非 bug 行为 (`change-managed`) -> reads `rules/*.md`; workflow `workflows/change-managed.md`; read task-relevant `rules/*.md` + follow `workflows/change-managed.md`; triggers: "优化这个模块", "帮我加一个功能", "refactor this flow"
+- Profile / refresh project understanding / 梳理 / 刷新项目理解 (`profile-project`) -> reads `rules/project-rules.md`; workflow `workflows/profile-project.md`; follow `workflows/profile-project.md`; write only evidence-labeled conclusions; triggers: "帮我理解这个项目", "重新梳理项目规则", "refresh the project profile"
+- Update from skill-based-architecture upstream / 从上游 skill-based-architecture 更新 (`update-upstream`) -> reads `rules/project-rules.md`; workflow `workflows/update-upstream.md`; follow `workflows/update-upstream.md`; agent compares, patches, and validates without asking user to diff; triggers: "上游项目更新了,帮我更新一下", "更新 skill-based-architecture 模板", "refresh from upstream"
+- Multi-subtask / long run / 多子任务 / 长任务 (`subagent-driven`) -> reads `rules/project-rules.md`; workflow `workflows/subagent-driven.md`; follow `workflows/subagent-driven.md`; triggers: "这个任务比较大,分几路做", "多个独立子任务并行", "run multiple subtasks"
+- <!-- FILL: task label --> (`fill-task`) -> reads <!-- FILL: rules/example-rules.md -->; workflow <!-- FILL: workflows/example-workflow.md -->; <!-- FILL: read `rules/example-rules.md` + follow `workflows/example-workflow.md` -->
+- Other / unlisted task / 其他 / 未列出的任务 (`other`) -> reads `rules/project-rules.md`; workflow Check `workflows/` for closest match; read `rules/project-rules.md` + `rules/coding-standards.md`, then match by workflow filename; if no match, proceed with Always Read rules; triggers: "其他没有明确路由的任务"
+<!-- ROUTING_SUMMARY_END -->
 
 </task-routing>
 

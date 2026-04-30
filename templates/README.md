@@ -10,13 +10,16 @@ This directory holds **ready-to-copy files** for downstream projects. WORKFLOW.m
 templates/
 ├── skill/                    → becomes skills/{{NAME}}/
 │   ├── SKILL.md.template     (renamed to SKILL.md during Quick Start)
+│   ├── routing.yaml            (single source for Always Read + Common Tasks + shell bootstraps)
 │   ├── rules/{project-rules,coding-standards,agent-behavior}.md
-│   ├── workflows/{update-rules,fix-bug,change-managed,edit-templates,maintain-docs,subagent-driven}.md
+│   ├── workflows/{profile-project,update-upstream,update-rules,fix-bug,change-managed,edit-templates,maintain-docs,subagent-driven}.md
 │   ├── workflows/invoke-skill.md.example  (copy-paste template for Pattern A composition; rename and adapt)
 │   ├── references/{gotchas,behavior-failures}.md
 │   └── scripts/              → automated verification (lives inside the skill)
 │       ├── smoke-test.sh                (fully automated structural + routing checks)
+│       ├── sync-routing.sh              (generate/check routing summary + shell bootstraps from routing.yaml)
 │       ├── test-trigger.sh              (description trigger rate testing)
+│       ├── check-description-routing.sh (description scope + multi-skill overlap checks)
 │       ├── check-cross-references.sh    (workflows → rules/references staleness heuristic)
 │       ├── check-external-facts.sh      (source-date freshness check for volatile external facts)
 │       └── audit-references.sh          (orphan + low-inbound detection for rules/ and references/)
@@ -54,7 +57,7 @@ Two kinds — each with a different "fill" mechanism:
 
 | Marker | Meaning | Filled by |
 |---|---|---|
-| `{{NAME}}`, `{{SUMMARY}}`, `{{TRIGGER_PHRASES}}` | Mechanical substitution | Single `sed` pass in Quick Start |
+| `{{NAME}}`, `{{SUMMARY}}` | Mechanical substitution | Single `sed` pass in Quick Start |
 | `<!-- FILL: … -->` | Requires human/agent judgment | Must be replaced manually; `grep -r 'FILL:'` lists all pending |
 
 **Audit after Quick Start:** run `grep -r 'FILL:' skills/{{NAME}} AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor` — every match is a required fill, not optional.
@@ -63,15 +66,18 @@ Two kinds — each with a different "fill" mechanism:
 
 | Path | Budget | Enforcement |
 |---|---|---|
-| `shells/*` | ≤ 60 lines | Thin shells must stay thin; > 60 = content leaking in. Must include an Always Read preamble + route-before-routing check for vague verbs (see `protocol-blocks/ambiguous-request-gate.md`) — the routing table alone is not sufficient |
+| `shells/*` | ≤ 60 lines | Thin shells must stay thin; > 60 = content leaking in. Must include generated Always Read + `routing.yaml` bootstrap + route-before-routing check for vague verbs (see `protocol-blocks/ambiguous-request-gate.md`) |
+| `skill/routing.yaml` | ≤ 120 lines | Single source of truth for generated Always Read, Common Tasks, trigger examples, required reads, workflows, and thin-shell bootstraps; project-specific after fill |
 | `skill/rules/project-rules.md`, `skill/rules/coding-standards.md` | ≤ 20 lines, ≥ 60% must be `<!-- FILL: -->` | Rule stubs are scaffolding, not content |
 | `skill/rules/agent-behavior.md` | ≤ 100 lines, fully pre-filled | Universal coding defaults. Exception to the stub-only rule — ships as content. **Growth gated** by `ANTI-TEMPLATES.md § Admission Threshold` (convention-level, ~30% hostile-prompt block rate). For mechanism-level enforcement install `templates/hooks/agent-behavior-gate.sh` — blocks 100% of tested attack classes deterministically |
 | `hooks/agent-behavior-gate.sh` | ≤ 150 lines | PreToolUse gate script. False-positive mitigations (shrinking/typo-tolerance paths) live in-script; see `hooks/README.md` |
 | `hooks/README.md` | ≤ 150 lines | Per-hook rollout guidance; allowed larger because it documents optional installs + tuning |
-| `skill/workflows/fix-bug.md`, `change-managed.md`, `edit-templates.md` | ≤ 100 lines | Task-specific workflows stay lean |
+| `skill/workflows/profile-project.md`, `update-upstream.md`, `fix-bug.md`, `change-managed.md`, `edit-templates.md` | ≤ 100 lines | Task-specific workflows stay lean |
 | `skill/workflows/update-rules.md`, `maintain-docs.md`, `subagent-driven.md` | ≤ 250 lines | Protocol-heavy workflows allowed more room |
 | `protocol-blocks/*` | ≤ 40 lines each | One idea per block |
 | `skill/SKILL.md.template` | ≤ 100 lines | Same hard cap as downstream SKILL.md; keep shorter when possible, but do not create a stricter template-only budget that conflicts with smoke-test |
+| `skill/scripts/sync-routing.sh` | ≤ 320 lines | Generator/checker for routing.yaml-derived blocks; keep dependency-free |
+| `skill/scripts/check-description-routing.sh` | ≤ 160 lines | Conservative semantic guard for description scope and multi-skill trigger overlap |
 | `skill/scripts/check-external-facts.sh` | ≤ 120 lines | Small freshness gate; keep network-free and marker-based |
 | `skill/references/gotchas.md` | ≤ 25 lines (seed) | MUST stay near-empty — content grows post-deployment |
 | `skill/references/behavior-failures.md` | ≤ 25 lines (seed) | MUST stay near-empty — agent-behavior violations logged via AAR |
@@ -90,6 +96,8 @@ Before adding anything to this directory, answer:
 
 No exceptions. If this test is hand-waved, `templates/` slides into opinionated defaults and downstream projects start looking identical.
 
+New reusable mechanisms must also pass the [Mechanism Admission Gate](ANTI-TEMPLATES.md#mechanism-admission-gate): reduce repeated maintenance or prevent a verified recurring failure; otherwise keep them out of `templates/` as mechanisms.
+
 ## Anti-Drift Checks
 
 Run these when templates change:
@@ -97,5 +105,6 @@ Run these when templates change:
 1. **Byte budget CI** — a 5-line shell script that fails if any file exceeds its row in the budget table above.
 2. **Placeholder audit** — `grep -r '{{' templates/` lists every placeholder; must match the `sed` substitution set in WORKFLOW.md Quick Start (no orphans).
 3. **Loader-safety audit** — `find templates -name 'SKILL.md'` must return no rows; template sources use `SKILL.md.template` until Quick Start materializes them downstream.
-4. **FILL audit** — `grep -r 'FILL:' templates/` must return nonzero lines for `rules/`, `references/gotchas.md`, and every shell (proof that downstream is forced to write content, not just copy).
-5. **Homogeneity spot-check** — run Quick Start against two toy projects of very different types (Go CLI + Next.js site) and `diff -r` the output. Skeleton files should be near-identical; `rules/`, `gotchas.md`, `SKILL.md` Always Read + Common Tasks must **not** be identical. If they are, the template overreached.
+4. **FILL audit** — `grep -r 'FILL:' templates/` must return expected lines for judgment-filled templates (`rules/`, `references/gotchas.md`, `SKILL.md.template`, `routing.yaml`, project-specific workflow comments). Thin shells may rely on mechanical placeholders / generated markers instead of `FILL:`.
+5. **Routing manifest audit** — run `bash templates/skill/scripts/sync-routing.sh templates/skill --check`; then instantiate a sample, fill `routing.yaml`, run `bash skills/<name>/scripts/sync-routing.sh <name> --check`; generated Always Read lists, summaries, and bootstraps must match.
+6. **Homogeneity spot-check** — run Quick Start against two toy projects of very different types (Go CLI + Next.js site) and `diff -r` the output. Skeleton files should be near-identical; `rules/`, `gotchas.md`, `routing.yaml`, `SKILL.md` Always Read + Common Tasks must **not** be identical. If they are, the template overreached.

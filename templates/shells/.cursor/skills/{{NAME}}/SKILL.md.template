@@ -1,10 +1,10 @@
 ---
 name: {{NAME}}
 description: >
-  <!-- FILL: Rewrite as a trigger condition, not a passive summary. -->
+  <!-- FILL: Rewrite as domain-level activation, not a passive summary. -->
   <!-- FILL: Include ≥ 2 quoted trigger phrases in the user's real language(s). -->
   <!-- FILL: Include concrete activation conditions (not just category labels). -->
-  <!-- FILL: After filling, copy the whole description block into .cursor/skills/{{NAME}}/SKILL.md — smoke-test enforces byte-equality. -->
+  <!-- FILL: Do NOT list every workflow; SKILL.md Common Tasks routes after activation. Copy the whole block into .cursor/skills/{{NAME}}/SKILL.md — smoke-test enforces byte-equality. -->
   This skill should be used when the user asks to "<trigger phrase 1>",
   "<trigger phrase 2>", or "<trigger phrase 3 / 中文触发短语>".
   Activate when <condition 1> or <condition 2>.
@@ -19,9 +19,13 @@ Conflicts between loaded project instructions → formal docs in `skills/{{NAME}
 
 ## Quick Routing (survives context truncation)
 
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| Multi-subtask / long run (≥ 3 independent subtasks) | `rules/project-rules.md` | `workflows/subagent-driven.md` |
-| <!-- FILL: task --> | <!-- FILL: `rules/<x>.md` --> | <!-- FILL: `workflows/<y>.md` --> |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+<!-- ROUTING_BOOTSTRAP_START -->
+Task routes live in `skills/{{NAME}}/routing.yaml`.
+
+For every new task:
+1. Read `skills/{{NAME}}/routing.yaml`.
+2. Match by `labels`, `trigger_examples`, and task intent.
+3. Read only that route's `required_reads` plus Always Read files.
+4. Follow that route's `workflow`.
+5. If no route matches, use the `other` route.
+<!-- ROUTING_BOOTSTRAP_END -->

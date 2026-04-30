@@ -1,0 +1,125 @@
+# Canonical self-hosting routing manifest
+#
+# This repo is self-hosting: formal skill docs live at repo root rather than
+# under skills/<name>/. Root harness files only receive a short bootstrap block.
+# Edit this YAML first, then run:
+#
+#   bash scripts/sync-self-routing.sh
+#   bash scripts/check-self-routing.sh
+
+tasks:
+  - id: migrate-downstream
+    labels:
+      en: Migrate a downstream project's rules to skill-based architecture
+      zh: 迁移下游项目规则到 skill-based architecture
+    required_reads:
+      - SKILL.md
+      - WORKFLOW.md
+    workflow: WORKFLOW.md#quick-start-copy-dont-generate
+    trigger_examples:
+      - 把规则迁移到 skills 目录
+      - 整理项目规则
+      - migrate project rules to skills
+
+  - id: edit-templates
+    labels:
+      en: Edit or extend templates
+      zh: 修改或扩展模板
+    required_reads:
+      - SKILL.md
+      - templates/README.md
+      - templates/ANTI-TEMPLATES.md
+    workflow: templates/skill/workflows/edit-templates.md
+    trigger_examples:
+      - 修改 templates
+      - 调整薄壳模板
+      - update the scaffold templates
+
+  - id: revise-skill-principle
+    labels:
+      en: Add or revise a skill design principle
+      zh: 新增或修改 skill 设计原则
+    required_reads:
+      - SKILL.md
+      - references/layout.md
+    workflow: SKILL.md#core-principles
+    trigger_examples:
+      - 加一条核心原则
+      - 修改 skill 设计原则
+      - revise a skill principle
+
+  - id: revise-reference
+    labels:
+      en: Add or revise a reference doc
+      zh: 新增或修改 reference 文档
+    required_reads:
+      - SKILL.md
+      - references/README.md
+    workflow: references/README.md
+    trigger_examples:
+      - 更新 reference
+      - 新增参考文档
+      - revise a reference doc
+
+  - id: add-example
+    labels:
+      en: Add an example
+      zh: 新增示例
+    required_reads:
+      - examples/README.md
+    workflow: examples/README.md
+    trigger_examples:
+      - 加一个 before after 示例
+      - 补一个行为失败例子
+      - add an example scenario
+
+  - id: fix-script-or-template-bug
+    labels:
+      en: Fix a bug in scripts or templates
+      zh: 修复脚本或模板 bug
+    required_reads:
+      - SKILL.md
+      - templates/skill/scripts/smoke-test.sh
+    workflow: templates/skill/workflows/fix-bug.md
+    trigger_examples:
+      - 脚本跑失败了
+      - 模板生成有问题
+      - fix this template bug
+
+  - id: improve-activation-routing
+    labels:
+      en: Improve skill activation and routing
+      zh: 优化 skill 触发 / 路由命中率
+    required_reads:
+      - SKILL.md
+      - references/layout.md
+      - references/multi-skill-routing.md
+      - templates/skill/scripts/check-description-routing.sh
+    workflow: references/layout.md#description-as-trigger-condition
+    trigger_examples:
+      - description 命中率太低
+      - 优化 routing.yaml
+      - 用户说接口报错但没有命中 fix-bug
+      - improve trigger_examples coverage
+
+  - id: long-run
+    labels:
+      en: Multi-subtask / long autonomous run
+      zh: 多子任务 / 长时间自主任务
+    required_reads:
+      - SKILL.md
+    workflow: templates/protocol-blocks/subagent-contract.md
+    trigger_examples:
+      - 多个独立子任务并行
+      - 这个任务比较大
+      - run several subtasks
+
+  - id: other
+    labels:
+      en: Other
+      zh: 其他任务
+    required_reads:
+      - SKILL.md
+    workflow: WORKFLOW.md
+    trigger_examples:
+      - 其他没有明确路由的任务

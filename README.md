@@ -72,7 +72,7 @@ Skill-Based Architecture provides a **structural pattern** for organizing AI age
 
 ```
 skills/<name>/
-├── SKILL.md          # <= 100 lines: always-read list + task routing table
+├── SKILL.md          # <= 100 lines: always-read list + generated Common Tasks
 ├── rules/            # Long-lived constraints (what is always true)
 ├── workflows/        # Step-by-step procedures (how to do things)
 ├── references/       # Background: architecture, gotchas, indexes
@@ -88,25 +88,25 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 
 ### Two-Layer Routing
 
-`SKILL.md` keeps a short **Always Read** list for every task, then uses a **Common Tasks** table to route the agent to extra files only when needed.
+`SKILL.md` keeps a short generated **Always Read** list for every task, then uses a generated **Common Tasks** summary to route the agent to extra files only when needed. In downstream projects, `routing.yaml` is the editable source of truth for Always Read files, Common Tasks, trigger examples, required reads, workflows, and thin-shell bootstraps.
 
-### Thin Shells with Inline Routing
+### Thin Shells with Routing Bootstrap
 
-Every entry file (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.codex/instructions.md`, `.cursor/rules/*.mdc`) embeds a small routing table — not just "go read SKILL.md". This survives long-session context compression better than a soft pointer.
+Every entry file (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.codex/instructions.md`, `.cursor/rules/*.mdc`) embeds a short bootstrap that points to `routing.yaml` and explains how to match `labels` / `trigger_examples`. The route data itself is not duplicated across shells.
 
 ### Description as Trigger Condition
 
-The `description` field decides whether the agent activates the skill. Write real trigger phrases in the language users actually use, for example both `"test an API endpoint"` and `"测试 API 接口"` when your team works in both English and Chinese.
+The `description` field decides whether the agent activates the skill. Keep it at the **domain / intent-cluster** level, with real phrases users say, for example both `"this endpoint is failing"` and `"这个接口报错了"`. Do not list every workflow there — `SKILL.md` Common Tasks handles task-level routing after activation. `check-description-routing.sh` catches obvious over-broad descriptions and multi-skill trigger overlap.
 
 ### Session Discipline
 
-Every new task — even the second or third in the same session — must re-read SKILL.md, re-match the Common Tasks routing table, and re-read all files listed for that route.
+Every new task — even the second or third in the same session — must re-read SKILL.md, re-match the route in `routing.yaml`, and re-read all files listed for that route.
 
 This avoids stale partial memory after `/compact`, `/clear`, or a long multi-task session.
 
 ### Task Closure and Freshness Checks
 
-Non-trivial tasks end with a short After-Action Review: verify the work, decide whether any repeatable/costly/non-obvious lesson should be recorded, and check whether any rule has gone stale. Doc edits also run link, orphan-reference, cross-reference, and external-fact freshness checks.
+Non-trivial tasks end with a short After-Action Review: verify the work, decide whether any repeatable/costly/non-obvious lesson should be recorded, and check whether any rule has gone stale. Doc edits also run description-routing, link, orphan-reference, cross-reference, and external-fact freshness checks.
 
 ---
 
@@ -202,7 +202,8 @@ After the first migration, keep growing the project skill through routing instea
 - Add project-specific workflows such as `plan.md`, `review.md`, or `deploy-check.md`.
 - Let a workflow invoke another skill when that is the natural tool for the subtask.
 - Add reusable protocol blocks when the same discipline problem repeats.
-- Add one row to `SKILL.md` Common Tasks and the thin shells whenever a new recurring task appears.
+- Add one task to `routing.yaml` whenever a new recurring task appears, then run `scripts/sync-routing.sh`.
+- When this upstream project changes, tell the agent "update from upstream"; it should follow `workflows/update-upstream.md`, clone the GitHub source, patch locally, and preserve project-specific rules.
 
 ---
 
@@ -226,7 +227,7 @@ After the first migration, keep growing the project skill through routing instea
 | **OpenCode** | Reads `AGENTS.md` | `AGENTS.md` shared shell | Yes |
 | **Other agents** | Reads `AGENTS.md` | `AGENTS.md` | Yes |
 
-All entry files **must** contain inline routing tables — natural-language-only instructions get lost during context summarization.
+All entry files **must** contain a `routing.yaml` bootstrap — natural-language-only instructions get lost during context summarization, but duplicating the full route table in every shell creates drift pressure.
 
 For Claude Code native skills, avoid generic project skill names that may collide with `~/.claude/skills/`: a personal skill with the same name overrides the project native skill. The project `skills/<name>/` directory remains the source of truth through `CLAUDE.md` and optional SessionStart routing.
 
@@ -265,7 +266,10 @@ Yes. Round 1: create `skills/<name>/` and extract rules. Round 2: extract workfl
 Keep it as a single file using the minimal starter template. Upgrade only when content starts to sprawl, duplicate, or accumulate non-obvious lessons.
 
 **Q: How do I prevent documentation bloat?**
-The recording threshold (2/3: repeatable + costly + not obvious) filters out low-value records. The deprecation workflow in `update-rules.md` removes obsolete rules. `maintain-docs.md`, reference audits, cross-reference checks, and `check-external-facts.sh` catch oversized files, orphaned references, stale links, and stale external claims.
+The recording threshold (2/3: repeatable + costly + not obvious) filters out low-value records. The deprecation workflow in `update-rules.md` removes obsolete rules. `maintain-docs.md`, `check-description-routing.sh`, reference audits, cross-reference checks, and `check-external-facts.sh` catch oversized files, vague triggers, orphaned references, stale links, and stale external claims.
+
+**Q: How do downstream projects receive upstream improvements?**
+Ask the agent to update from upstream. The copied `workflows/update-upstream.md` contains the GitHub source URL and tells the agent to clone the latest upstream, compare files itself, patch useful mechanism changes, preserve project-owned rules/gotchas, then run validation.
 
 ---
 

@@ -21,18 +21,20 @@ Formal skill content lives at `skills/<name>/SKILL.md`.
 
 ## Quick Routing (survives context truncation)
 
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| Add feature X | `rules/<domain>-rules.md` | `workflows/<task>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+Task routes live in `skills/<name>/routing.yaml`.
+
+For every new task:
+1. Read `skills/<name>/routing.yaml`.
+2. Match by `labels`, `trigger_examples`, and task intent.
+3. Read only that route's `required_reads` plus Always Read files.
+4. Follow that route's `workflow`.
 ```
 
-**Why inline routing?** In long conversations, Cursor summarizes earlier context. Instructions like "go read `skills/<name>/SKILL.md`" get truncated. The inline routing table is embedded directly and survives summary, ensuring the agent always knows which files to read for each task type.
+**Why a bootstrap?** In long conversations, Cursor summarizes earlier context. Instructions like "go read `skills/<name>/SKILL.md`" get truncated. The bootstrap keeps the lookup rule in every shell while the route data stays in one YAML manifest.
 
 ## Common Thin Shell Body
 
-All thin shells share the same core content. Copy this body into each entry file, then add the tool-specific header/frontmatter shown in the per-tool sections below.
+All thin shells share the same core content. In the scaffold, task data lives in `skills/<name>/routing.yaml`; edit the manifest and run `scripts/sync-routing.sh` instead of hand-editing shell copies.
 
 ```md
 Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `primary: true` skill; only switch when task clearly matches another skill's description.
@@ -55,11 +57,13 @@ Conflicts between loaded project instructions → formal docs in `skills/<name>/
 
 **Quick Routing (survives context truncation)**
 
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| Add feature X | `rules/<domain>-rules.md` | `workflows/<task>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+Task routes live in `skills/<name>/routing.yaml`.
+
+For every new task:
+1. Read `skills/<name>/routing.yaml`.
+2. Match by `labels`, `trigger_examples`, and task intent.
+3. Read only that route's `required_reads` plus Always Read files.
+4. Follow that route's `workflow`.
 
 </task-routing>
 
@@ -71,7 +75,7 @@ Conflicts between loaded project instructions → formal docs in `skills/<name>/
 - When user asks to "record/save/remember" something → project-level knowledge goes to `skills/<name>/` docs; personal preferences go to agent memory
 ```
 
-**Why inline routing instead of just "Scan skills/"?** The "Scan skills/*/SKILL.md" instruction is natural language that gets lost during context summarization. The inline routing table embeds the essential task→file mapping directly, so the agent retains actionable routing even after summary truncation.
+**Why a bootstrap instead of just "Scan skills/"?** The "Scan skills/*/SKILL.md" instruction is natural language that gets lost during context summarization. The bootstrap preserves the actionable rule for reading `routing.yaml` while avoiding duplicated route tables in every shell.
 
 **Why Auto-Triggers?** A skill knows *how* to do something; the project entry tells the Agent *when* to do it. Auto-Triggers encode event→action mappings so the Agent proactively runs workflows at the right moment without waiting for a prompt.
 
@@ -87,7 +91,7 @@ XML-style tags survive that compression better for three reasons:
 
 1. **Discrete boundary** — `<always-applicable>` and `</always-applicable>` bracket the content; a summarizer either keeps the tags (and therefore the block) or drops them (conspicuously removing the section). Markdown headings lack that atomic feel.
 2. **Pattern recognition** — LLMs are trained on XML-wrapped system prompts and tool schemas, so they treat tag-bounded regions as higher-precedence constraint blocks than free prose.
-3. **Separation of constraint types** — two tags, two roles: always-applicable content runs on *every* task; task-routing content fires *conditionally* on task match. Keeping them in separate blocks prevents the agent from treating the routing table as a universal rule or the Always Read list as optional.
+3. **Separation of constraint types** — two tags, two roles: always-applicable content runs on *every* task; task-routing content loads only after route match. Keeping them in separate blocks prevents the agent from treating the route manifest as a universal rule or the Always Read list as optional.
 
 The pattern is adopted from [OpenSpec](https://github.com/Fission-AI/OpenSpec)'s `<context>` / `<rules>` injection approach, adapted to our routing-table model.
 
@@ -96,7 +100,7 @@ The pattern is adopted from [OpenSpec](https://github.com/Fission-AI/OpenSpec)'s
 | Tag | Wraps | Runs on |
 |---|---|---|
 | `<always-applicable>` | Always Read list + universal gates (route-before-routing, session discipline) | **Every task**, no match required |
-| `<task-routing>` | Task → Required reads → Workflow table | **Only the matched row**, task-dependent |
+| `<task-routing>` | Pointer to `routing.yaml` + route matching protocol | **Only the matched route**, task-dependent |
 
 ### Rules of use
 
@@ -161,7 +165,7 @@ alwaysApply: true
 <!-- 2. Append at end: "Conflicts → formal docs in `skills/` win." -->
 ```
 
-**Note:** Set `alwaysApply: true` so Cursor always sees the routing table, regardless of which files are open. Use the shorter opening line ("Formal rules live in `skills/`…") to stay within the `.mdc` size budget.
+**Note:** Set `alwaysApply: true` so Cursor always sees the routing bootstrap, regardless of which files are open. Use the shorter opening line ("Formal rules live in `skills/`…") to stay within the `.mdc` size budget.
 
 ### .codex/instructions.md
 
@@ -241,7 +245,7 @@ See root `CLAUDE.md` for entry point.
 <!-- external-fact: verified=2026-04-28 source=https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md -->
 <!-- external-fact: verified=2026-04-28 source=https://opencode.ai/docs/rules/ -->
 
-| Tool | Discovery mechanism | Required entry | Must have inline routing? |
+| Tool | Discovery mechanism | Required entry | Must have routing bootstrap? |
 |---|---|---|---|
 | **Cursor** | Uses project skill registration under `.cursor/skills/` for this scaffold | `.cursor/skills/<name>/SKILL.md` | Yes |
 | **Cursor rules** | `.cursor/rules/*.mdc` (`alwaysApply: true`) | `.cursor/rules/workflow.mdc` | Yes |
@@ -253,7 +257,7 @@ See root `CLAUDE.md` for entry point.
 | **OpenCode** | Reads `AGENTS.md` | `AGENTS.md` (shared shell) | Yes |
 | **Other agents** | Reads `AGENTS.md` | `AGENTS.md` | Yes |
 
-**All entries must contain inline routing tables** — natural-language-only instructions ("Scan skills/") get lost during context summarization in long conversations.
+**All entries must contain a routing bootstrap** — natural-language-only instructions ("Scan skills/") get lost during context summarization in long conversations. In generated scaffolds, `routing.yaml` is the single source for route data; shells only preserve the lookup protocol.
 
 Pre-built shells for the scaffolded harnesses ship under [`templates/shells/`](../templates/shells/); tools that read `AGENTS.md` can share that shell. Downstream projects should `cp -R` the tree rather than regenerate the files inline.
 
@@ -294,7 +298,7 @@ The decision is cheaper than it feels: re-reading a few files costs seconds, but
 | Implementation pass done | Review/refinement of those edits | **Keep** — diff context is needed |
 | Any finished task | Any unrelated task | **/clear** — old file reads and errors will bias the next task |
 
-**Rule of thumb**: if the new task matches a **different row** in the Common Tasks routing table, `/clear`. Same row → keep.
+**Rule of thumb**: if the new task matches a **different route** in `routing.yaml`, `/clear`. Same route → keep.
 
 ### Diagnosing "is my skill actually loaded?"
 
@@ -334,6 +338,6 @@ Drop-in phrases for when the agent picks the wrong workflow, invents a file, or 
 For sessions longer than ~2 hours of active editing:
 
 1. **Checkpoint every ~30 minutes** — ask the agent for a one-sentence summary of completed work. This gives you a clean `/clear` boundary when needed.
-2. **Watch for routing blur** — if the agent cites file paths not in your routing table, proposes fixes that contradict known gotchas, or stops quoting `✓ Check:` sentences when closing tasks: context has compressed. Nudge with a re-read phrase; if two or more of these trigger, `/clear` is non-negotiable.
+2. **Watch for routing blur** — if the agent cites file paths not in `routing.yaml`, proposes fixes that contradict known gotchas, or stops quoting `✓ Check:` sentences when closing tasks: context has compressed. Nudge with a re-read phrase; if two or more of these trigger, `/clear` is non-negotiable.
 3. **After `/compact`** — the SessionStart hook re-injects the router (if installed), but inline edit state is lost. Remind the agent of current file state in one short message before the next edit.
 4. **Before shipping a commit** — run the Task Closure Protocol. It catches drift accumulated across the session.

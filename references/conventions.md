@@ -99,7 +99,7 @@ Both are valuable. The key difference: rules are constraints agents must follow;
 | **Over-splitting** — 20 tiny files with 10 lines each | Navigation overhead exceeds the benefit | Merge related files; aim for 50–200 lines per file |
 | **Record everything** — Agent logs every trivial discovery as a rule | Rules bloat with low-value noise; important rules get buried | Apply recording threshold: repeat + high cost + not obvious from code (2/3) |
 | **Missing registration entry** — formal skill at `skills/<name>/` but no `.cursor/skills/<name>/SKILL.md` | Cursor never discovers the skill; all rules/workflows silently ignored | Always create `.cursor/skills/<name>/SKILL.md` pointing to formal skill |
-| **Soft-pointer-only shell** — thin shell says "go read SKILL.md" without inline routing table | Instruction lost after context summary truncation in long conversations | Embed task→reads→workflow routing table directly in every entry file |
+| **Soft-pointer-only shell** — thin shell says "go read SKILL.md" without a `routing.yaml` bootstrap | Instruction lost after context summary truncation in long conversations | Embed the route lookup protocol in every entry file; keep route data in `routing.yaml` |
 | **Mechanical splitting** — split solely because line count exceeded threshold | Coherent files broken apart; readers jump between fragments | Line count triggers evaluation, not action; check topic separability first |
 | **Process overhead** — full health check run after every tiny edit | Meta-work dominates real work | Only scan modified files; skip review for formatting/comment-only changes |
 
@@ -110,14 +110,14 @@ Common symptoms and their fixes:
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
 | Skill never triggers | Description too vague, too short (< 20 words or < 40 CJK chars), or missing the language users ask in | Rewrite with ≥ 2 quoted trigger phrases in the user's actual language(s) + concrete activation conditions |
-| Agent forgets rules in long conversations | Thin shells lack inline routing tables | Embed routing table in every entry file — natural language instructions get lost in context summarization |
+| Agent forgets rules in long conversations | Thin shells lack `routing.yaml` bootstraps | Embed the route lookup protocol in every entry file — natural language instructions get lost in context summarization |
 | Agent keeps making the same mistake | Pitfall stored in `references/` but not in the task execution path | Surface the lesson in workflow checklist, SKILL.md routing, or a concise rule |
 | AAR never runs | Auto-Triggers require agent to judge "behavior-changing"; agent defaults to skipping | Use Task Closure Protocol: trigger on "any non-trivial task", not "behavior-changing tasks" |
 | Records are project-specific and unreadable outside context | No generalization check on recordings | Apply Generalization Rule: rewrite as reusable pattern before recording |
 | Rules grow endlessly, quality declines | Recording threshold not enforced | Re-check 2/3 criteria (repeatable + costly + not obvious); run Rule Deprecation |
 | Cursor can't see the skill | Missing `.cursor/skills/<name>/SKILL.md` registration entry | Create registration entry with matching description + inline routing |
 | Broken links after file changes | Renamed or deleted files without integrity check | Run maintain-docs Step 4 after any rename, merge, split, or deletion |
-| Common Tasks routing misses frequent tasks | Routing table doesn't reflect actual task distribution | List top 5–10 real tasks, confirm each has a Common Tasks entry |
+| Common Tasks routing misses frequent tasks | `routing.yaml` doesn't reflect actual task distribution | List top 5–10 real tasks, confirm each has a `routing.yaml` entry, then run `scripts/sync-routing.sh` |
 | Agent reads too many files per task | Always Read list too large, or Common Tasks missing | Keep Always Read to 2–3 files; ensure every common task has specific file routing |
 
 ## File Size Guidelines

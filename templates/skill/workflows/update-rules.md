@@ -1,7 +1,6 @@
 # Rule Update Workflow
 
 ## Classification Guide
-
 - Long-lived, must-follow constraints → `rules/`
 - Task procedures with ordered steps → `workflows/`
 - Architecture, routing, dependency explanations → `references/`
@@ -11,7 +10,7 @@
 
 | Change type | Files to update |
 |---|---|
-| New/renamed workflow or reference file | `SKILL.md` Common Tasks routing |
+| New/renamed workflow or reference file | `routing.yaml`, then run `scripts/sync-routing.sh` |
 | UI convention / host compatibility / overlay layering / z-index / styling behavior issue that future agents would guess wrong without docs | Update the relevant `rules/*.md` or `references/*.md`, and update `SKILL.md` summary if the pitfall should surface earlier |
 | <!-- FILL: project-specific trigger → target file --> | <!-- FILL --> |
 
@@ -26,6 +25,7 @@ A task is NOT complete until all six gates are done:
 2. **30-second AAR scan** — run the checklist below; all "no" = stop here
 3. **Record if needed** — any "yes" → apply recording threshold → record if it passes
 4. **Path integrity gate** — if this task touched any `.md` file in skill structure, both checks below must pass *before commit*. Run these from the project repo root unless noted. Markdown links have no compile-time verification — agents partially update path references all the time, leaving dangling links that silently rot. These two scripts are the missing "type checker":
+   - `bash "skills/<skill-name>/scripts/sync-routing.sh" "<skill-name>" --check` — verifies generated Always Read lists, Common Tasks, and bootstraps still match `routing.yaml`
    - `bash "skills/<skill-name>/scripts/smoke-test.sh" "<skill-name>" --phase 8` — verifies every relative markdown file link in every skill `.md` resolves to an existing file (Section 8: Broken Link Check), plus all earlier structural/routing/budget checks
    - `(cd "skills/<skill-name>" && bash scripts/audit-references.sh --orphans)` — verifies no file in `rules/` or `references/` is unreachable from any inbound link (orphans = stored but never activated)
    - Together they cover both directions of drift: broken outbound links (Section 8) and dangling inbound links (orphans)
@@ -51,7 +51,7 @@ When the Agent feels the urge to skip the AAR, these are the common excuses and 
 | "User said 'record this' — I'll also archive the full session as YYYY-MM-DD-session-notes.md in `references/`" | "Record" means extract a **generalized, reusable lesson** into `rules/` or `references/<topic>.md`. Dated session narratives belong in `git log` / `CHANGELOG`, never in `references/`. `references/` rejects date-named narrative files — they violate the generalization rule (project-specific story, not reusable knowledge) and the activation rule (no routing path will ever read them) |
 | "I changed `rules/<x>.md` — workflows can be checked next task" | Cross-reference drift compounds silently. A workflow that repeats a now-wrong invariant is worse than one missing the new invariant; it actively misleads. The check takes seconds when the edit is fresh; next task, you'll forget what you changed |
 | "I'll add the activation pointer to the workflow in a follow-up commit" | Same excuse family as "workflows can be checked next task". The moment you know where the new entry belongs is *now*; after the commit lands, the routing decision evaporates. Either declare the activation path in the same commit, or skip recording entirely |
-| "The entry is so obviously useful someone will find it" | "Obvious" is survivor bias — you already know the lesson. Future agents arriving cold see only the routing table; unindexed references are invisible. Activation is navigation, not advertising |
+| "The entry is so obviously useful someone will find it" | "Obvious" is survivor bias — you already know the lesson. Future agents arriving cold see only the route manifest and generated summary; unindexed references are invisible. Activation is navigation, not advertising |
 | "I only renamed one file, links are probably fine" | Markdown links have zero compile-time verification — "probably fine" is exactly when drift accumulates. The check takes ~2 seconds; running it is faster than convincing yourself you don't need to |
 | "I'll run smoke-test once at the end of the session" | Same failure mode as batched AAR: by the time you remember, you can no longer attribute breakage to a specific edit. Path integrity is per-commit, not per-session |
 | "audit-references is just for orphans, my edit can't create orphans" | Wrong premise — deleting any inbound link can orphan a previously-linked file. The script runs in seconds; assumptions about what "can't" happen are how silent rot starts |
@@ -108,8 +108,8 @@ This step prevents the most common form of knowledge rot: the same lesson record
 - Stable constraint or convention → `rules/`
 - Pitfall, architecture note, lifecycle gotcha, source index → `references/`
 - Ordered task step or completion check → `workflows/`
-- Task routing changed → `SKILL.md`
-- Entry routing changed → thin shells (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
+- Task routing changed → `routing.yaml`, then `scripts/sync-routing.sh`
+- Entry routing or Always Read changed → `routing.yaml`, then regenerate thin-shell generated blocks (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
 - **Session history / debug trace / chronological notes → do NOT record in the skill** — use git commit messages, `CHANGELOG.md`, or a `docs/` note outside the skill. `references/` is for reusable knowledge, not timestamped logs. Every `YYYY-MM-DD-session-notes.md` under `references/` is a sign this rule was violated.
 
 ### Recording Destination (user-initiated recording)
@@ -132,12 +132,12 @@ For UI / interaction / layering / host-compatibility issues:
 
 Before recording any new entry in `references/`, answer both:
 
-1. **Where will the next agent hit this?** Name the specific trigger — a workflow checklist line, a `SKILL.md` Common Tasks route, a thin-shell routing-table cell, or a concise rule summary. "In `references/` under the right topic" is not an answer; that is storage, not activation.
+1. **Where will the next agent hit this?** Name the specific trigger — a workflow checklist line, a `routing.yaml` route or `always_read` entry that generates `SKILL.md` / thin-shell content, or a concise rule summary. "In `references/` under the right topic" is not an answer; that is storage, not activation.
 2. **Is that trigger guaranteed to fire for the task this entry prevents?** If the task path never reads the referencing file, the entry is inert — reject recording.
 
 If no activation path exists, do one of these and re-check:
 
-- Add the pointer to the nearest workflow / route / rule in the **same commit** that adds the reference entry
+- Add the pointer to the nearest workflow / `routing.yaml` task / rule in the **same commit** that adds the reference entry
 - Promote the entry to a `rules/` line or `workflows/` checklist item if short enough to live there directly
 - Skip recording; the lesson isn't costly enough to justify a reference file no task will read
 
@@ -221,7 +221,7 @@ Deprecation steps:
 2. **Fully obsolete** → delete the entry or file
 3. **Partially obsolete** → keep the rule but scope it with a clear header indicating the legacy surface; delete when the last legacy usage is migrated
 4. **If unsure** → annotate with `<!-- DEPRECATED: reason, date -->` and revisit later
-5. **Update references** — if an entire file is deleted, update SKILL.md and the sync trigger table
+5. **Update references** — if an entire file is deleted, update `routing.yaml`, run `scripts/sync-routing.sh`, and update the sync trigger table
 
 ### Surfacing Deprecation Candidates
 

@@ -2,6 +2,14 @@
 
 This file exists so future maintainers (including agents) have to pass through a "why was this rejected?" gate before adding content to `templates/`. Over time the temptation is to put "a reasonable default" here. This list is the counter-pressure.
 
+## Mechanism Admission Gate
+
+Before adding a new workflow, script, hook, protocol block, generated file, or other reusable mechanism to `templates/`, ask:
+
+> Does this reduce repeated maintenance or prevent a verified recurring failure, or does it only make the scaffold feel more complete?
+
+Add the mechanism only if it replaces at least two repeated maintenance points, or fixes a real failure mode that has already happened or is highly likely across harnesses. Otherwise keep it as a reference note, checklist item, example, or `<!-- FILL: -->` prompt.
+
 ## Rejected
 
 ### Default lint/format rules
@@ -26,7 +34,11 @@ This file exists so future maintainers (including agents) have to pass through a
 
 ### Pre-populated "Common Tasks" entries in SKILL.md
 - **Why rejected:** the whole value of Common Tasks routing is that it reflects *this project's* actual recurring tasks. A generic list ("Add feature", "Fix bug", "Refactor") teaches agents to route generically.
-- **Where it should go:** `<!-- FILL: -->` markers in the SKILL.md template with one concrete example (`Fix bug`) so the shape is clear.
+- **Where it should go:** `routing.yaml` with `<!-- FILL: -->` markers, then generate `SKILL.md` Common Tasks and thin-shell blocks via `scripts/sync-routing.sh`.
+
+### Workflow-level child skills by default
+- **Why rejected:** `fix-bug`, `add-feature`, `review`, and `update-docs` are usually procedures inside one project skill, not separate activation domains. Pre-building them as child skills turns one project rule system into competing descriptions that all share the same Always Read files.
+- **Where it should go:** `workflows/*.md` under the primary project skill. Split into multiple skills only when trigger language and rules genuinely diverge, such as app vs deploy vs data-migration.
 
 ### Trigger phrases in the `description` field
 - **Why rejected:** these are the single highest-value piece of project knowledge for skill activation, and they must come from real user language. A generic "This skill should be used when the user asks to 'do X'" trains the agent to never match.

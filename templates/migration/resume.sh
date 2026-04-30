@@ -32,6 +32,27 @@ fi
 SKILL_DIR="skills/$NAME"
 SMOKE="$SKILL_DIR/scripts/smoke-test.sh"
 
+routed_workflows_exist() {
+  [[ -f "$SKILL_DIR/workflows/update-rules.md" ]] || return 1
+  [[ -f "$SKILL_DIR/routing.yaml" ]] || return 0
+
+  local workflow missing=0
+  while IFS= read -r workflow; do
+    [[ -n "$workflow" ]] || continue
+    [[ "$workflow" == *"FILL:"* ]] && continue
+    [[ "$workflow" == workflows/* ]] || continue
+    [[ -f "$SKILL_DIR/${workflow%%#*}" ]] || missing=1
+  done < <(awk '
+    /^[[:space:]]+workflow:/ {
+      sub(/^[[:space:]]+workflow:[[:space:]]*/, "")
+      gsub(/^"|"$/, "")
+      print
+    }
+  ' "$SKILL_DIR/routing.yaml")
+
+  [[ "$missing" -eq 0 ]]
+}
+
 # ── Phase detection ──────────────────────────────────────────────────
 if [[ -f .migration-state ]]; then
   LAST=$(sed -n 's/^phase=//p' .migration-state | head -1)
@@ -42,16 +63,13 @@ else
   # auto-detect by artifact signatures — each check is independent so a broken
   # phase in the middle is visible, not hidden behind a later-phase pass.
   LAST=0
-  if [[ -f "$SKILL_DIR/SKILL.md" ]] && [[ $(wc -l < "$SKILL_DIR/SKILL.md") -le 100 ]]; then
+  if [[ -f "$SKILL_DIR/SKILL.md" ]] && [[ -f "$SKILL_DIR/routing.yaml" ]] && [[ $(wc -l < "$SKILL_DIR/SKILL.md") -le 100 ]]; then
     LAST=3
   fi
   if [[ -f "$SKILL_DIR/rules/project-rules.md" ]] && [[ -f "$SKILL_DIR/rules/coding-standards.md" ]]; then
     LAST=4
   fi
-  if [[ -f "$SKILL_DIR/workflows/update-rules.md" ]] && \
-     [[ -f "$SKILL_DIR/workflows/fix-bug.md" ]] && \
-     [[ -f "$SKILL_DIR/workflows/change-managed.md" ]] && \
-     [[ -f "$SKILL_DIR/workflows/edit-templates.md" ]]; then
+  if routed_workflows_exist; then
     LAST=5
   fi
   if [[ -f "$SKILL_DIR/references/gotchas.md" ]] || \
@@ -102,7 +120,7 @@ echo ""
 case "$NEXT" in
   1) echo "👉 Next: WORKFLOW.md Phase 1 — Audit existing rule sources." ;;
   2) echo "👉 Next: WORKFLOW.md Phase 2 — Design the skill directory structure." ;;
-  3) echo "👉 Next: WORKFLOW.md Phase 3 — Write skills/$NAME/SKILL.md (≤ 100 lines)." ;;
+  3) echo "👉 Next: WORKFLOW.md Phase 3 — Write skills/$NAME/SKILL.md (≤ 100 lines) + routing.yaml." ;;
   4) echo "👉 Next: WORKFLOW.md Phase 4 — Extract rules/ files." ;;
   5) echo "👉 Next: WORKFLOW.md Phase 5 — Extract workflows/ files." ;;
   6) echo "👉 Next: WORKFLOW.md Phase 6 — Extract references/ and write gotchas.md." ;;

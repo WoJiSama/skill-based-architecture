@@ -5,12 +5,13 @@ Copy this file into your project and run through it after completing the migrati
 ## Structural Checks
 
 - [ ] `skills/<name>/SKILL.md` exists and is ≤ 100 lines
+- [ ] `skills/<name>/routing.yaml` exists and is the source of truth for Always Read, Common Tasks, trigger examples, required reads, workflows, and shell bootstraps
 - [ ] `.cursor/skills/<name>/SKILL.md` registration entry exists (required for Cursor discovery)
 - [ ] `.cursor/skills/<name>/SKILL.md` description matches formal SKILL.md description **exactly**
 - [ ] All important rules migrated out of old locations (no orphaned content)
 - [ ] `.cursor/`, `.claude/`, `.codex/` contain only thin shells, hooks, or registration stubs (no rule bodies)
 - [ ] If `.claude/skills/<name>/SKILL.md` exists, it only points to `skills/<name>/` and uses a project-specific name that avoids likely user-level collisions
-- [ ] Every thin shell has an **inline routing table** (not just "go read SKILL.md"):
+- [ ] Every thin shell has a **routing.yaml bootstrap** (not just "go read SKILL.md"):
   - [ ] `AGENTS.md`
   - [ ] `CLAUDE.md`
   - [ ] `CODEX.md`
@@ -20,6 +21,7 @@ Copy this file into your project and run through it after completing the migrati
 - [ ] Every thin shell includes Auto-Triggers + Red Flags — STOP sections
 - [ ] Every thin shell includes the "multi-subtask / long run" routing row
 - [ ] Thin shells are ≤ 60 lines each
+- [ ] `bash skills/<name>/scripts/sync-routing.sh <name> --check` passes
 - [ ] `README.md` is overview + navigation, not a rule manual
 - [ ] All file references and cross-links are valid
 
@@ -36,6 +38,7 @@ Copy this file into your project and run through it after completing the migrati
 - [ ] `grep -rn '{{' skills/<name>/ AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor` returns no results (all mechanical substitutions done)
 - [ ] `references/gotchas.md` exists (can be empty at start)
 - [ ] `workflows/update-rules.md` includes Rationalizations to Reject table
+- [ ] `workflows/update-upstream.md` includes the GitHub upstream source and forbids blind overwrite
 - [ ] `workflows/subagent-driven.md` exists with project-specific Forbidden Zones + Acceptance commands (if applicable)
 - [ ] External vendor/tool/runtime claims carry `external-fact` markers and `bash skills/<name>/scripts/check-external-facts.sh .` passes
 

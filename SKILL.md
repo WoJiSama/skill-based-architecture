@@ -2,11 +2,11 @@
 name: skill-based-architecture
 description: >
   This skill should be used when the user asks to "organize the project rules",
-  "clean up scattered documentation", "refactor project rules", "整理项目规则",
-  "清理散乱的文档", "重构项目规则", "把规则迁移到 skills 目录", or "创建 skill-based architecture".
-  Activate when a SKILL.md exceeds ~150 lines, rules are duplicated across entry
-  files (AGENTS.md, .cursor/rules/, CLAUDE.md, etc.), documentation is hard to
-  navigate, or the user requests rule consolidation / documentation cleanup.
+  "clean up scattered documentation", "把规则迁移到 skills 目录", "优化 skill 路由",
+  "提高 description 命中率", or "减少薄壳重复维护".
+  Activate when a SKILL.md is too large, rules are duplicated across agent entry
+  files, task routing or trigger_examples miss natural user language, or
+  templates / thin shells / validation scripts need drift-resistant maintenance.
 ---
 
 # Skill-Based Architecture
@@ -41,7 +41,7 @@ skills/<name>/
 └── docs/             # Optional: prompts, reports, external-facing material
 ```
 
-Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`, `.codex/`) → thin shells with inline routing tables.
+Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`, `.codex/`) → thin shells with a `routing.yaml` bootstrap, not duplicated route tables.
 `.cursor/skills/<name>/SKILL.md` → Cursor registration entry (required for discovery). See [REFERENCE.md](REFERENCE.md) for templates.
 
 ## Core Principles
@@ -49,10 +49,10 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 1. **Single concise entry** — `SKILL.md` ≤ 100 lines; it navigates, not exhausts. ✓ Check: `wc -l` ≤ 100; over → move content to sub-files.
 2. **One skill folder** — all formal docs under `skills/<name>/`, not scattered at repo root. ✓ Check: `ls *.md` at root shows only thin shells, not rule/workflow files.
 3. **Rules ≠ Flows** — `rules/` for constraints, `workflows/` for procedures. ✓ Check: any numbered steps in `rules/`? Any "always/never" in `workflows/`? Either = mixing.
-4. **Thin shells with inline routing** — every harness entry embeds a routing table (task → reads → workflow). ✓ Check: open any shell — 3-column table within first 40 lines? No → soft pointer.
+4. **Routing.yaml as source** — task routes live in `routing.yaml`; shells only say how to read it. ✓ Check: route changed without running sync/check? No → drift risk.
 5. **Cursor registration entry** — `.cursor/skills/<name>/SKILL.md` must exist. ✓ Check: `ls .cursor/skills/` — missing = Cursor cannot discover the skill.
 6. **Progressive Rigor** — three tiers (Single-file / Folder-light / Full); grow only under pressure — see [Progressive Rigor section above](#progressive-rigor) + [details](references/layout.md#progressive-rigor). ✓ Check: can you name the specific pressure that forced the current tier? "It felt right" ≠ pressure.
-7. **Description = trigger condition** — write quoted phrases in the user's actual language(s), not passive summary ([ref](references/layout.md#description-as-trigger-condition)). ✓ Check: ≥ 2 real user phrases + "Activate when…"? No → rewrite.
+7. **Description = coarse activation** — describe the skill's domain boundary and real user trigger phrases, not every workflow keyword ([ref](references/layout.md#description-as-trigger-condition)). ✓ Check: can Common Tasks change without rewriting description? No → description is doing routing's job.
 8. **Gotchas are highest-value** — maintain costly pitfalls actively; keep them discoverable. ✓ Check: is each high-cost gotcha reachable from a Common Tasks route, not only buried in `references/`?
 9. **Progressive disclosure** — SKILL.md links one level deep; deep content pulled only when task-routed. ✓ Check: open SKILL.md and follow every link — does any target file link further to a third level that should have been reachable from SKILL.md directly? If yes, SKILL.md is hiding its routing structure.
 10. **Task Closure Protocol** — finalization includes original-constraint check + AAR, not just "tests passed" ([ref](TEMPLATES-GUIDE.md#task-closure-protocol)); behavior change covers interaction, schema/renderer, styling, overlay/z-index, and host-compat too. ✓ Check: can you restate the user's original constraints and all AAR answers before marking done?
@@ -66,8 +66,8 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 ## Common Pitfalls
 
 1. **Missing Cursor registration entry** — Formal skill at `skills/<name>/` but no `.cursor/skills/<name>/SKILL.md` → Cursor never discovers the skill; all rules/workflows silently ignored
-2. **Soft-pointer-only shell** — Thin shell says "go read SKILL.md" without an inline routing table → instruction lost after context summarization in long conversations
-3. **Vague / wrong-language description** — Description written as passive summary or only in a language users do not ask in → skill exists but Agent never activates it (see [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition))
+2. **Soft-pointer-only shell** — Thin shell says only "go read SKILL.md" without a `routing.yaml` bootstrap → instruction lost after context summarization in long conversations
+3. **Vague / wrong-scope description** — Description is passive, wrong-language, too narrow ("fix bug" only), or bloated with every workflow keyword → skill misses natural requests or over-fires; keep description domain-level and route tasks in SKILL.md
 4. **Stored but not activated** — Costly pitfall recorded in `references/` but not surfaced in any workflow checklist or SKILL.md routing → future agents still miss it
 5. **Task Closure Protocol skipped** — Agent considers itself "done" after main work, skips the 30-second AAR scan → lessons not captured; use Task Closure Protocol to make AAR a completion gate, not an optional add-on
 6. **Project-specific records** — Lessons written as project narratives ("in our product module, we found…") instead of reusable knowledge → useless outside current context; apply generalization rule before recording

@@ -88,25 +88,25 @@ skills/<name>/
 
 ### 两层路由
 
-`SKILL.md` 保留一份短的 **Always Read** 列表，再用 **Common Tasks** 表按任务追加需要读取的文件，避免每次都把全部文档塞给 Agent。
+`SKILL.md` 保留一份生成的短 **Always Read** 列表，再用生成的 **Common Tasks** 摘要按任务追加需要读取的文件，避免每次都把全部文档塞给 Agent。下游项目里，`routing.yaml` 是 Always Read、Common Tasks、触发示例、必读文件、workflow 和薄壳 bootstrap 的可编辑单一事实源。
 
-### 薄壳含内联路由表
+### 薄壳含 routing.yaml bootstrap
 
-每个入口文件都嵌入一个小路由表，而不是只写"去读 SKILL.md"。长对话发生上下文压缩时，内联路由比软指针更可靠。
+每个入口文件只嵌入一段短 bootstrap：告诉 Agent 去读 `routing.yaml`，并按 `labels` / `trigger_examples` 匹配任务。完整路由数据不再复制到每个薄壳里。
 
 ### Description = 触发条件
 
-`description` 字段决定 Agent 会不会激活这个 Skill。触发短语要使用用户真实会说的语言：如果团队中英文都会用，就同时写 `"test an API endpoint"` 和 `"测试 API 接口"` 这类短语。
+`description` 字段决定 Agent 会不会激活这个 Skill。它应该描述**领域边界 / 意图簇**，并使用用户真实会说的短语，例如 `"this endpoint is failing"` 和 `"这个接口报错了"`。不要把每个 workflow 都塞进 description；激活之后的任务级路由交给 `SKILL.md` Common Tasks。`check-description-routing.sh` 会检查明显过宽的 description 和多 skill 触发短语重叠。
 
 ### 会话纪律（Session Discipline）
 
-同一会话中的每个新任务——哪怕是第二个、第三个任务——都必须重新读 SKILL.md、重新匹配常见任务路由表、重新读该路由要求的所有文件。
+同一会话中的每个新任务——哪怕是第二个、第三个任务——都必须重新读 SKILL.md、重新匹配 `routing.yaml` 中的路由、重新读该路由要求的所有文件。
 
 这样可以避免 `/compact`、`/clear` 或长会话之后继续拿残缺记忆做事。
 
 ### 任务闭环和新鲜度检查
 
-非平凡任务结束前做一次短复盘：确认工作已验证，判断是否有可重复、高代价、代码里看不出的经验需要记录，也检查是否有规则已经过时。文档改动还要跑链接、孤立引用、交叉引用和外部事实新鲜度检查。
+非平凡任务结束前做一次短复盘：确认工作已验证，判断是否有可重复、高代价、代码里看不出的经验需要记录，也检查是否有规则已经过时。文档改动还要跑 description 路由、链接、孤立引用、交叉引用和外部事实新鲜度检查。
 
 ---
 
@@ -202,7 +202,8 @@ README 只保留操作轮廓。完整迁移清单放在 [WORKFLOW.md](WORKFLOW.m
 - 增加项目自己的 workflow，例如 `plan.md`、`review.md`、`deploy-check.md`。
 - 某个子任务天然适合另一个 skill 时，在 workflow 里调用它。
 - 同一个纪律问题反复出现时，再加入可复用的 protocol block。
-- 新增反复任务时，同步给 `SKILL.md` Common Tasks 和薄壳各加一行。
+- 新增反复任务时，只在 `routing.yaml` 里加一个 task，再运行 `scripts/sync-routing.sh`。
+- 当这个上游项目更新时，直接让 agent “从上游更新一下”；它应按 `workflows/update-upstream.md` 拉取 GitHub 上游、自己比较并打补丁，同时保留下游项目规则。
 
 ---
 
@@ -263,7 +264,10 @@ Claude Code 原生 skill 要避免使用 `review`、`fix-bug` 这类泛名：如
 保持单文件，使用最小起步模板。只在内容开始膨胀、重复、或积累非显而易见的教训时再升级。
 
 **Q: 如何防止文档膨胀？**
-录入门槛（2/3：可重复 + 代价高 + 代码不可见）过滤低价值记录。`update-rules.md` 中的废弃工作流移除过时规则。`maintain-docs.md`、引用审计、交叉引用检查和 `check-external-facts.sh` 捕获超大文件、孤立引用、失效链接和过期外部事实。
+录入门槛（2/3：可重复 + 代价高 + 代码不可见）过滤低价值记录。`update-rules.md` 中的废弃工作流移除过时规则。`maintain-docs.md`、`check-description-routing.sh`、引用审计、交叉引用检查和 `check-external-facts.sh` 捕获超大文件、模糊触发、孤立引用、失效链接和过期外部事实。
+
+**Q: 下游项目如何接收上游改进？**
+直接让 agent 从上游更新。复制到下游的 `workflows/update-upstream.md` 内置 GitHub 上游地址，要求 agent 临时 clone 最新上游、自己比较文件、把有价值的机制改动 patch 进本地，并保留项目自己的规则和坑点。
 
 ---
 

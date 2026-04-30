@@ -75,7 +75,7 @@ When a file exceeds the reference range, answer these questions:
 1. **Identify boundaries** — find independent topic blocks (usually H2 headings)
 2. **Name new files** — rules: `*-rules.md`, workflows: verb-noun, references: noun-based
 3. **Migrate content** — move to new files, keep heading levels reasonable
-4. **Update SKILL.md** — modify Always Read and Common Tasks routing
+4. **Update routing** — edit `routing.yaml`, then run `scripts/sync-routing.sh`
 5. **Update referrers** — other rule files that cross-reference the split files
 6. **Verify** — no broken links, no duplicated content, nothing left behind
 
@@ -100,10 +100,10 @@ When fragment files are detected, answer these questions:
 
 Run after any split, merge, rename, or deletion of files under `skills/{{NAME}}/`:
 
-- [ ] All links in SKILL.md's Always Read and Common Tasks are valid
+- [ ] All links in SKILL.md's Always Read and generated Common Tasks are valid
 - [ ] All `workflows/*.md` "Read First" sections reference existing files
 - [ ] Cross-references between rules/references files point to valid targets
-- [ ] Thin shells still point to the current `skills/{{NAME}}/SKILL.md` or documented multi-skill router
+- [ ] Thin shells still point to the current `skills/{{NAME}}/SKILL.md` or documented multi-skill router, and generated bootstraps match `routing.yaml`
 - [ ] No orphaned files (file exists but no entry links to it)
 - [ ] No duplicated content (each rule maintained in exactly one place)
 - [ ] If a file was deleted, no other file still references it
@@ -112,4 +112,4 @@ Run after any split, merge, rename, or deletion of files under `skills/{{NAME}}/
 
 - Evaluated over-threshold files and made a **reasoned judgment** to keep or split
 - If any file was split, merged, renamed, or deleted, reference integrity check passes
-- SKILL.md navigation matches current file structure
+- `routing.yaml` and SKILL.md navigation match current file structure

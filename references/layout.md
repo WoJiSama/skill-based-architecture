@@ -80,35 +80,39 @@ Brief, scannable list of the most costly pitfalls. Full details in `references/g
 
 ### Description as Trigger Condition
 
-The `description` field in frontmatter is **not** a passive summary — it is what the Agent uses at runtime to decide whether to activate the skill. A vague description means the skill silently never fires.
+The `description` field in frontmatter is **not** a passive summary — it is what the Agent uses at runtime to decide whether to activate the skill. It should answer "is this request in this skill's domain?", not "which workflow should run?" A vague description means the skill silently never fires; an overstuffed description becomes a brittle keyword list that competes with `SKILL.md` routing.
 
 **Bad** (too vague — Agent can't match it):
 ```yaml
 description: Helps with API testing
 ```
 
-**Good** (explicit trigger phrases + conditions):
+**Good** (domain / intent-cluster phrases + activation conditions):
 ```yaml
 description: >
-  This skill should be used when the user asks to "test an API endpoint",
-  "write integration tests for REST APIs", "测试 API 接口", or "调试失败的 HTTP 请求".
-  Activate when the task involves HTTP status codes, request/response payloads,
-  or API authentication flows.
+  This skill should be used when the user asks to work on this repository, such as
+  "这个接口报错了", "这里返回不对", "测试挂了", "fix this failing test",
+  or "debug this error".
+  Activate when the task requires this repo's code, rules, workflows,
+  known gotchas, or validation commands.
 ```
 
 Guidelines:
 - **Enough length** — aim for ≥ 20 English-style words or ≥ 40 CJK characters; short descriptions fail to activate reliably
 - **Use the user's actual language(s)** — if users ask in Chinese, include Chinese quoted phrases alongside English; do not rely on translation / semantic similarity alone
-- **Include quoted trigger phrases** — exact phrases the user would say
+- **Include quoted trigger phrases** — exact phrases the user would say for the skill's domain / intent cluster
 - **Third-person format** — "This skill should be used when…" not "I help with…"
 - **Include activation conditions** — describe the context, not just the action
+- **Do not enumerate workflows** — `fix-bug`, `release`, `maintain-docs`, etc. belong in Common Tasks unless they identify a separate domain skill
+
+Run `scripts/check-description-routing.sh` after changing frontmatter; it catches obvious over-broad descriptions, workflow keyword stuffing, and duplicate trigger phrases across multiple skills.
 
 The template above uses a two-tier structure:
 
-- **Always Read** (2–3 core files, ~150 lines total) — read every time
-- **Common Tasks** (task-routed) — Agent reads ONLY the files listed for the current task; always include a fallback entry for unlisted tasks
+- **Always Read** (2–3 core files, ~150 lines total) — read every time; in the full scaffold this list is generated from `routing.yaml`
+- **Common Tasks** (task-routed) — Agent reads ONLY the files listed for the current task; in the full scaffold these rows are generated from `routing.yaml`; always include a fallback entry for unlisted tasks
 
-**Keep routing in sync:** When you create or rename a workflow/reference file, add or update the corresponding entry in Common Tasks. The `update-rules.md` workflow includes this as a checklist item.
+**Keep routing in sync:** When you create or rename an always-read, workflow, or reference file, add or update `routing.yaml`, then run `scripts/sync-routing.sh`. The `update-rules.md` workflow includes this as a checklist item.
 
 **Common Tasks sizing:** Keep entries to 8–10 tasks maximum. Beyond that, agents waste tokens scanning unrelated entries. If you have more than 10 recurring task types, group related tasks under domain headings (e.g., `### Backend Tasks`, `### Frontend Tasks`) or merge low-frequency tasks into the "Other" fallback.
 
@@ -151,7 +155,7 @@ Add structure when **any** of these fires, not before:
 1. **Line pressure** — `SKILL.md` crosses 100 lines despite compression attempts. Move content to a sub-file in the next tier down (e.g. workflows go to `workflows/` once you have 2+).
 2. **Recurrence pressure** — the same pitfall is recorded in Common Pitfalls twice, or the same question gets asked by the agent twice in different sessions. Promote it to `references/gotchas.md` with a dedicated section.
 3. **Procedure pressure** — you catch yourself writing "how to do X in steps" inside a rule file. Steps belong in `workflows/`, not `rules/`. Create the `workflows/` directory.
-4. **Harness-sharing pressure** — two harness entries (e.g. `AGENTS.md` and `CLAUDE.md`) need the same routing table, or you're manually keeping them in sync. Split the routing into a single canonical `SKILL.md` with thin shells pointing at it.
+4. **Harness-sharing pressure** — two harness entries (e.g. `AGENTS.md` and `CLAUDE.md`) need the same route lookup logic, or you're manually keeping them in sync. Move task data into `routing.yaml` and generate thin-shell blocks.
 5. **Cross-session lesson pressure** — you want a lesson from today to persist into a `/clear`-fresh session next week. A single-file skill with no `references/` has no durable place for it.
 
 **Downgrade is also fine.** If a skill lost a domain or shed complexity, collapse back. Structure serves the content, not the other way around. Empty `workflows/` or `references/` directories are a smell.
@@ -226,7 +230,7 @@ skills/
 **Coexistence rules:**
 
 1. **Independent entries** — each skill has its own `SKILL.md`, self-contained, no implicit cross-dependencies
-2. **Registration + auto-discovery** — each skill must have a `.cursor/skills/<name>/SKILL.md` registration entry for Cursor discovery, plus thin shells with inline routing tables for Claude/Codex. Adding a skill = dropping a folder into `skills/` + creating the registration entry + updating thin shells.
+2. **Registration + auto-discovery** — each skill must have a `.cursor/skills/<name>/SKILL.md` registration entry for Cursor discovery, plus thin shells with `routing.yaml` bootstraps for Claude/Codex. Adding a skill = dropping a folder into `skills/` + creating the registration entry + updating thin shells.
 3. **Priority** — when a task clearly belongs to one skill, that skill's rules take precedence; if ambiguous, Agent reads both skills' Always Read lists
 4. **Shared rules** — conventions shared across skills (e.g. coding standards) go in `skills/shared/`; each skill's SKILL.md references them in its Always Read list
 5. **Don't merge** — if two skills have very different domains (e.g. "app development" vs "template building"), keeping them separate is clearer than forcing a merge
@@ -249,7 +253,7 @@ Sometimes a skill has drifted so far that patching it costs more than starting o
 
 1. **> 30% of rules outdated or contradictory** — rules conflict with each other or describe removed features
 2. **Common Tasks routing is fictional** — 3+ routes point to workflows/files that no longer match real project work
-3. **Thin shells and SKILL.md have drifted apart** — routing tables disagree across entry files and manual re-alignment keeps failing
+3. **Thin shells and SKILL.md have drifted apart** — generated Always Read, Common Tasks, and shell bootstraps disagree with `routing.yaml`, or manual re-alignment keeps failing
 4. **Repeated agent errors trace back to "confusing rules"** — the last 5+ agent mistakes were caused by the rules themselves being unclear, not by missing rules
 
 Rebuild path: `cp -R templates/skill/. skills/<name>/` to get a fresh skeleton, then manually migrate only the rules and gotchas that are still valid. Do not copy-paste the old structure — re-evaluate each piece through the recording threshold before including it.

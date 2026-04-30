@@ -67,11 +67,11 @@ echo "If this step crashes, see § Resuming From a Failed Phase — do NOT rerun
 
 **Why copy instead of generate?** Inline heredoc generation lost sections under pressure (Auto-Triggers dropped, routing tables mangled, description field left as trigger-phrase-less boilerplate). The `templates/` tree is the single source of truth — see [`templates/README.md`](templates/README.md) for byte budgets, placeholder conventions, and the "would two real projects disagree?" admission test. Template source files use `SKILL.md.template` so skill loaders do not treat them as real skills when this repo is installed; Quick Start renames them into real `SKILL.md` files after copying.
 
-**Step 1.5 — User brainstorm calibration gate.** Before reading code to summarize the target project or filling any `<!-- FILL: -->` marker, ask the user whether they want to brainstorm the target project's purpose, modules, common tasks, boundaries, and known pitfalls.
+**Step 1.5 — Profile the project before filling content.** Follow `skills/$NAME/workflows/profile-project.md` (copied from `templates/skill/workflows/profile-project.md`) before writing project-specific `<!-- FILL: -->` content. Start with a user brainstorm gate: ask whether the user wants to brainstorm the target project's purpose, modules, common tasks, boundaries, and known pitfalls.
 
 - If the user says yes / "没问题" / otherwise agrees: **do not read code yet**. First run the brainstorm, restate a short calibrated summary, and ask the user to correct or confirm it.
 - Treat user feedback as **calibration input**, not verified fact. Use it to check whether your initial summary is aligned, then read local code/config to verify it.
-- After the brainstorm feedback, inspect real evidence (README, build files, CI, entry points, configs, module layout, tests) and classify conclusions as `Confirmed`, `Inferred`, or `Unknown`.
+- After the brainstorm feedback, inspect real evidence (README, build files, CI, entry points, configs, module layout, tests) and classify conclusions as `Confirmed from code/config`, `User-calibrated`, `Inferred`, or `Unknown`.
 - Only then write project content into `rules/`, `workflows/`, `references/`, and `SKILL.md`. `rules/` and procedural `workflows/` must come from confirmed evidence, not brainstorm-only claims.
 - If the user declines brainstorming or explicitly asks to skip it, proceed with code-first evidence scanning and mark unclear conclusions as `Unknown` instead of guessing.
 
@@ -90,19 +90,33 @@ grep -rn 'FILL:' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .c
 
 Every hit is mandatory. A skill with unfilled FILL markers will silently fail to activate (agents read generic trigger phrases and never match user intent).
 
+Always Read lists, Common Tasks, and shell bootstraps are generated from `skills/$NAME/routing.yaml`. Edit that manifest, then run:
+
+```bash
+bash "skills/$NAME/scripts/sync-routing.sh" "$NAME"
+```
+
+Do not hand-edit generated Always Read / Common Tasks in `SKILL.md` or generated blocks in thin shells.
+
 **Step 3 — Verify.** After all FILLs are resolved, run the automated smoke test:
 
 ```bash
 # Fully automated — checks structure, routing, placeholders, line budgets, and description quality
 bash "skills/$NAME/scripts/smoke-test.sh" "$NAME"
 
+# Routing manifest drift check (also run by smoke-test when routing.yaml exists)
+bash "skills/$NAME/scripts/sync-routing.sh" "$NAME" --check
+
+# Description scope + multi-skill overlap
+bash "skills/$NAME/scripts/check-description-routing.sh" "$NAME"
+
 # (Optional) Test skill trigger rate — checks if your description actually activates the skill
 bash "skills/$NAME/scripts/test-trigger.sh" "$NAME"
 ```
 
-`smoke-test.sh` covers everything: file existence, line count budgets, placeholder/FILL residue, description word count and trigger phrases, routing completeness (parses Common Tasks and verifies every referenced file exists), description consistency between SKILL.md and Cursor entry, and shell routing table consistency. Zero manual input needed.
+`smoke-test.sh` covers everything: file existence, line count budgets, placeholder/FILL residue, description word count and trigger phrases, description scope / multi-skill overlap, routing-manifest drift, routing completeness (parses Common Tasks and verifies every referenced file exists), description consistency between SKILL.md and Cursor entry, and shell bootstrap consistency. Zero manual input needed.
 
-`test-trigger.sh` generates test prompts from your Common Tasks, then either runs them through `claude -p` (if CLI is available) or falls back to static analysis of your description coverage. This is most useful for Cursor users since Cursor relies on description-based semantic matching.
+`test-trigger.sh` tests description activation using quoted trigger phrases plus `routing.yaml` trigger examples, then either runs them through `claude -p` (if CLI is available) or falls back to static analysis. Route examples are smoke samples, not a requirement to list every workflow in `description`. This is most useful for Cursor users since Cursor relies on description-based semantic matching.
 
 Then run the Phase 8 checklist below to confirm everything is wired up.
 
@@ -112,12 +126,12 @@ For complex migrations (large projects, heavily scattered rules), follow the ful
 
 ## Phase 1: Audit
 
-Start with the **User brainstorm calibration gate** from Quick Start Step 1.5. This gate runs before code reading and before writing any project summary:
+Start with `workflows/profile-project.md` from Quick Start Step 1.5. This gate runs before code reading and before writing any project summary:
 
 1. Ask whether the user wants to brainstorm the target project's purpose, modules, common tasks, boundaries, and known pitfalls.
 2. If the user agrees, brainstorm first, then restate the calibrated summary and ask for corrections.
 3. Treat the user's feedback as hypotheses to verify against local evidence.
-4. Only after that feedback loop, read code/config and classify conclusions as `Confirmed`, `Inferred`, or `Unknown`.
+4. Only after that feedback loop, read code/config and classify conclusions as `Confirmed from code/config`, `User-calibrated`, `Inferred`, or `Unknown`.
 
 Read and inventory all existing rule sources:
 
@@ -144,7 +158,7 @@ Plan the file set based on project size:
 
 - **Minimal single-file starter** — one small `SKILL.md`, no extra directories yet; best when the skill is still short and self-contained
 - **Minimum viable set** (small projects): `rules/project-rules.md`, `workflows/update-rules.md` — start here and add files only when content justifies a separate file
-- **Typical set** (most projects): add `rules/coding-standards.md`, `workflows/fix-bug.md`, `workflows/change-managed.md`, `workflows/edit-templates.md`, `workflows/maintain-docs.md`, `references/architecture.md`
+- **Typical set** (most projects): add `rules/coding-standards.md`, `workflows/profile-project.md`, `workflows/update-upstream.md`, `workflows/fix-bug.md`, `workflows/change-managed.md`, `workflows/edit-templates.md`, `workflows/maintain-docs.md`, `references/architecture.md`
 - **Add domain files** as needed: `frontend-rules.md`, `backend-rules.md`, `add-page.md`, `add-controller.md`, etc.
 - **Fullstack / multi-domain**: combine; consider separate skills if domains diverge significantly
 
@@ -160,17 +174,19 @@ The new `SKILL.md` should contain **only**:
 
 1. Frontmatter (`name`, `description` with trigger phrases)
 2. One-line project summary
-3. Always-read list (2–3 core rule files that apply to every task)
-4. Common Tasks with full file routing (each task lists exactly which rules, workflows, and references to read — not just a workflow link)
+3. Generated Always-read list from `routing.yaml` (2–3 core rule files that apply to every task)
+4. Generated Common Tasks from `routing.yaml` with full file routing (each task lists labels, examples, required reads, and workflow — not just a workflow link)
 5. Known Gotchas (brief, scannable summaries pointing to `references/gotchas.md` for details)
 6. Rule priority (SKILL.md > rules/ > workflows/ > references/ > .cursor)
 7. Project boundaries (2–5 bullets)
 
-**Description field:** Write it as a trigger condition, not a passive summary. Include ≥ 2 quoted trigger phrases in the language users actually use (e.g. `"add a new page"`, `"fix frontend bug"`, `"修复前端 bug"`) and concrete activation conditions. See [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition) for examples.
+**Description field:** Write it as domain-level activation, not a passive summary or a workflow keyword list. Include ≥ 2 quoted phrases in the language users actually use (e.g. `"这个接口报错了"`, `"测试挂了"`, `"fix this failing test"`) and concrete activation conditions. See [references/layout.md § Description as Trigger Condition](references/layout.md#description-as-trigger-condition) for examples.
 
 **Core Principles format:** Each principle should end with a `✓ Check:` sentence — a concrete question the Agent can ask itself after execution to verify it followed the principle. Pure declarative principles ("do X") get remembered before acting but have no post-execution hook. Adding a verification sentence turns each principle into a self-test the Agent can run during AAR. See the `templates/skill/SKILL.md.template` Core Principles section for the format.
 
 **Target: ≤ 100 lines.** If longer, content belongs in sub-files.
+
+**Routing source:** edit `skills/$NAME/routing.yaml`, then run `bash "skills/$NAME/scripts/sync-routing.sh" "$NAME"`. `SKILL.md` Always Read, Common Tasks, and thin-shell routing blocks are generated.
 
 **Checkpoint — end of Phase 3:**
 ```bash
@@ -206,9 +222,12 @@ Each workflow includes:
 
 Avoid one giant `workflow.md` — specialize by task type.
 
-**Required meta-workflows** (create for every project):
+**Required meta-workflow** (create for every project):
 
 - `update-rules.md` — rule sync + after-action review + learn-from-mistakes + deprecation (see [TEMPLATES-GUIDE.md § update-rules.md](TEMPLATES-GUIDE.md#update-rulesmd-enhanced-template))
+
+**Recommended maintenance workflow** (add when the skill has enough docs to maintain):
+
 - `maintain-docs.md` — file health check, split, and merge procedures (see [TEMPLATES-GUIDE.md § maintain-docs.md](TEMPLATES-GUIDE.md#maintain-docsmd-template))
 
 **Task-closing hook** (apply to every project workflow, especially `fix-bug.md`, `add-*.md`, and `refactor-*.md`):
@@ -216,8 +235,8 @@ Avoid one giant `workflow.md` — specialize by task type.
 1. End the workflow with a quick After-Action Review
 2. Apply the Recording Threshold
 3. If the threshold passes, update the appropriate `rules/` or `references/` file
-4. If task routing changed, sync `SKILL.md`
-5. If shell routing changed, sync thin shells
+4. If task routing changed, update `routing.yaml`, then run `scripts/sync-routing.sh`
+5. If shell routing or Always Read changed, regenerate thin-shell generated blocks from `routing.yaml`
 
 `update-rules.md` is not a side file to visit "if you remember" — it is the shared exit path for documenting new knowledge discovered during real work.
 
@@ -258,39 +277,43 @@ This scaffold registers Cursor-facing project skills under `.cursor/skills/`. If
 Create `.cursor/skills/<name>/SKILL.md` with:
 - YAML frontmatter (`name`, `description`) matching the formal skill
 - A pointer to the formal `skills/<name>/SKILL.md`
-- An inline routing table (task → required reads → workflow)
+- A short `routing.yaml` bootstrap
 
-### 7b: Thin Shells with Inline Routing Tables
+### 7b: Thin Shells with Routing.yaml Bootstrap
 
-Update root entries. Each must contain an **inline routing table** — not just "go read SKILL.md":
+Update root entries. Each must contain a **routing.yaml bootstrap** — not just "go read SKILL.md", and not a duplicated hand-maintained route table:
 
-- **AGENTS.md** — project summary + inline routing table
-- **CLAUDE.md** — inline routing table + pointer to formal skill
-- **CODEX.md** / **.codex/instructions.md** — compatibility mirrors with inline routing table + pointer to formal skill (keep `AGENTS.md` as the required Codex CLI entry)
-- **GEMINI.md** — inline routing table + pointer to formal skill
-- **.cursor/rules/*.mdc** — `alwaysApply: true` + pointer to formal skill + inline routing table
+- **AGENTS.md** — project summary + `routing.yaml` bootstrap
+- **CLAUDE.md** — `routing.yaml` bootstrap + pointer to formal skill
+- **CODEX.md** / **.codex/instructions.md** — compatibility mirrors with `routing.yaml` bootstrap + pointer to formal skill (keep `AGENTS.md` as the required Codex CLI entry)
+- **GEMINI.md** — `routing.yaml` bootstrap + pointer to formal skill
+- **.cursor/rules/*.mdc** — `alwaysApply: true` + pointer to formal skill + `routing.yaml` bootstrap
 
 <!-- external-fact: verified=2026-04-28 source=https://code.claude.com/docs/en/skills -->
 
 Claude Code note: `CLAUDE.md` is the required entry for this architecture. A native `.claude/skills/<name>/SKILL.md` may be added as a Claude-only registration stub, but rule/workflow bodies still live in `skills/<name>/`. Avoid generic native skill names because Claude Code resolves same-name skills as enterprise > personal (`~/.claude/skills`) > project (`.claude/skills`).
 
-An inline routing table looks like:
+A bootstrap looks like:
 
 ```markdown
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| Add feature | `rules/<domain>-rules.md` | `workflows/<task>.md` |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+Task routes live in `skills/<name>/routing.yaml`.
+
+For every new task:
+1. Read `skills/<name>/routing.yaml`.
+2. Match by `labels`, `trigger_examples`, and task intent.
+3. Read only that route's `required_reads` plus Always Read files.
+4. Follow that route's `workflow`.
 ```
 
-This table survives context truncation because it is embedded directly in the entry file.
+This survives context truncation without copying the full route table into every entry file.
+
+The bootstrap is generated from `skills/<name>/routing.yaml`. Edit the manifest, run `scripts/sync-routing.sh`, then run `scripts/sync-routing.sh --check`.
 
 ### 7c: Key Rules
 
 - No duplicated rule bodies — shells route, they don't contain rules
 - No standalone source of truth in `.cursor/`, `.claude/`, or `.codex/`; those locations may contain only thin shells, hooks, or native registration stubs
-- Adding a new skill = dropping a folder into `skills/` + creating `.cursor/skills/<name>/SKILL.md` + updating thin shells
+- Adding a new skill = dropping a folder into `skills/` + creating `.cursor/skills/<name>/SKILL.md` + updating thin-shell bootstraps
 
 **Checkpoint — end of Phase 7:**
 ```bash
@@ -308,11 +331,12 @@ A standalone copyable checklist is available at [`templates/checklists/post-migr
 - [ ] All important rules migrated out of old locations
 - [ ] `.cursor/`, `.claude/`, `.codex/` contain only thin shells, hooks, or registration stubs
 - [ ] If `.claude/skills/<name>/SKILL.md` exists, it only points to `skills/<name>/` and uses a project-specific name that avoids likely user-level collisions
-- [ ] `AGENTS.md`, `CLAUDE.md`, `CODEX.md` each have an **inline routing table** (not just "go read SKILL.md")
-- [ ] `.codex/instructions.md` exists as a compatibility mirror and has inline routing table
-- [ ] `.cursor/rules/*.mdc` has `alwaysApply: true` entry pointing to skill with inline routing table
+- [ ] `AGENTS.md`, `CLAUDE.md`, `CODEX.md` each have a **routing.yaml bootstrap** (not just "go read SKILL.md")
+- [ ] `.codex/instructions.md` exists as a compatibility mirror and has a routing bootstrap
+- [ ] `.cursor/rules/*.mdc` has `alwaysApply: true` entry pointing to skill with a routing bootstrap
 - [ ] `README.md` is overview + navigation, not a rule manual
 - [ ] All file references and links are valid
+- [ ] `routing.yaml` is the source of truth; `bash skills/<name>/scripts/sync-routing.sh <name> --check` passes
 - [ ] No content orphaned or duplicated across locations
 
 ### Activation Checks (see [references/protocols.md § Skill Activation Verification](references/protocols.md#skill-activation-verification))
@@ -390,9 +414,9 @@ Each phase has a deterministic artifact. Passing the signature means the phase i
 
 | Phase | Artifact signature (bash-testable) |
 |---|---|
-| 3 | `test -f skills/$NAME/SKILL.md && [ $(wc -l < skills/$NAME/SKILL.md) -le 100 ]` |
+| 3 | `test -f skills/$NAME/SKILL.md && test -f skills/$NAME/routing.yaml && [ $(wc -l < skills/$NAME/SKILL.md) -le 100 ]` |
 | 4 | `test -f skills/$NAME/rules/project-rules.md && test -f skills/$NAME/rules/coding-standards.md` |
-| 5 | `test -f skills/$NAME/workflows/update-rules.md && test -f skills/$NAME/workflows/fix-bug.md && test -f skills/$NAME/workflows/change-managed.md && test -f skills/$NAME/workflows/edit-templates.md` |
+| 5 | `test -f skills/$NAME/workflows/update-rules.md && bash skills/$NAME/scripts/smoke-test.sh $NAME --phase 5` |
 | 6 | `test -f skills/$NAME/references/gotchas.md` |
 | 7 | `test -f .cursor/skills/$NAME/SKILL.md && test -f AGENTS.md && test -f CLAUDE.md && test -f CODEX.md && test -f GEMINI.md` |
 | 7 (no placeholder residue) | `! grep -rn '{{NAME}}\|{{SUMMARY}}' skills/$NAME AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor` |
@@ -439,9 +463,9 @@ if [ -f .migration-state ]; then
 else
   # auto-detect highest completed phase
   START=0
-  test -f "skills/$NAME/SKILL.md" && [ $(wc -l < "skills/$NAME/SKILL.md") -le 100 ] && START=3
+  test -f "skills/$NAME/SKILL.md" && test -f "skills/$NAME/routing.yaml" && [ $(wc -l < "skills/$NAME/SKILL.md") -le 100 ] && START=3
   test -f "skills/$NAME/rules/coding-standards.md" && START=4
-  test -f "skills/$NAME/workflows/fix-bug.md" && test -f "skills/$NAME/workflows/change-managed.md" && test -f "skills/$NAME/workflows/edit-templates.md" && START=5
+  test -f "skills/$NAME/workflows/update-rules.md" && bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" --phase 5 >/dev/null 2>&1 && START=5
   test -f "skills/$NAME/references/gotchas.md" && START=6
   test -f ".cursor/skills/$NAME/SKILL.md" && test -f GEMINI.md && START=7
   bash "skills/$NAME/scripts/smoke-test.sh" "$NAME" >/dev/null 2>&1 && START=8
@@ -456,7 +480,7 @@ The full smoke test runs 40+ checks and is only meaningful at Phase 8. Use the `
 
 ```bash
 bash skills/$NAME/scripts/smoke-test.sh $NAME --phase 4   # rules only
-bash skills/$NAME/scripts/smoke-test.sh $NAME --phase 7   # shells + routing tables
+bash skills/$NAME/scripts/smoke-test.sh $NAME --phase 7   # shells + routing bootstraps
 bash skills/$NAME/scripts/smoke-test.sh $NAME             # all (Phase 8)
 ```
 
@@ -468,40 +492,37 @@ A half-completed Phase 5 can leave `workflows/*.md` files with `{{NAME}}` still 
 
 ## Upgrading an Existing Downstream Project
 
-When upstream adds new templates, hooks, protocol-blocks, or principles, existing downstream projects need a **targeted refresh** — not a full re-migration. Re-running `migration/` scripts on an already-migrated project will overwrite project-specific content (filled SKILL.md, populated gotchas, real workflows).
+When upstream adds new templates, hooks, protocol-blocks, scripts, or workflow improvements, existing downstream projects need an **agent-led upstream refresh** — not a full re-migration and not user-performed diffing. The user should be able to say "上游项目更新了,帮我更新一下"; the agent then follows `skills/<name>/workflows/update-upstream.md`.
 
-### What's additive (safe to copy directly)
+The downstream template embeds the upstream source:
 
-- **New pre-filled rule files** (`rules/agent-behavior.md`, `references/behavior-failures.md`) — drop in as-is; these carry universal defaults with no project-specific content
-- **New hooks** (`.claude/hooks/*.sh`, hook entries in `.claude/settings.json`) — add alongside existing hooks; never overwrite user-tuned settings. Verify schema (`hooks[]` nested array with `{type, command}`) — flat format silently fails for PreToolUse
-- **New protocol-blocks** — `templates/protocol-blocks/*` are always optional; copy only if a workflow or shell references them
+```text
+https://github.com/WoJiSama/skill-based-architecture.git
+```
 
-### What requires judgment (do not overwrite)
+No lockfile is required in the downstream project. The agent clones the latest upstream into a temp directory, compares local files itself, patches in useful upstream changes, and validates the result.
 
-- **`SKILL.md`** — project-specific Common Tasks, Known Gotchas, Core Principles live here. Compare upstream `templates/skill/SKILL.md.template` against downstream `skills/<name>/SKILL.md` and **surgically merge** new sections (e.g., add `agent-behavior.md` to Always Read list, add Ambiguous Request Gate to Common Tasks preamble). Do not replace the file.
-- **Shells** (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`) — same pattern. Downstream shells have project routing tables; upstream has preamble improvements. Add the Always Read preamble and route-before-routing check, but keep the downstream's task rows intact.
-- **`smoke-test.sh`** — usually safe to overwrite (it's a verification tool), but `diff` first to catch project-specific extensions.
+### Ownership Rules
 
-### Procedure
+- **Project-owned, never overwrite** — `rules/project-rules.md`, `rules/coding-standards.md`, `references/gotchas.md`, project-specific workflows, `SKILL.md` prose, `routing.yaml` trigger examples.
+- **Mechanism-owned, agent may port changes** — `scripts/*.sh`, universal hooks, protocol-blocks, reusable workflow scaffolding. Still compare before editing; do not blind-copy over local changes.
+- **Generated, never hand-edit** — Always Read lists, Common Tasks, and thin-shell bootstraps. Update `routing.yaml`, then run `scripts/sync-routing.sh`.
 
-1. **Audit.** Compare upstream and downstream file sets:
-   ```bash
-   UPSTREAM="${UPSTREAM:-../skill-based-architecture}"
-   NAME=<project>
-   # What's missing downstream?
-   for d in templates/skill templates/shells templates/hooks templates/protocol-blocks; do
-     diff <(ls "$UPSTREAM/$d" 2>/dev/null) <(ls "skills/$NAME" "." ".claude/hooks" 2>/dev/null) | head
-   done
-   ```
-2. **Copy additive files** as-is into the equivalent downstream paths.
-3. **Merge judgment files** — open upstream and downstream versions side-by-side, cherry-pick new sections. Never replace the whole file.
-4. **Update `.claude/settings.json`** if the hook schema evolved (e.g., flat → nested `hooks[]`).
-5. **Run `smoke-test.sh`** to verify nothing broke.
-6. **Probe with 3–5 subagent dispatches** using realistic project prompts to confirm routing still works. Use `isolation: worktree`, but be aware that **Agent SDK subagents do not fire PreToolUse hooks** — they test skill routing, not hook enforcement.
+### Agent Procedure
+
+1. Read `skills/<name>/workflows/update-upstream.md`.
+2. Clone upstream to a temp directory.
+3. Compare downstream vs upstream as the agent; do not ask the user to run or inspect diffs.
+4. Apply small patches that preserve local project knowledge.
+5. Ask the user only for semantic conflicts that cannot be resolved from code/docs evidence.
+6. Run `sync-routing.sh`, `smoke-test.sh`, `check-description-routing.sh`, and orphan checks.
+7. Report what upstream changes were adopted, what local customizations were preserved, and what was intentionally left untouched.
 
 ### What NOT to do
 
 - Don't re-run `templates/migration/*.sh` on an already-migrated project — they'll clobber project-specific content
+- Don't ask the user to manually diff upstream and downstream; the workflow exists so the agent does that work
+- Don't use whole-file replacement unless the target is missing or the agent verifies the local file is an unmodified old upstream template
 - Don't propagate experimental upstream additions (principles that accumulated in an over-cap `agent-behavior.md` during testing, etc.) — only the canonical clean state belongs downstream
 - Don't use absolute paths in subagent prompts when probing — they bypass `isolation: worktree` and leak writes back to main (see `examples/behavior-failures.md`)
 

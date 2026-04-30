@@ -17,8 +17,8 @@ Use this when a project has only one small skill and does **not** yet need the f
 ---
 name: <project-name>
 description: >
-  This skill should be used when the user asks to "<trigger phrase 1 in real user language>",
-  "<trigger phrase 2>", or "<trigger phrase 3>".
+  This skill should be used when the user asks within this skill's domain, such as
+  "<trigger phrase 1 in real user language>", "<trigger phrase 2>", or "<trigger phrase 3>".
   Activate when <condition 1> or <condition 2>.
 ---
 
@@ -60,7 +60,7 @@ Every project should have this workflow. It combines rule sync, active learning,
 
 | Change type | Files to update |
 |---|---|
-| New/renamed workflow or reference file | `SKILL.md` Common Tasks routing |
+| New/renamed workflow or reference file | `routing.yaml`, then `scripts/sync-routing.sh` |
 | UI convention / host compatibility / overlay layering / z-index / styling behavior issue that future agents would guess wrong without docs | Update the relevant `rules/*.md` or `references/*.md`, and update `SKILL.md` summary if the pitfall should surface earlier |
 | (project-specific triggers) | (corresponding files) |
 
@@ -144,8 +144,8 @@ Before recording a potential new piece of knowledge, ask:
 - Stable constraint or convention → `rules/`
 - Pitfall, architecture note, lifecycle gotcha, source index → `references/`
 - Ordered task step or completion check → `workflows/`
-- Task routing changed → `SKILL.md`
-- Entry routing changed → thin shells (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
+- Task routing changed → `routing.yaml`, then `scripts/sync-routing.sh`
+- Entry routing or Always Read changed → `routing.yaml`, then regenerate thin-shell generated blocks (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/*.mdc`)
 
 ### Recording Destination (user-initiated recording)
 
@@ -168,7 +168,7 @@ If the lesson is both **costly** and **task-relevant**, don't stop at storing it
 Ask:
 
 1. Would a future agent naturally read this reference during the same task type?
-2. If not, should this also change a workflow checklist, `SKILL.md` Common Tasks routing, or a concise rule summary?
+2. If not, should this also change a workflow checklist, `routing.yaml`, or a concise rule summary?
 
 High-cost pitfalls are only considered fully captured when they are both:
 
@@ -238,7 +238,7 @@ Deprecation steps:
 2. **Fully obsolete** → delete the entry or file
 3. **Partially obsolete** (e.g. migrating from jQuery to React, but old pages still use jQuery) → keep the rule but scope it: add a clear header like "Legacy only — applies to jQuery pages; new pages use React rules in `frontend-rules.md`". When the last legacy page is migrated, delete the scoped rule.
 4. **If unsure** → annotate with `<!-- DEPRECATED: reason, date -->` and revisit later
-5. **Update references** — if an entire file is deleted, update SKILL.md and the sync trigger table (thin shells use auto-discovery so they don't need updating)
+5. **Update references** — if an entire file is deleted, update `routing.yaml`, run `scripts/sync-routing.sh`, and update the sync trigger table
 
 ## Inline Changelog (Optional)
 
@@ -369,7 +369,7 @@ Once you've confirmed splitting is worthwhile:
 1. **Identify boundaries** — find independent topic blocks (usually separated by H2 headings)
 2. **Name new files** — rules: `*-rules.md`, workflows: verb-noun, references: noun-based
 3. **Migrate content** — move to new files, keep heading levels reasonable
-4. **Update SKILL.md** — modify Always Read and Common Tasks routing
+4. **Update routing** — modify `routing.yaml`, then run `scripts/sync-routing.sh`
 5. **Update referrers** — other rule files that cross-reference the split/merged files
 6. **Verify** — no broken links, no duplicated content, nothing left behind
 

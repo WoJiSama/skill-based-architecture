@@ -11,26 +11,32 @@ Formal docs live under `skills/`. Read `skills/*/SKILL.md` — default to `prima
 
 **Always Read (every task, in addition to route-specific reads)**
 
+<!-- ALWAYS_READ_START -->
 - `skills/{{NAME}}/rules/project-rules.md`
 - `skills/{{NAME}}/rules/coding-standards.md`
-- `skills/{{NAME}}/rules/agent-behavior.md` — universal behavior defaults (Think / Simplicity / Surgical / Goal-Driven / Three-Strike / Response)
+- `skills/{{NAME}}/rules/agent-behavior.md`
+<!-- ALWAYS_READ_END -->
 
 **Route-before-routing check**: if the request contains vague improvement verbs ("refactor / clean up / optimize / make it better / 整理 / 重构 / 优化") **without** a concrete module/file or verifiable outcome → stop and ask for scope. Do not offer partial plans; see `skills/{{NAME}}/protocol-blocks/ambiguous-request-gate.md` if present.
 
 </always-applicable>
 
-The table below lists **additional** reads per task type.
+Route metadata lives in `skills/{{NAME}}/routing.yaml`; the bootstrap below tells agents how to match it.
 
 <task-routing>
 
 **Quick Routing (survives context truncation)**
 
-| Task | Required reads | Workflow |
-|------|---------------|----------|
-| Fix bug | `rules/project-rules.md` + `rules/coding-standards.md` | `workflows/fix-bug.md` |
-| Multi-subtask / long run (≥ 3 independent subtasks) | `rules/project-rules.md` | `workflows/subagent-driven.md` |
-| <!-- FILL: task --> | <!-- FILL: `rules/<x>.md` --> | <!-- FILL: `workflows/<y>.md` --> |
-| Other | `rules/project-rules.md` | Check `workflows/` for closest match |
+<!-- ROUTING_BOOTSTRAP_START -->
+Task routes live in `skills/{{NAME}}/routing.yaml`.
+
+For every new task:
+1. Read `skills/{{NAME}}/routing.yaml`.
+2. Match by `labels`, `trigger_examples`, and task intent.
+3. Read only that route's `required_reads` plus Always Read files.
+4. Follow that route's `workflow`.
+5. If no route matches, use the `other` route.
+<!-- ROUTING_BOOTSTRAP_END -->
 
 </task-routing>
 
