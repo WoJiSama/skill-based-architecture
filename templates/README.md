@@ -42,7 +42,7 @@ templates/
     ├── red-flags-stop.md
     ├── iron-law-header.md
     ├── subagent-contract.md        (5-field worker task-prompt block)
-    ├── reboot-check.md              (5-question mid-task re-orientation)
+    ├── reboot-check.md              (5-question long-task/final re-orientation)
     └── ambiguous-request-gate.md   (pre-routing Principle 1 check for vague verbs)
 ```
 

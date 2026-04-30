@@ -9,7 +9,7 @@ See [TEMPLATES-GUIDE.md](../TEMPLATES-GUIDE.md) for the full `update-rules.md` a
 
 A task is NOT complete until these steps are done:
 
-1. Main work done and verified
+1. Main work done and verified; before final validation on long/interrupted tasks, restate the original request, chosen route, and forbidden shortcuts or run `protocol-blocks/reboot-check.md`
 2. 30-second AAR scan (all "no" = stop here)
 3. If any "yes" → apply recording threshold → apply generalization rule → record if it passes
 4. **Path integrity gate** — if any `.md` was touched, both must pass before commit from the project repo root unless noted:

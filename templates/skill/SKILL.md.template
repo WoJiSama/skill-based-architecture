@@ -34,6 +34,7 @@ These files apply to every task. Read them first:
 - "I already read it earlier" is not valid. Context compresses silently; the new task may match a different route; partial memory is worse than no memory.
 - Re-read costs seconds. Skipping costs hours of wrong-direction work.
 - This applies to ALL task types, not just bug fixes.
+- Before final validation/commit after a long or interrupted task, run `protocol-blocks/reboot-check.md`: restate the original user constraints and chosen route; if you cannot, re-read the request, SKILL.md, and workflow before proceeding.
 
 **Route-before-routing check (Principle 1 gate)** — if the request contains vague improvement verbs ("refactor / clean up / optimize / make it better / 整理 / 重构 / 优化") **without** a concrete module, file, or verifiable outcome, **stop and ask** for scope before matching below. Offering partial plans, scanning the project "to get started", or proposing options is forbidden — the gate blocks forward movement until scope is clarified. See `protocol-blocks/ambiguous-request-gate.md` for full protocol.
 
