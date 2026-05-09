@@ -30,6 +30,35 @@ copy, create, or maintain a local version of this file.
 - Downstream refresh guidance: <what to compare/port/preserve>
 ```
 
+## 2026-05-09 - Content conformance manifest + check script
+
+- Upstream commit: pending in this working tree
+- Changed areas: `templates/skill/conformance.yaml` (new),
+  `templates/skill/scripts/check-version-conformance.sh` (new),
+  `templates/skill/scripts/_parse_conformance.py` (new),
+  `UPSTREAM-CHANGES.md`
+- Why it matters: adds a content-presence check that complements the existing
+  guardrails. `check-upstream-changes.sh` enforces a downstream-impact note,
+  `sync-routing.sh --check` keeps routing tables in sync, `smoke-test.sh`
+  enforces structural budgets, `check-self-scenarios.sh` proves trigger
+  routing, and `check-growth-health.sh` reports growth pressure. None of
+  those validate that a downstream skill actually carries the workflow
+  sections an upstream upgrade just shipped (Task Closure Protocol,
+  Generalization Rule, Question Gate A/B/C, the dossier-folder block, and so
+  on). The new manifest closes that gap: each commit IS the version, and
+  `check-version-conformance.sh <skill-root>` asserts the listed sections /
+  phrases / files all exist. Default manifest path is
+  `<skill-root>/conformance.yaml`; downstream skills get a copy when they
+  scaffold from `templates/skill/`. Upstream self-check:
+  `bash templates/skill/scripts/check-version-conformance.sh templates/skill`.
+- Downstream refresh guidance: when running `update-upstream`, after the
+  existing routing sync and smoke test, run the conformance check on your
+  skill root. If it reports missing sections, the upstream upgrade is
+  incomplete — re-apply the missing template content before declaring the
+  refresh done. Do NOT add `version:` fields to `conformance.yaml`; each
+  upstream commit is the version, and downstream pulls the latest manifest
+  from the upstream clone.
+
 ## 2026-05-08 - Architecture governance follow-through
 
 - Upstream commit: pending in this working tree

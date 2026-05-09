@@ -1,0 +1,65 @@
+# Conformance manifest — required content for any skill that follows this
+# architecture. Validated by `templates/skill/scripts/check-version-conformance.sh`.
+#
+# This file is the upstream's promise about its own templates AND the contract
+# that downstream skills must continue to satisfy after `update-upstream`. Do
+# not version-stamp it: each commit IS the version.
+#
+# Bump rule: when a release introduces a new mandatory section / phrase that
+# downstream must propagate, add it here in the SAME commit. Otherwise
+# downstream upgrades will silently stay incomplete.
+#
+# Concerns NOT covered here (use the listed mechanism instead):
+#   - "downstream changelog impact for upstream edit"  → check-upstream-changes.sh + UPSTREAM-CHANGES.md
+#   - "routing/manifest in sync with generated blocks" → sync-routing.sh --check
+#   - "file size / SKILL.md ≤ 100 lines"               → smoke-test.sh / check-growth-health.sh
+#   - "trigger phrase routes to expected workflow"    → check-self-scenarios.sh
+#
+# This file fills a different gap: "did downstream forget to copy a mandatory
+# section/phrase from the upstream template?". File-level presence + phrase
+# presence — no hash/byte comparison (that's a separate, future concern).
+
+required_sections:
+  # plan-feature.md must keep the question-gate, complexity-gate, dossier-folder,
+  # and workflow-state machinery — these are what downstream agents rely on.
+  - file: workflows/plan-feature.md
+    must_contain:
+      - "## Complexity Gate"
+      - "## Question Gate"
+      - "Gate A:"
+      - "Gate B:"
+      - "Gate C:"
+      - "## Complex Task Dossier"
+      - "decisions.md"
+      - "implement.jsonl"
+      - "check.jsonl"
+      - "[workflow-state:planning]"
+
+  # update-rules.md is the canonical home for Task Closure Protocol, AAR,
+  # Recording Threshold, Activation Check, Generalization Rule. Every
+  # downstream workflow that runs the closure gate references this file.
+  - file: workflows/update-rules.md
+    must_contain:
+      - "## Task Closure Protocol"
+      - "### Rationalizations to Reject"
+      - "### Red Flags"
+      - "## After-Action Review"
+      - "### Recording Threshold"
+      - "### Activation Check"
+      - "### Generalization Rule"
+
+  # fix-bug.md must enforce TCP — the older "After-Action Review" reference
+  # alone is not enough.
+  - file: workflows/fix-bug.md
+    must_contain:
+      - "## Mandatory Pre-Step"
+      - "Task Closure Protocol"
+
+# Files required to exist (presence-only check).
+required_files:
+  - path: workflows/plan-feature.md
+  - path: workflows/update-rules.md
+  - path: workflows/fix-bug.md
+  - path: workflows/maintain-docs.md
+  - path: workflows/update-upstream.md
+  - path: routing.yaml
