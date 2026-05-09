@@ -21,9 +21,10 @@ project/
 ├── CLAUDE.md                      # thin shell (Claude)
 ├── CODEX.md                       # thin shell (Codex)
 ├── .cursor/rules/*.mdc            # thin shells (Cursor)
-├── .claude/                       # thin shells (Claude Code)
-└── .codex/                        # thin shells (Codex CLI)
+└── .claude/                       # thin shells (Claude Code)
 ```
+
+For growth/topology decisions (when to upgrade tier, when to split into multiple skills), see [progressive-rigor.md](progressive-rigor.md). For where this skill sits in the broader agent stack, see the "Positioning" section at the bottom of this file.
 
 ## SKILL.md Template
 
@@ -71,7 +72,7 @@ Brief, scannable list of the most costly pitfalls. Full details in `references/g
 3. `skills/<name>/workflows/`
 4. `skills/<name>/references/`
 5. Root `README.md`
-6. `.cursor/rules/*.mdc` / `.claude/` / `.codex/` (compatibility only)
+6. `.cursor/rules/*.mdc` / `.claude/` (compatibility only)
 
 ## Project Boundaries
 - Boundary 1
@@ -136,94 +137,11 @@ Rule of thumb:
 
 Do not copy the full official spec into project docs. Link to the canonical source when helpful, and keep local docs focused on project structure and task routing.
 
-## Progressive Rigor
+## Positioning in the Agent Stack
 
-Not every skill needs the full `skills/<name>/` tree. Start at the smallest tier that fits the current scope, and upgrade only when a concrete pressure fires. This borrows from OpenSpec's "Most changes should stay in Lite mode" discipline — default to the cheapest structure that works, because over-structuring a small skill adds maintenance cost with no compression-survival benefit.
+Where this skill sits, and what it does **not** cover. Read this when an agent feels unstable and you need to decide whether the fix belongs here, in prompt phrasing, or in a different harness layer.
 
-### The three tiers
-
-| Tier | Layout | Use when | Typical SKILL.md size |
-|---|---|---|---|
-| **Single-file** | `SKILL.md` only (official minimum) | < 3 topics, no task routing needed, no lesson-capture history | ≤ 60 lines |
-| **Folder-light** | `skills/<name>/SKILL.md` + `rules/` | 3–5 topics, OR 1 recurring workflow that needs step-by-step instructions, OR a growing list of project conventions | 60–100 lines, `rules/` adds 1–3 files |
-| **Full** | `skills/<name>/{SKILL,rules,workflows,references}/` + thin shells + Cursor registration entry | ≥ 3 routed task types, gotcha log needs a home, multi-harness repo (Cursor + Claude + Codex + Gemini), or lessons-learned across multiple sessions | Close to 100 lines, multiple files per subdir |
-
-### Upgrade triggers
-
-Add structure when **any** of these fires, not before:
-
-1. **Line pressure** — `SKILL.md` crosses 100 lines despite compression attempts. Move content to a sub-file in the next tier down (e.g. workflows go to `workflows/` once you have 2+).
-2. **Recurrence pressure** — the same pitfall is recorded in Common Pitfalls twice, or the same question gets asked by the agent twice in different sessions. Promote it to `references/gotchas.md` with a dedicated section.
-3. **Procedure pressure** — you catch yourself writing "how to do X in steps" inside a rule file. Steps belong in `workflows/`, not `rules/`. Create the `workflows/` directory.
-4. **Harness-sharing pressure** — two harness entries (e.g. `AGENTS.md` and `CLAUDE.md`) need the same route lookup logic, or you're manually keeping them in sync. Move task data into `routing.yaml` and generate thin-shell blocks.
-5. **Cross-session lesson pressure** — you want a lesson from today to persist into a `/clear`-fresh session next week. A single-file skill with no `references/` has no durable place for it.
-
-**Downgrade is also fine.** If a skill lost a domain or shed complexity, collapse back. Structure serves the content, not the other way around. Empty `workflows/` or `references/` directories are a smell.
-
-### Why this matters
-
-Over-structuring a small skill:
-
-- Adds 5–10 files the user must open and keep up to date
-- Pushes simple "always do X" rules into `rules/` folders, then forces thin shells to point at them
-- Creates false invariants (thin shells claim the skill routes tasks, when the skill has one task)
-
-Under-structuring a growing skill:
-
-- Grows SKILL.md past 100 lines, defeating Principle 1
-- Mixes rules and workflows in one file, defeating Principle 3
-- Loses routing discipline, forcing the agent to read the whole file for every task
-
-The tier table above is the concrete decision gate. Re-evaluate on each significant skill revision, not on every edit.
-
-## Executable Skill Pressure
-
-Do not treat skill shape as one flat choice. Profile it on three independent
-axes:
-
-| Axis | Values | Question |
-|---|---|---|
-| Structure tier | Single-file / Folder-light / Full | How much routing and durable documentation does the project need? |
-| Execution mode | Rule-only / Assisted-executable / Executable | Does the skill merely guide work, or does it own scripts, external calls, and output contracts? |
-| Domain topology | Single-skill / Multi-skill candidate | Do trigger language and rules form one domain or several separable domains? |
-
-A project can be `Full + Rule-only + Single-skill`, or
-`Folder-light + Executable + Single-skill`. Keep the axes separate so one
-pressure does not force unrelated structure.
-
-Some projects outgrow a rule-only skill because the skill must execute platform
-operations. Do not add operation directories by default. First profile the
-project with `workflows/profile-project.md`; if it has external APIs or CLIs,
-remote side effects, stable output contracts, repeated script logic, or local
-user config, evaluate the optional shape in
-[executable-skill-architecture.md](executable-skill-architecture.md).
-
-Keep the core scaffold light. `tools/`, `capability/`, `scripts/`, and
-`conf/.defaults/` belong only in downstream skills that have real executable
-pressure.
-
-## Simple Route vs Advanced Route
-
-Most routes need only `id`, `labels`, `route`, `required_reads`, `workflow`,
-and `trigger_examples`. Keep them simple.
-
-Use optional advanced fields only for high-risk routing where a wrong match has
-a real cost:
-
-| Field | Use for |
-|---|---|
-| `positive_signals` | High-signal phrases or structural evidence that should enter this route |
-| `negative_signals` | Nearby phrases that should route elsewhere or be refused |
-| `confidence` | HIGH/MEDIUM/LOW decision rules and when to clarify |
-| `slots` | Required inputs and where to derive or ask for them |
-| `target` | The exact capability, workflow, or external skill handoff |
-
-Typical advanced-route cases: deploys, database/schema changes, remote config
-writes, status transitions, external skill delegation, and expensive API calls.
-These fields are documentation and generation input; `sync-routing.sh` must stay
-compatible with routes that do not define them.
-
-## Positioning: Prompt / Context / Harness
+### Three layers of agent reliability
 
 Agent reliability lives on three layers. This skill is **not** a silver bullet — it acts on the second and a slice of the third.
 
@@ -244,63 +162,12 @@ When an agent feels unstable, the root cause is rarely the model. Ask these four
 
 Three "no"s = this is a harness problem, not a model problem. Re-tuning the prompt will not help.
 
-### What This Skill Does **Not** Cover
+### What this skill does **not** cover
 
 Treat these as orthogonal concerns — do **not** extend this meta-skill's templates beyond the narrow migration scaffolding already provided:
 
 - **Tool-execution stability** (browser clicks that silently no-op, API calls that return half-complete responses, page DOM changing under the agent). Use a verification-focused skill (e.g. superpowers' `verification-before-completion`) or a dedicated tool-agent harness.
-- **General long-chain checkpoint / resume.** This repo provides a narrow migration recovery path (`.migration-state`, per-phase smoke checks, and `templates/migration/resume.sh`) because failed migration phases otherwise pollute the generated skill tree. Broader application workflows still need project-specific state, validation, and recovery inside that project's own `rules/` or `workflows/`.
+- **General long-chain checkpoint / resume.** Migration is one-shot — if a phase crashes, the documented path is "wipe the partial scaffold and rerun" rather than a state machine. Broader application workflows that genuinely need pause/resume need project-specific state, validation, and recovery inside that project's own `rules/` or `workflows/`.
 - **Multi-agent orchestration.** See superpowers' `subagent-driven-development` or equivalent. This skill only routes *within one agent's session*.
 
 Adding state / validation / recovery primitives beyond the migration scaffold is that downstream project's own engineering work — it belongs in the project's `rules/` or `workflows/`, not in this meta-skill.
-
-## Multi-Skill Projects
-
-This section covers the **structural layout** of multi-skill repos. For the **operating guide** (routing, description discipline, shared resources, cross-skill refs, fission signals) see [multi-skill-routing.md](multi-skill-routing.md).
-
-When a repo has multiple skills (e.g. `skills/app/` + `skills/template-builder/`):
-
-```text
-skills/
-├── app/                    # Main application skill
-│   ├── SKILL.md
-│   ├── rules/
-│   └── workflows/
-├── template-builder/       # Standalone feature skill
-│   ├── SKILL.md
-│   ├── rules/
-│   └── workflows/
-└── shared/                 # Optional: cross-skill shared rules
-    └── coding-standards.md
-```
-
-**Coexistence rules:**
-
-1. **Independent entries** — each skill has its own `SKILL.md`, self-contained, no implicit cross-dependencies
-2. **Registration + auto-discovery** — each skill must have a `.cursor/skills/<name>/SKILL.md` registration entry for Cursor discovery, plus thin shells with `routing.yaml` bootstraps for Claude/Codex. Adding a skill = dropping a folder into `skills/` + creating the registration entry + updating thin shells.
-3. **Priority** — when a task clearly belongs to one skill, that skill's rules take precedence; if ambiguous, Agent reads both skills' Always Read lists
-4. **Shared rules** — conventions shared across skills (e.g. coding standards) go in `skills/shared/`; each skill's SKILL.md references them in its Always Read list
-5. **Don't merge** — if two skills have very different domains (e.g. "app development" vs "template building"), keeping them separate is clearer than forcing a merge
-
-**Monorepo variant:** In a monorepo with `packages/` or `apps/`, put skills at the **workspace root** (`skills/`). A single `skills/shared/` holds cross-package conventions; each package-level skill (`skills/pkg-a/`) adds package-specific rules. Auto-discovery still works — Agent scans all `skills/*/SKILL.md` and matches by description.
-
-**When to split one skill into two:**
-
-A growing skill may need to fission into independent skills. Evaluate when:
-
-1. **Domains independent?** — Subdomains (e.g. frontend vs. backend) have rules that don't affect each other
-2. **Description too broad?** — Agent frequently matches the skill for tasks that only touch one subdomain
-3. **Common Tasks overloaded?** — Routing table exceeds 10 entries, most tasks only use one subdomain's files
-
-All three Yes → split into separate skills under `skills/`. Move shared rules to `skills/shared/`.
-
-**When to rebuild a skill from scratch:**
-
-Sometimes a skill has drifted so far that patching it costs more than starting over. Evaluate rebuild when 2+ of these are true:
-
-1. **> 30% of rules outdated or contradictory** — rules conflict with each other or describe removed features
-2. **Common Tasks routing is fictional** — 3+ routes point to workflows/files that no longer match real project work
-3. **Thin shells and SKILL.md have drifted apart** — generated Always Read, Common Tasks, and shell bootstraps disagree with `routing.yaml`, or manual re-alignment keeps failing
-4. **Repeated agent errors trace back to "confusing rules"** — the last 5+ agent mistakes were caused by the rules themselves being unclear, not by missing rules
-
-Rebuild path: `cp -R templates/skill/. skills/<name>/` to get a fresh skeleton, then manually migrate only the rules and gotchas that are still valid. Do not copy-paste the old structure — re-evaluate each piece through the recording threshold before including it.

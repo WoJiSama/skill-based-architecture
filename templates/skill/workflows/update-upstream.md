@@ -25,7 +25,7 @@ Use when the user says the upstream skill-based-architecture project changed and
 4. **Classify files before editing**
    - Upstream-only: `$tmp/upstream/UPSTREAM-CHANGES.md`. Read during refresh; never port into downstream.
    - Project-owned: `rules/project-rules.md`, `rules/coding-standards.md`, `references/gotchas.md`, project-specific workflows, `SKILL.md` prose, `routing.yaml` task examples. Preserve; merge manually if needed.
-   - Mechanism-owned: `scripts/*.sh`, universal hooks, protocol-blocks, reusable workflow scaffolding. Compare and port useful upstream changes.
+   - Mechanism-owned: `scripts/*.sh`, `scripts/_parse_conformance.py`, `conformance.yaml`, universal hooks, protocol-blocks, reusable workflow scaffolding. Compare and port useful upstream changes. The local `conformance.yaml` is a **snapshot from initial scaffold** — overwrite it from upstream after a successful refresh; otherwise it silently re-validates against the old contract.
    - Generated: Always Read, Common Tasks, thin-shell bootstraps. Regenerate only.
 5. **Compare as the agent** — for each candidate upstream file, inspect local and upstream versions (`git diff --no-index` is fine). If local contains project-specific edits, keep them and cherry-pick upstream improvements into the local file.
 6. **Use upstream history only as evidence** — if considering whole-file replacement, verify the local file matches a previous upstream version from the cloned repo's history. If no exact historical match, do not replace.
@@ -38,7 +38,15 @@ Use when the user says the upstream skill-based-architecture project changed and
    bash "skills/$NAME/scripts/check-description-routing.sh" "$NAME"
    (cd "skills/$NAME" && bash scripts/audit-references.sh --orphans)
    ```
-9. **Final report** — list upstream note entries consulted, upstream changes adopted, local customizations preserved, files intentionally left untouched, validation results, and any unresolved semantic conflicts.
+9. **Conformance check — use upstream's manifest, not local** — the local `skills/$NAME/conformance.yaml` is a snapshot from the initial scaffold. If upstream added new mandatory sections (e.g. a new Gate, Task Closure phrase, or workflow), the local manifest doesn't know about them and would falsely report green. Always validate against the freshly cloned upstream contract:
+   ```bash
+   bash "skills/$NAME/scripts/check-version-conformance.sh" "skills/$NAME" \
+     --conformance "$tmp/upstream/templates/skill/conformance.yaml"
+   ```
+   If this fails: the upstream upgrade is incomplete. Re-apply the missing template sections (e.g. port the Gate/section text from the upstream workflow file into the downstream one), then re-run. After it passes, sync the local manifest with upstream's so the next refresh starts from a fresh snapshot:
+   - **Default case** (local matches a historical upstream version — verify with `git -C "$tmp/upstream" log -p -- templates/skill/conformance.yaml`): replace from upstream as a mechanism-owned file, consistent with Hard Rule #4.
+   - **If you added project-specific `must_contain` entries to local**: do not replace. Merge new upstream entries into local while keeping your additions, then re-run the conformance check against the merged manifest.
+10. **Final report** — list upstream note entries consulted, upstream changes adopted, local customizations preserved, files intentionally left untouched, validation results (including the conformance check against upstream's manifest), and any unresolved semantic conflicts.
 
 ## Stop Conditions
 

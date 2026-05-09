@@ -27,7 +27,6 @@ templates/
 │       └── audit-references.sh          (orphan + low-inbound detection for rules/ and references/)
 ├── shells/                   → becomes repo-root entry files
 │   ├── AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md
-│   ├── .codex/instructions.md
 │   ├── .cursor/rules/workflow.mdc
 │   └── .cursor/skills/{{NAME}}/SKILL.md.template
 ├── hooks/                    → optional SessionStart injection + mechanism-level gates
@@ -38,21 +37,13 @@ templates/
 │   ├── hooks-cursor.json          (Cursor config — same as above, per-harness wiring)
 │   ├── README.md                  (rollout / tuning / false-positive mitigations, per-hook)
 │   └── SECURITY.md                (trust boundary: what may vs must not be written to hook-read files)
-├── checklists/               → copyable verification checklists
-│   └── post-migration.md     (run after Phase 8 to verify everything)
-├── migration/                → meta-level migration helpers (not per-skill)
-│   ├── resume.sh             (detect where a crashed migration left off)
-│   └── README.md             (usage + relation to WORKFLOW.md § Resuming)
 └── protocol-blocks/          → drop-in Task Closure reinforcement
     ├── rationalizations-table.md
     ├── red-flags-stop.md
-    ├── iron-law-header.md
     ├── subagent-contract.md        (5-field worker task-prompt block)
     ├── reboot-check.md              (5-question long-task/final re-orientation)
     └── ambiguous-request-gate.md   (pre-routing Principle 1 check for vague verbs)
 ```
-
-> `migration/` is the odd one out: it is **not** copied into the downstream project. It runs alongside the upstream repo and is invoked from the target project root via `bash "$UPSTREAM/templates/migration/resume.sh"`. See `migration/README.md`.
 
 ## Placeholders
 
@@ -88,7 +79,6 @@ Two kinds — each with a different "fill" mechanism:
 | `skill/scripts/check-external-facts.sh` | ≤ 120 lines | Small freshness gate; keep network-free and marker-based |
 | `skill/references/gotchas.md` | ≤ 25 lines (seed) | MUST stay near-empty — content grows post-deployment |
 | `skill/references/behavior-failures.md` | ≤ 25 lines (seed) | MUST stay near-empty — agent-behavior violations logged via AAR |
-| `migration/*.sh` | ≤ 200 lines | Bridge scripts; past this, refactor into libraries |
 
 Anything over budget needs either splitting or rejection. See `ANTI-TEMPLATES.md`.
 

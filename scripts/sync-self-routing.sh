@@ -20,7 +20,6 @@ TARGETS=(
   "CLAUDE.md"
   "CODEX.md"
   "GEMINI.md"
-  ".codex/instructions.md"
   ".cursor/rules/workflow.mdc"
   ".cursor/skills/skill-based-architecture/SKILL.md"
 )

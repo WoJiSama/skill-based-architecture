@@ -22,6 +22,8 @@ Runs the self-hosting upstream maintenance checks used before commit/push:
   - external-fact freshness check
   - self-hosting phase 7 smoke test
   - orphan reference audit
+  - template content conformance (downstream contract)
+  - self-hosting content conformance (upstream-canon)
 
 Default mode checks the working tree. Use --staged from a pre-commit hook to
 check the pending commit for UPSTREAM-CHANGES.md coverage and whitespace.
@@ -79,5 +81,7 @@ run "self-hosting scenario checks" bash scripts/check-self-scenarios.sh
 run "external fact freshness check" bash templates/skill/scripts/check-external-facts.sh .
 run "self-hosting phase 7 smoke test" bash templates/skill/scripts/smoke-test.sh skill-based-architecture --phase 7
 run "reference orphan audit" bash templates/skill/scripts/audit-references.sh --orphans
+run "template content conformance" bash templates/skill/scripts/check-version-conformance.sh templates/skill
+run "self-hosting content conformance" bash templates/skill/scripts/check-version-conformance.sh . --conformance references/self-hosting-conformance.yaml
 
 printf '\nAll upstream maintenance checks passed.\n'

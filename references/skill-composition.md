@@ -84,7 +84,7 @@ Dispatch a subagent with contract:
 
 - **Composition as a shortcut for missing project content.** If you keep invoking `skills/superpowers/plan` because you haven't written your own `workflows/plan.md`, that's OK for a while — but eventually *some* project-specific planning rules accumulate. Record them in your own workflow and call superpowers for the generic scaffolding only.
 
-- **Passing through without Task Closure.** If your workflow invokes another skill and then ends, you skipped your project's AAR. Composition does not exempt the caller from Task Closure Protocol (see `templates/protocol-blocks/iron-law-header.md`).
+- **Passing through without Task Closure.** If your workflow invokes another skill and then ends, you skipped your project's AAR. Composition does not exempt the caller from Task Closure Protocol — main work + AAR scan + record-if-needed still applies in full (see `templates/skill/workflows/update-rules.md` § Task Closure Protocol).
 
 ## What "invoking" means in practice (per harness)
 

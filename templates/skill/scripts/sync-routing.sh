@@ -254,7 +254,7 @@ targets = [
     (skill_file, always_start, always_end, always_skill_block),
     (skill_file, summary_start, summary_end, summary_block),
 ]
-for rel in ["AGENTS.md", "CLAUDE.md", "CODEX.md", "GEMINI.md", ".codex/instructions.md"]:
+for rel in ["AGENTS.md", "CLAUDE.md", "CODEX.md", "GEMINI.md"]:
     path = repo_root / rel
     targets.append((path, always_start, always_end, always_shell_block))
     targets.append((path, bootstrap_start, bootstrap_end, bootstrap_block))

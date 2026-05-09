@@ -1,6 +1,6 @@
 # CODEX.md
 
-This repo is the **skill-based-architecture** meta-skill itself. Formal docs live at the repo root (self-hosting layout). Read [SKILL.md](SKILL.md) first — it is the router. See also `.codex/instructions.md` for Codex-specific execution notes.
+This repo is the **skill-based-architecture** meta-skill itself. Formal docs live at the repo root (self-hosting layout). Read [SKILL.md](SKILL.md) first — it is the router.
 
 <!-- SELF_ROUTING_BLOCK_START -->
 ## Quick Routing (survives context truncation)
@@ -27,3 +27,8 @@ For every new task:
 - "Just this once I'll skip the AAR" → stop.
 - "I'll inline this in SKILL.md instead of linking a reference" → stop. SKILL.md stays ≤ 100 lines; content goes to `references/` or `templates/`.
 - "Let me pre-fill a gotchas example so the template feels complete" → stop. Templates forbid project-specific content.
+
+## Codex-specific notes
+
+- When executing `WORKFLOW.md` phases, prefer sequential edits over bulk rewrites — Codex's `apply_patch` works best on focused diffs.
+- When modifying `templates/`, run `bash templates/skill/scripts/smoke-test.sh <test-name>` against a sample target before declaring completion.

@@ -2,7 +2,7 @@
 
 These examples are **behavior-layer** before/after pairs: what an Agent actually says or does in the failure mode, and what the correct path looks like after the architecture's protections kick in.
 
-Unlike `migration.md` (directory structure) or `project-types.md` (layout variants), these scenarios show the **rationalizations and drift patterns** that cause skill-based architecture to silently degrade — and the specific mechanism (薄壳 Red Flags / Session Discipline / Rationalizations Table) that catches each one.
+Unlike the migration and project-shape illustrations in [`../EXAMPLES.md`](../EXAMPLES.md), these scenarios show the **rationalizations and drift patterns** that cause skill-based architecture to silently degrade — and the specific mechanism (薄壳 Red Flags / Session Discipline / Rationalizations Table) that catches each one.
 
 Every scenario here was captured from a real pressure-test failure. The "reject" column rebuts the Agent's actual words, not a speculative version.
 

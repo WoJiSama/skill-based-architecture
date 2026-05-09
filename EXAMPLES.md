@@ -1,20 +1,155 @@
 # Examples
 
-> **This file was split.** Previously a single 751-line document. Individual examples now live under [`examples/`](examples/) organized by topic.
+Concrete illustrations of skill-based architecture in action. Pick the subsection that matches your situation; nobody needs to read all of it.
 
-## Start here
+For verbatim agent failure-mode patterns from real pressure tests (with rationalizations and the specific mechanism that catches each), see [`examples/behavior-failures.md`](examples/behavior-failures.md).
 
-New to this skill? These examples give concrete shape for abstract concepts like "rule", "workflow", "reference", and "thin shell". Don't read them all — find the one that matches your situation, then extrapolate.
+---
 
-## Topic directory
+## Migration shapes
 
-| File | Covers |
-|---|---|
-| [`examples/migration.md`](examples/migration.md) | Migration & refactor patterns — converting existing docs into `skills/<name>/` |
-| [`examples/project-types.md`](examples/project-types.md) | Canonical shapes — Java / Python / multi-skill / minimal single-file |
-| [`examples/self-evolution.md`](examples/self-evolution.md) | AAR, Learn-from-Mistakes, Activation Over Storage, Task Closure under pressure |
-| [`examples/README.md`](examples/README.md) | Full index + example-number → file map for deep links |
+### Oversized single SKILL.md
 
-## Why this file still exists
+A 400+ line `SKILL.md` mixing rules, workflows, references, and pitfalls is a context tax on every task. Restructure into:
 
-Inbound links from `SKILL.md`, `REFERENCE.md`, and `WORKFLOW.md` used `EXAMPLES.md` as the canonical entry. Keeping this stub preserves those links while pointing readers to the new structure. New references should link to the topic file directly (e.g. `examples/migration.md#example-2-scattered-rules-→-unified-skill`).
+```
+skills/<name>/
+├── SKILL.md           # ≤ 100 lines: routing only
+├── rules/             # stable constraints, by domain
+├── workflows/         # step-by-step procedures, one per task
+└── references/        # architecture, gotchas
+```
+
+`SKILL.md` goes from 400 → ~60 lines; agents read 2–3 task-relevant files instead of everything.
+
+### Scattered rules across multiple entry files
+
+`AGENTS.md` + `.cursor/rules/frontend.mdc` + `README.md` carry overlapping content; they drift. Consolidate one source of truth under `skills/<name>/`, replace each entry file with a thin shell that points at it. Eliminates the "two files disagree on the same convention" class of bug.
+
+### Thin shell rewrite
+
+A 500-line `.cursor/rules/frontend.mdc` becomes ~10 lines:
+
+```md
+---
+description: Cursor compatibility shell.
+alwaysApply: false
+---
+Scan `skills/*/SKILL.md`, pick the matching one, follow its routing.
+Conflicts → formal docs in `skills/` win.
+```
+
+### Self-fission (split when content separates)
+
+`rules/backend-rules.md` grows to 350 lines covering Controller / Service / Mapper independently. Three-question check:
+
+- Are topics separable? → yes (layers don't depend on each other)
+- Is navigation difficult? → yes (find Controller convention requires scrolling 350 lines)
+- Can each part stand alone? → yes (≈80 lines per layer)
+
+Three "yes" → split. Update `routing.yaml`, regenerate.
+
+### Self-merge (merge when fragments don't justify files)
+
+Four files of 10–18 lines (env-setup, build-notes, deploy-notes, ci-config) all belong to "environment & deployment". Merge into one `env-and-deploy.md` (~55 lines).
+
+### When NOT to split
+
+A 280-line routing table covering Controller → Service → Mapper for the entire app. Single topic, easy `Ctrl+F`, no natural split. Keep as-is — the size threshold flags for evaluation, not for forced action.
+
+---
+
+## Project shapes
+
+### Java / Spring Boot
+
+Backend with rules across `AGENTS.md` (200), `.cursor/rules/backend.mdc` (300), `.cursor/rules/frontend.mdc` (Thymeleaf, 200) →
+
+```
+skills/<name>/
+├── SKILL.md
+├── rules/{project,coding-standards,backend,frontend}.md
+├── workflows/{add-controller,add-entity-and-mapper,fix-bug}.md
+└── references/{architecture,routes-and-modules,third-party-libs}.md
+```
+
+All four root entry files become 5–8 line thin shells.
+
+### Python CLI / data project
+
+`AGENTS.md` (300 lines, mixing CLI conventions, testing, release workflow, API reference) → `skills/<name>/{SKILL.md, rules/cli-conventions.md, workflows/{add-command,release}.md, references/{api-index,testing-notes}.md}`. The architecture works for any project type, not just web/Java.
+
+### Multi-skill repo (auto-discovery)
+
+Two distinct domains (e.g. main app + standalone template builder) → `skills/app/` + `skills/template-builder/` + optional `skills/shared/coding-standards.md`. Root `AGENTS.md` is one auto-discovery line: "Scan `skills/*/SKILL.md` and pick the matching one." No manual routing table; adding a third skill is a `mkdir`.
+
+### Stay small when small
+
+Single skill, single entry file, no duplication, no recurring gotchas → don't migrate. Keep one `SKILL.md` with frontmatter + 1–2 Common Tasks. Upgrading to the full directory structure too early adds navigation overhead without solving anything.
+
+---
+
+## Self-evolution patterns
+
+### After-Action Review with the Recording Threshold
+
+Agent finishes adding a Recoil atom + amis filter. Two candidate lessons surface:
+
+| Lesson | Repeatable? | Costly if missed? | Not obvious? | Verdict |
+|---|---|---|---|---|
+| Atom naming convention `xxxAtom` | yes | no (cosmetic) | no (visible in code) | 1/3 — don't record |
+| Filter must register before app init | yes | yes (30+ min blank-screen debug) | yes (timing not visible) | 3/3 — record |
+
+The threshold filters out conventions learnable from code reading. Only the costly, non-obvious lesson lands in `references/pitfalls.md`.
+
+### Learn from mistakes
+
+Agent forgets to register a new Controller's route in the menu config. Fix is two lines, but the lesson is missing-workflow-step, not missing-knowledge. Update `workflows/add-controller.md` step list and completion checklist; the same mistake won't ship twice.
+
+### Recorded but not activated
+
+A pitfall sits in `references/frontend-pitfalls.md` correctly, but the next bug-fix task never reads that reference. Knowledge stored ≠ knowledge captured. Wire it: update `workflows/fix-bug.md` completion check + `SKILL.md` Common Tasks pointer for the matching task type. References preserve lessons; workflows + routing make them harder to skip.
+
+### Description that doesn't fire
+
+```yaml
+description: API development helper.
+```
+
+5 words, no trigger phrases. The skill exists but is functionally dead — Claude undertriggers safe-by-default. Replace with:
+
+```yaml
+description: >
+  This skill should be used when the user asks to "add a new API endpoint",
+  "write controller logic", "fix a backend bug", or "add a database migration".
+  Activate when REST routes, request validation, service-layer logic, or
+  mapper changes are involved.
+```
+
+≥ 20 words, ≥ 2 quoted user phrases, explicit `Activate when…` block.
+
+### Behavior-change UI task that skipped AAR
+
+Project has `workflows/update-rules.md` and thin-shell Auto-Triggers, but a UI fix that changed interaction timing / overlay layering ended right after code verification. Fix the upstream template, not the project: make the workflow's exit gate impossible to read as optional, broaden "behavior change" to explicitly include interaction / schema / renderer / overlay / styling-that-changes-outcomes.
+
+---
+
+## Behavior-layer failures
+
+For verbatim agent rationalizations and the specific mechanism that catches each, see [`examples/behavior-failures.md`](examples/behavior-failures.md). Topics covered:
+
+- Skipping AAR on a "small" task
+- Description written as passive summary → skill never activates
+- Same-session new task: agent skips re-routing
+- Perf edit shipped without measuring baseline
+- Vague "refactor / clean up" prompt bypasses routing
+- Absolute paths in subagent prompts bypass `isolation: worktree`
+
+These are the only examples actively maintained as a growing corpus — they only land here when captured from a real session, never speculatively.
+
+---
+
+## How to add to this file
+
+- **Patterns and project shapes (above):** only when the same shape recurs across two or more real projects. Speculative variants stay out.
+- **Behavior-layer failures (`examples/behavior-failures.md`):** captured verbatim from a real pressure-test failure only. Same admission rule as the Rationalizations Table in `templates/skill/workflows/update-rules.md`.

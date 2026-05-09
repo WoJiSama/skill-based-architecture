@@ -229,7 +229,7 @@ if sub_runs "1b"; then
   fi
 fi
 
-# 1c. Thin shells + .codex + .cursor/rules (Phase 7+)
+# 1c. Thin shells + .cursor/rules (Phase 7+)
 if sub_runs "1c"; then
   for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
     if [[ ! -f "$shell" ]]; then
@@ -241,14 +241,14 @@ if sub_runs "1c"; then
     fi
   done
 
+  # .codex/instructions.md is an optional compatibility mirror. If a project
+  # opts in, validate the routing bootstrap; otherwise stay silent.
   if [[ -f ".codex/instructions.md" ]]; then
     if has_routing_bootstrap ".codex/instructions.md"; then
       pass ".codex/instructions.md exists with routing.yaml bootstrap"
     else
       fail ".codex/instructions.md exists but does not point at routing.yaml"
     fi
-  else
-    fail ".codex/instructions.md missing"
   fi
 
   MDC_COUNT=$(find .cursor/rules -name '*.mdc' 2>/dev/null | wc -l | tr -d ' ')
@@ -329,7 +329,7 @@ if section 3 "Placeholder Residue"; then :
 
 # 3a. {{...}} placeholders should all be replaced
 # Exclude JSX/code patterns like styles={{ }}, className={{ }}, etc.
-PLACEHOLDER_HITS=$(grep -rn '{{' "$SKILL_DIR" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor 2>/dev/null \
+PLACEHOLDER_HITS=$(grep -rn '{{' "$SKILL_DIR" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .cursor 2>/dev/null \
   | grep -v 'node_modules' \
   | grep -v '/scripts/' \
   | grep -v '={{' \
@@ -346,7 +346,7 @@ else
 fi
 
 # 3b. <!-- FILL: --> markers should all be replaced
-FILL_HITS=$(grep -rn 'FILL:' "$SKILL_DIR" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor 2>/dev/null | grep -v 'node_modules' | grep -v '/scripts/' || true)
+FILL_HITS=$(grep -rn 'FILL:' "$SKILL_DIR" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .cursor 2>/dev/null | grep -v 'node_modules' | grep -v '/scripts/' || true)
 if [[ -z "$FILL_HITS" ]]; then
   pass "No <!-- FILL: --> markers remaining"
 else
@@ -618,6 +618,7 @@ fi
 
 # Check that all shells point at the routing manifest instead of carrying hand-maintained tables.
 SHELL_FILES=(AGENTS.md CLAUDE.md CODEX.md GEMINI.md)
+# Optional: include .codex/instructions.md only when the project opts into the compatibility mirror.
 [[ -f ".codex/instructions.md" ]] && SHELL_FILES+=(".codex/instructions.md")
 while IFS= read -r cursor_rule; do
   SHELL_FILES+=("$cursor_rule")
@@ -666,6 +667,7 @@ done < <(find "$LINK_SCAN_ROOT" -type f -name '*.md' \
   2>/dev/null)
 
 for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex/instructions.md "$CURSOR_ENTRY"; do
+  # .codex/instructions.md is optional — only included when the project keeps it.
   [[ -f "$shell" ]] && LINK_SCAN_FILES+=("$shell")
 done
 while IFS= read -r mdc; do

@@ -109,7 +109,34 @@ Signs that a single skill is ready to split:
 - `rules/` has 6+ files and 3+ of them are never read together on the same task
 - One subsystem's AAR entries don't teach anything useful to the other subsystem
 
-Fission procedure: see [`references/layout.md § Multi-Skill Projects`](layout.md#multi-skill-projects) for the split mechanics. This file (`multi-skill-routing.md`) covers how to operate *after* the split.
+Fission mechanics:
+
+- **Domains independent?** — Subdomains (e.g. frontend vs. backend) have rules that don't affect each other.
+- **Description too broad?** — Agent frequently matches the skill for tasks that only touch one subdomain.
+- **Common Tasks overloaded?** — Routing table exceeds 10 entries, most tasks only use one subdomain's files.
+
+All three Yes → split into separate skills under `skills/`. Move shared rules to `skills/shared/`.
+
+**When to rebuild a skill from scratch instead of splitting.** Sometimes a skill has drifted so far that patching it costs more than starting over. Evaluate rebuild when 2+ of these are true:
+
+1. **> 30% of rules outdated or contradictory** — rules conflict with each other or describe removed features
+2. **Common Tasks routing is fictional** — 3+ routes point to workflows/files that no longer match real project work
+3. **Thin shells and SKILL.md have drifted apart** — generated Always Read, Common Tasks, and shell bootstraps disagree with `routing.yaml`, or manual re-alignment keeps failing
+4. **Repeated agent errors trace back to "confusing rules"** — the last 5+ agent mistakes were caused by the rules themselves being unclear, not by missing rules
+
+Rebuild path: `cp -R templates/skill/. skills/<name>/` to get a fresh skeleton, then manually migrate only the rules and gotchas that are still valid. Do not copy-paste the old structure — re-evaluate each piece through the recording threshold before including it.
+
+## Coexistence rules
+
+When a repo has multiple skills (e.g. `skills/app/` + `skills/template-builder/` + optional `skills/shared/`):
+
+1. **Independent entries** — each skill has its own `SKILL.md`, self-contained, no implicit cross-dependencies.
+2. **Registration + auto-discovery** — each skill must have a `.cursor/skills/<name>/SKILL.md` registration entry for Cursor discovery, plus thin shells with `routing.yaml` bootstraps for Claude/Codex. Adding a skill = dropping a folder into `skills/` + creating the registration entry + updating thin shells.
+3. **Priority** — when a task clearly belongs to one skill, that skill's rules take precedence; if ambiguous, Agent reads both skills' Always Read lists.
+4. **Shared rules** — conventions shared across skills (e.g. coding standards) go in `skills/shared/`; each skill's SKILL.md references them in its Always Read list.
+5. **Don't merge** — if two skills have very different domains (e.g. "app development" vs "template building"), keeping them separate is clearer than forcing a merge.
+
+**Monorepo variant:** in a monorepo with `packages/` or `apps/`, put skills at the **workspace root** (`skills/`). A single `skills/shared/` holds cross-package conventions; each package-level skill (`skills/pkg-a/`) adds package-specific rules. Auto-discovery still works — agents scan all `skills/*/SKILL.md` and match by description.
 
 ## Anti-patterns
 

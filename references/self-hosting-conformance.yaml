@@ -1,0 +1,84 @@
+# Self-hosting conformance manifest — content-presence guard for THIS repo.
+#
+# This repo is self-hosting: formal docs live at the root (SKILL.md,
+# WORKFLOW.md, TEMPLATES-GUIDE.md, references/*) instead of under
+# skills/<name>/workflows/. The downstream-facing manifest lives at
+# `templates/skill/conformance.yaml` and assumes the standard layout, so it
+# cannot validate this repo's own canonical content.
+#
+# This file fills that gap: assert that the upstream still teaches the
+# protocols, gates, and principles its own templates promise. If a refactor
+# accidentally drops "Task Closure Protocol" from TEMPLATES-GUIDE.md or
+# "Progressive Rigor" from SKILL.md, the next `scripts/check-all.sh` run fails.
+#
+# Validate with:
+#   bash templates/skill/scripts/check-version-conformance.sh . \
+#     --conformance references/self-hosting-conformance.yaml
+#
+# Bumping rule: when you add a new mandatory protocol/principle phrase to
+# `templates/skill/conformance.yaml`, mirror it here against whichever
+# self-hosting file teaches the same thing. Otherwise upstream can quietly
+# stop teaching what the templates require downstream to carry.
+
+required_sections:
+  # SKILL.md teaches the activation contract — every principle below has a
+  # downstream counterpart that propagates via templates/skill/SKILL.md.template.
+  - file: SKILL.md
+    must_contain:
+      - "## Progressive Rigor"
+      - "Routing.yaml as source"
+      - "Activation over storage"
+      - "Self-maintenance"
+      - "Token efficiency"
+
+  # TEMPLATES-GUIDE.md after the 2026-05-09 slim only carries Minimal Starter,
+  # Classification Guide, Sync Targets, and pointers to canonical workflow
+  # templates. The protocol-level assertions previously held here moved to
+  # references/protocols.md (concepts) and templates/skill/workflows/update-rules.md
+  # (the workflow text itself, validated by templates/skill/conformance.yaml).
+  # We still assert TEMPLATES-GUIDE.md keeps its core scaffolding role.
+  - file: TEMPLATES-GUIDE.md
+    must_contain:
+      - "## Minimal Starter Template"
+      - "## Classification Guide"
+      - "## Sync Targets"
+      - "## Task Closure Protocol"
+
+  # WORKFLOW.md after the 2026-05-09 split is the Quick Start entry; the full
+  # 9-phase content (including Phase 9 pressure-test) moved to
+  # workflows/full-migration.md. Assert WORKFLOW.md still routes to the new
+  # locations and full-migration carries the protocol anchors.
+  - file: WORKFLOW.md
+    must_contain:
+      - "Quick Start"
+      - "workflows/full-migration.md"
+      - "workflows/upgrade-downstream.md"
+
+  - file: workflows/full-migration.md
+    must_contain:
+      - "Phase 9"
+      - "Task Closure Protocol"
+      - "After-Action Review"
+
+  # protocols.md is the cross-skill reference for the closure gate. It must
+  # carry the same canonical headings the templates require downstream.
+  - file: references/protocols.md
+    must_contain:
+      - "## Task Closure Protocol"
+      - "## Recording Threshold"
+      - "## Generalization Rule"
+
+# Files required to exist (presence-only check). Drift here means a
+# self-hosting structural piece was deleted without updating routing.
+required_files:
+  - path: SKILL.md
+  - path: WORKFLOW.md
+  - path: TEMPLATES-GUIDE.md
+  - path: README.md
+  - path: REFERENCE.md
+  - path: EXAMPLES.md
+  - path: workflows/full-migration.md
+  - path: workflows/upgrade-downstream.md
+  - path: references/self-hosting-routing.yaml
+  - path: templates/skill/conformance.yaml
+  - path: templates/skill/scripts/check-version-conformance.sh
