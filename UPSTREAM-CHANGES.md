@@ -36,6 +36,33 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-05-09 - test-trigger.sh body-candidate scan
+
+- Upstream commit: pending in this working tree
+- Changed areas: `templates/skill/scripts/test-trigger.sh`,
+  `UPSTREAM-CHANGES.md`
+- Why it matters: when a skill keeps trigger phrases inside SKILL.md body
+  (e.g. executable-style Tier-2 routes with `positive_signals:` lists)
+  instead of in the frontmatter description / routing.yaml / Common Tasks,
+  the previous `test-trigger.sh` couldn't extract anything and silently
+  bailed with "No test prompts could be generated". Activation analysis
+  effectively gave up. The script now:
+  1. Always scans the body for quoted candidate trigger phrases, labeled
+     with their nearest preceding heading.
+  2. In static-analysis mode reports those candidates and flags the
+     promotion gap (description has 0 phrases but body has N → promote).
+  3. In live `claude -p` mode, when description / routing.yaml / Common
+     Tasks together yield zero prompts, prints the body candidates as
+     promotion advice instead of failing silently.
+  4. Accepts `--include-body` to feed those body candidates into the
+     trigger test as-if-promoted, measuring potential trigger rate after
+     promotion (vs. current rate).
+  Standard skill layouts (description + routing.yaml + Common Tasks) are
+  unchanged — body extraction runs in addition, not instead.
+- Downstream refresh guidance: pull the updated
+  `skills/<name>/scripts/test-trigger.sh` as a mechanism-owned file. No
+  workflow text changes; no breaking changes for existing skills.
+
 ## 2026-05-09 - Backward-compatible refresh guards
 
 - Upstream commit: pending in this working tree

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-trigger.sh — Test skill description trigger rate
-# Usage: bash test-trigger.sh <skill-name|skill-root>
+# Usage: bash test-trigger.sh <skill-name|skill-root> [--include-body]
 #
 # Tests whether SKILL.md description activates for domain-level user language.
 # routing.yaml trigger_examples are sampled as smoke prompts, but description
@@ -13,16 +13,38 @@
 #
 # How it works:
 #   1. Parses quoted trigger phrases from description + routing.yaml examples
-#   2. Generates natural-language prompts a real user might say
-#   3. Sends each prompt to `claude -p` and checks if the response
+#   2. Also scans SKILL.md body for *candidate* trigger phrases (quoted
+#      strings inside Tier-2 / positive_signals / intent-table sections that
+#      live INSIDE SKILL.md rather than in description or routing.yaml).
+#      These are reported as "promotion candidates" — they cannot activate
+#      the skill from where they currently live, only after they are lifted
+#      into description.
+#   3. Generates natural-language prompts a real user might say
+#   4. Sends each prompt to `claude -p` and checks if the response
 #      references the skill or its files
-#   4. Reports trigger rate (X/Y prompts activated the skill)
+#   5. Reports trigger rate (X/Y prompts activated the skill)
+#
+# Flags:
+#   --include-body   Also use body candidate phrases as test prompts (as if
+#                    they had already been promoted to description). Useful
+#                    for measuring "potential trigger rate after promotion".
 
 set -euo pipefail
 
-TARGET="${1:-}"
+TARGET=""
+INCLUDE_BODY=0
+for arg in "$@"; do
+  case "$arg" in
+    --include-body) INCLUDE_BODY=1 ;;
+    -h|--help)
+      TARGET=""
+      break
+      ;;
+    *) [[ -z "$TARGET" ]] && TARGET="$arg" || { echo "Unknown arg: $arg" >&2; exit 2; } ;;
+  esac
+done
 if [[ -z "$TARGET" ]]; then
-  echo "Usage: bash test-trigger.sh <skill-name|skill-root>"
+  echo "Usage: bash test-trigger.sh <skill-name|skill-root> [--include-body]"
   echo ""
   echo "This script tests whether your skill's description triggers correctly"
   echo "when a user gives task-related prompts."
@@ -30,8 +52,15 @@ if [[ -z "$TARGET" ]]; then
   echo "What it does:"
   echo "  1. Reads quoted trigger phrases from description"
   echo "  2. Samples routing.yaml trigger_examples as extra smoke prompts"
-  echo "  3. Uses 'claude -p' to check if the agent finds and uses your skill"
-  echo "  4. Reports a trigger rate score"
+  echo "  3. Scans SKILL.md body for *candidate* phrases (Tier-2 routes,"
+  echo "     positive_signals, intent tables) — reports them as promotion"
+  echo "     candidates that should move to description"
+  echo "  4. Uses 'claude -p' to check if the agent finds and uses your skill"
+  echo "  5. Reports a trigger rate score"
+  echo ""
+  echo "Flags:"
+  echo "  --include-body  Also feed body candidates into the trigger test"
+  echo "                  (measures potential rate after promotion)"
   exit 1
 fi
 
@@ -97,6 +126,69 @@ for idx in range(start, len(lines)):
 PY
 }
 
+# Scan SKILL.md body (after frontmatter, outside code blocks) for quoted
+# *candidate* trigger phrases that should be lifted into description.
+#
+# Recognises any "..." quoted phrase under a body heading, with light filters
+# to drop obvious non-trigger strings (paths, snake_case identifiers, all-caps
+# constants, single chars, frontmatter separators). Labels each candidate with
+# the nearest preceding ## / ### heading so the user can see which Tier-2
+# route / intent table / section they came from.
+#
+# Output: one record per line, TAB-separated: <heading>\t<phrase>
+# Empty output means no body candidates found.
+extract_body_candidates() {
+  python3 - "$1" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+path = Path(sys.argv[1])
+lines = path.read_text().splitlines()
+
+start = 0
+if lines and lines[0].strip() == "---":
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            start = i + 1
+            break
+
+heading = "(top)"
+in_code = False
+seen = set()
+PHRASE_RE = re.compile(r'"([^"]{2,})"')
+
+for i in range(start, len(lines)):
+    line = lines[i]
+    if line.lstrip().startswith("```"):
+        in_code = not in_code
+        continue
+    if in_code:
+        continue
+    if line.startswith("#"):
+        heading = line.lstrip("#").strip() or heading
+        continue
+    for phrase in PHRASE_RE.findall(line):
+        # filter obvious non-triggers
+        p = phrase.strip()
+        if not p or p in {"---", "..."}:
+            continue
+        if "/" in p[:6] or p.startswith("http"):
+            continue
+        if re.match(r'^[A-Z][A-Z0-9_]+$', p):  # all-caps constants
+            continue
+        if re.match(r'^[a-z][a-z0-9_]*$', p) and "_" in p:  # snake_case ids
+            continue
+        if re.match(r'^[a-zA-Z][a-zA-Z0-9_.-]*\.(md|sh|py|yaml|yml|json)$', p):  # file paths
+            continue
+        key = (heading, p)
+        if key in seen:
+            continue
+        seen.add(key)
+        print(f"{heading}\t{p}")
+PY
+}
+
 run_static_analysis() {
   echo "═══ Static Description Analysis ═══"
   echo ""
@@ -159,6 +251,31 @@ PY
   echo ""
   echo "Note: Common Tasks do not need exact phrase coverage in description."
   echo "Description should activate the skill domain; Common Tasks routes workflow choice."
+  echo ""
+
+  # Body candidates — phrases living inside SKILL.md body that should be
+  # promoted to description for Agent to see at routing time.
+  BODY_TMP="$(mktemp)"
+  trap 'rm -f "$BODY_TMP"' RETURN
+  extract_body_candidates "$SKILL_MD" > "$BODY_TMP"
+  BODY_COUNT=$(wc -l < "$BODY_TMP" | tr -d ' ')
+  if [[ "$BODY_COUNT" -gt 0 ]]; then
+    DESC_TRIG_COUNT=$(echo "$DESC" | grep -o '"[^"]*"' | wc -l | tr -d ' ')
+    echo "Body candidate trigger phrases (found inside SKILL.md, not in description):"
+    awk -F '\t' '{ printf "  [%s] %s\n", $1, $2 }' "$BODY_TMP" | head -40
+    if [[ "$BODY_COUNT" -gt 40 ]]; then
+      echo "  … and $((BODY_COUNT - 40)) more (total: $BODY_COUNT)"
+    fi
+    echo ""
+    if [[ "$DESC_TRIG_COUNT" -eq 0 ]]; then
+      echo "⚠️  description has 0 quoted trigger phrases but body has $BODY_COUNT candidates."
+      echo "    Agent does NOT see body content at routing time. Promote the most"
+      echo "    representative ${BODY_COUNT}+ phrases into the frontmatter description."
+    else
+      echo "ℹ️  description has $DESC_TRIG_COUNT phrases; body has $BODY_COUNT additional candidates."
+      echo "    If trigger rate is still low, consider promoting more body candidates."
+    fi
+  fi
 }
 
 # Check if claude CLI is available and usable.
@@ -261,8 +378,43 @@ while IFS= read -r phrase; do
   fi
 done < <(echo "$DESC" | grep -o '"[^"]*"')
 
+# Body candidates: phrases living inside SKILL.md body. Always extracted so
+# we can report them; only added to PROMPTS when --include-body is passed.
+BODY_TMP="$(mktemp)"
+trap 'rm -f "$BODY_TMP"' EXIT
+extract_body_candidates "$SKILL_MD" > "$BODY_TMP"
+BODY_COUNT=$(wc -l < "$BODY_TMP" | tr -d ' ')
+
+if [[ "$INCLUDE_BODY" -eq 1 && "$BODY_COUNT" -gt 0 ]]; then
+  while IFS=$'\t' read -r heading phrase; do
+    [[ -n "$phrase" ]] || continue
+    PROMPTS+=("$phrase")
+    TASK_NAMES+=("[body candidate / $heading] $phrase")
+  done < "$BODY_TMP"
+fi
+
 if [[ ${#PROMPTS[@]} -eq 0 ]]; then
-  echo "No test prompts could be generated. Check routing.yaml trigger_examples and SKILL.md Common Tasks."
+  echo "❌ No test prompts could be generated from description / routing.yaml / Common Tasks."
+  echo ""
+  if [[ "$BODY_COUNT" -gt 0 ]]; then
+    echo "However, $BODY_COUNT candidate trigger phrases were found inside SKILL.md body:"
+    awk -F '\t' '{ printf "  [%s] %s\n", $1, $2 }' "$BODY_TMP" | head -30
+    if [[ "$BODY_COUNT" -gt 30 ]]; then
+      echo "  … and $((BODY_COUNT - 30)) more (total: $BODY_COUNT)"
+    fi
+    echo ""
+    echo "Agent does NOT see body content at routing time — these phrases are"
+    echo "currently invisible to activation. Two ways forward:"
+    echo "  (a) Promote the representative phrases into the frontmatter description"
+    echo "      and re-run this script."
+    echo "  (b) Re-run with --include-body to test these phrases as if they had"
+    echo "      already been promoted (measures potential trigger rate)."
+  else
+    echo "No trigger phrases found anywhere — description, routing.yaml, Common Tasks,"
+    echo "and SKILL.md body are all empty of \"…\" quoted user-language phrases."
+    echo "Add trigger phrases to the frontmatter description first; see"
+    echo "references/layout.md § Description as Trigger Condition."
+  fi
   exit 1
 fi
 
