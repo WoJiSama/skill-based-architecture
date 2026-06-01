@@ -145,6 +145,8 @@ When a repo has multiple skills (e.g. `skills/app/` + `skills/template-builder/`
 - **Listing every skill's rules in every shell's Always Read preamble.** Pollutes every session with everyone else's rules. Only the primary skill's Always Read goes in the shell preamble; other skills are routed to explicitly.
 - **Identical description text across skills.** The Agent can't distinguish. Every skill's description must be uniquely identifying.
 - **`primary: true` on multiple skills.** The `primary` is an exclusive designation; more than one is a config bug.
+- **Spin-route — `workflow:` points back into its own `required_reads`.** A route whose `workflow` is a section of a file the agent already loaded (e.g. `workflow: SKILL.md#core-principles` when `SKILL.md` is in `required_reads`) does no routing: it tells the agent to re-read what it just read. Point `workflow` at a real procedure (a `workflows/*.md` with ordered steps) or, if the task is just "edit this doc and close," merge it into the doc-editing route. Symptom: you can't name the steps the route adds beyond "read the file again."
+- **Task-size as a sibling task.** A "this is a big/multi-subtask run" entry routes by *size*, not intent, so it competes with every intent route (a large migration matches both the migration route and the long-run route). Make it a cross-cutting modifier layered on the matched route, not a standalone task.
 
 ## Example layout (3-skill repo)
 

@@ -37,30 +37,22 @@ tasks:
       - 调整薄壳模板
       - update the scaffold templates
 
-  - id: revise-skill-principle
+  - id: revise-skill-doc
     labels:
-      en: Add or revise a skill design principle
-      zh: 新增或修改 skill 设计原则
+      en: Add or revise a skill principle, rule, or reference doc
+      zh: 新增或修改 skill 原则 / 规则 / reference 文档
     required_reads:
       - SKILL.md
+      - REFERENCE.md
       - references/layout.md
-    workflow: SKILL.md#core-principles
+    workflow: templates/skill/workflows/update-rules.md
+    note: For routing / description hit-rate changes use improve-activation-routing instead
     trigger_examples:
       - 加一条核心原则
-      - 修改 skill 设计原则
-      - revise a skill principle
-
-  - id: revise-reference
-    labels:
-      en: Add or revise a reference doc
-      zh: 新增或修改 reference 文档
-    required_reads:
-      - SKILL.md
-      - references/README.md
-    workflow: references/README.md
-    trigger_examples:
-      - 更新 reference
+      - 修改 skill 设计原则或规则
+      - 更新 reference 文档
       - 新增参考文档
+      - revise a skill principle or rule
       - revise a reference doc
 
   - id: add-example
@@ -106,11 +98,13 @@ tasks:
 
   - id: long-run
     labels:
-      en: Multi-subtask / long autonomous run
-      zh: 多子任务 / 长时间自主任务
+      en: Multi-subtask / long autonomous run (cross-cutting modifier, not a standalone task)
+      zh: 多子任务 / 长时间自主任务(横切修饰符,不是独立任务)
     required_reads:
       - SKILL.md
-    workflow: templates/protocol-blocks/subagent-contract.md
+      - templates/skill/workflows/subagent-driven.md
+    workflow: templates/skill/workflows/subagent-driven.md
+    note: Apply ON TOP of the matched primary route (migrate-downstream, edit-templates, etc.); do not pick this instead of the task route. Layer it when the work is large or has independent parallel subtasks. Read subagent-driven.md to pick Mode 1 vs Mode 2 and dispatch non-blocking; subagent-contract.md is the Mode 2 contract template it points to
     trigger_examples:
       - 多个独立子任务并行
       - 这个任务比较大

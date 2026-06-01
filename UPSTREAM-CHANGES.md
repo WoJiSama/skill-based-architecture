@@ -160,6 +160,36 @@ The archive file has the same format and is read on demand if a downstream agent
     and `## After-Action Review` are **gone**. No check catches a leftover copy;
     it will silently drift from the canonical `task-closure.md`.
 
+## 2026-05-29 - Self-hosting routing: kill spin-routes, merge overlap, demote long-run to modifier
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `references/self-hosting-routing.yaml` — three routing-clarity fixes:
+    1. Merged `revise-skill-principle` + `revise-reference` into one route
+       `revise-skill-doc`. Both were the same underlying task (edit a skill
+       doc, then close) and overlapped with no disambiguator. Added a `note:`
+       pointing routing/description hit-rate work to `improve-activation-routing`.
+    2. Both old routes' `workflow:` pointed back at a doc section already in
+       their `required_reads` (`SKILL.md#core-principles`, `references/README.md`)
+       — a route that does no routing. The merged route's `workflow:` now points
+       to the real procedure `templates/skill/workflows/update-rules.md`.
+    3. `long-run` reframed from a standalone task to a cross-cutting modifier
+       via label + `note:` ("apply ON TOP of the matched primary route"). It
+       routes by task *size*, not intent, so it competed with every real route
+       (a big migration matched both `migrate-downstream` and `long-run`).
+- Why it matters: self-hosting shells do NOT render the task list (the routing
+  block in `scripts/sync-self-shells.sh` is hardcoded; the yaml is read at
+  runtime and only path-validated at sync). So these edits change agent routing
+  behavior without any shell drift. Removes two false route choices and one
+  size/intent category confusion — the structural-complexity tax the simpler
+  single-flow skills avoid by construction.
+- Downstream refresh guidance:
+  - This is a self-hosting-only manifest; downstream projects own their own
+    `routing.yaml`. No file to port. The transferable lesson: a `workflow:`
+    that points back into its own `required_reads` is a spin-route — point it
+    at a real procedure or delete it. And task-size belongs as a modifier
+    layered on the matched route, never as a sibling task entry.
+
 ## 2026-05-28 - Subagent Mode 1: Parallelism Premise + stale anchor cleanup
 
 - Upstream commit: pending in this working tree
