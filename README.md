@@ -26,6 +26,19 @@ A **lifecycle framework for AI-agent rule systems.** Turns scattered prompt docu
 
 It focuses on the rule system itself: structure, routing, workflows, validation, after-action learning, and upstream/downstream updates. It does **not** ship technology-specific rules — those belong in your downstream project skill.
 
+## Install
+
+**Claude Code — one line:**
+
+```text
+/plugin marketplace add WoJiSama/skill-based-architecture
+/plugin install skill-based-architecture@skill-based-architecture
+```
+
+Then [trigger it](#quick-start); pull updates later with `/plugin marketplace update`.
+
+**Cursor / Codex / Gemini / other harnesses** don't share Claude Code's plugin system — clone the repo instead (see [Quick Start](#quick-start)).
+
 ## What it produces
 
 ```
@@ -69,7 +82,9 @@ Start with a plain `CLAUDE.md` or `.cursor/rules/workflow.mdc`; upgrade later wh
 
 ### 1. Make this meta-skill available locally
 
-Pull this repo **any way you want** (`git clone`, download zip, submodule, fork…) to **any location** — the only requirement is that **you and the agent both know where it lives**.
+**Claude Code:** already done via the [one-line install above](#install) — skip to step 2.
+
+**Cursor / Codex / Gemini / other harnesses:** pull this repo **any way you want** (`git clone`, download zip, submodule, fork…) to **any location** — the only requirement is that **you and the agent both know where it lives**.
 
 As long as the agent can locate this directory when triggered, the path doesn't matter. If it isn't on the agent's default search path (e.g., Cursor's `~/.cursor/skills/`, `.cursor/skills/`, or the project's own `skills/`), write the path into `CLAUDE.md` / `AGENTS.md` / `.cursor/rules/` so the agent can find it.
 

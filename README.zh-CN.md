@@ -26,6 +26,19 @@
 
 它关注规则系统本身:结构、路由、workflow、校验、任务复盘、上游/下游更新。它**不**提供具体技术栈规则 —— 后端、前端、部署等内容应放在下游项目 skill 里。
 
+## 安装
+
+**Claude Code —— 一行装好:**
+
+```text
+/plugin marketplace add WoJiSama/skill-based-architecture
+/plugin install skill-based-architecture@skill-based-architecture
+```
+
+然后[触发它](#quick-start);之后用 `/plugin marketplace update` 拉更新。
+
+**Cursor / Codex / Gemini / 其他 harness** 不共享 Claude Code 的插件系统 —— 改用 clone(见 [Quick Start](#quick-start))。
+
 ## 产物形态
 
 ```
@@ -69,7 +82,9 @@ AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md / .cursor/rules / .codex
 
 ### 1. 把这个 meta-skill 拉到本地
 
-用**任何方式**(`git clone`、download zip、submodule、fork…)把这个仓库放到**任何位置** —— 唯一的要求是**你和 agent 都知道它在哪**。
+**Claude Code:** 用[上面的一行安装](#安装)装好就行 —— 直接跳到第 2 步。
+
+**Cursor / Codex / Gemini / 其他 harness:** 用**任何方式**(`git clone`、download zip、submodule、fork…)把这个仓库放到**任何位置** —— 唯一的要求是**你和 agent 都知道它在哪**。
 
 只要 agent 在被触发时能定位到这个目录就行。如果它不在 agent 的默认搜索路径上(例如 Cursor 的 `~/.cursor/skills/`、`.cursor/skills/`,或项目内的 `skills/`),就在 `CLAUDE.md` / `AGENTS.md` / `.cursor/rules/` 里写一行,告诉 agent 路径在哪。
 

@@ -5,15 +5,13 @@
     "name": "WoJiSama"
   },
   "metadata": {
-    "description": "Turn scattered project rules and oversized SKILL.md files into a maintainable skill-based architecture.",
-    "version": "1.0.0"
+    "description": "Turn scattered project rules and oversized SKILL.md files into a maintainable skill-based architecture."
   },
   "plugins": [
     {
       "name": "skill-based-architecture",
       "source": "./",
       "description": "Restructure oversized SKILL.md or scattered project rules into a well-organized Skill directory, with cross-tool thin shells, SessionStart hooks, Task Closure Protocol, and self-evolving workflows.",
-      "version": "1.0.0",
       "author": {
         "name": "WoJiSama"
       },
