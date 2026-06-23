@@ -81,13 +81,15 @@ check_scenario \
   "references/layout.md" \
   "references/multi-skill-routing.md"
 
+# update-upstream relies on always_read for rules (project-rules etc.); its
+# required_reads is intentionally route-specific-only, so this proves the
+# high-risk part: the trigger phrase reaches the update-upstream workflow.
 check_scenario \
   "downstream upstream refresh" \
   "templates/skill/routing.yaml" \
   "上游项目更新了,帮我更新一下" \
   "update-upstream" \
-  "workflows/update-upstream.md" \
-  "rules/project-rules.md"
+  "workflows/update-upstream.md"
 
 echo ""
 echo "Summary: $PASS passed, $FAIL failed"

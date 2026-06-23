@@ -15,7 +15,10 @@ always_read:
   - rules/agent-behavior.md
 
 # FILL: Replace scaffold rows with this project's real 3-8 recurring task types.
-# Keep an "other" fallback route.
+# Keep an "other" fallback route. required_reads lists ONLY route-specific files
+# NOT already in always_read — re-listing an always_read file forces a redundant
+# re-read of content the agent already holds; most routes need no required_reads
+# (always_read + the workflow suffice). See update-rules for the exception.
 # Optional advanced fields for high-risk routes: positive_signals,
 # negative_signals, confidence, slots, target. Use them only when a wrong route
 # is costly (deploys, DB/schema changes, remote config writes, status changes,
@@ -26,9 +29,6 @@ tasks:
       en: Fix bug
       zh: 修复 bug / 排查异常
     route: read task-relevant `rules/*.md` + follow `workflows/fix-bug.md`; ref `references/gotchas.md`
-    required_reads:
-      - rules/project-rules.md
-      - rules/coding-standards.md
     workflow: workflows/fix-bug.md
     trigger_examples:
       - 这个接口报错了
@@ -39,8 +39,6 @@ tasks:
       en: Add / refactor / optimize non-bug behavior
       zh: 新增 / 重构 / 优化非 bug 行为
     route: read task-relevant `rules/*.md` + follow `workflows/change-managed.md`; for refactors that touch ≥5 independent usage points, use `workflows/refactor-fanout.md` instead
-    required_reads:
-      - rules/*.md
     workflow: workflows/change-managed.md
     trigger_examples:
       - 优化这个模块
@@ -51,8 +49,6 @@ tasks:
       en: Refactor across many usage points (rename / change signature / migrate)
       zh: 跨多处的同型重构(改名 / 改签名 / 迁移)
     route: follow `workflows/refactor-fanout.md`; fan-out the multi-site change phase to parallel subagents
-    required_reads:
-      - rules/coding-standards.md
     workflow: workflows/refactor-fanout.md
     trigger_examples:
       - 把这个函数改名,所有地方都跟着改
@@ -64,9 +60,6 @@ tasks:
       en: Plan a complex feature or long-running change
       zh: 规划复杂功能 / 长任务
     route: follow `workflows/plan-feature.md`; create a task dossier only for complex, long-running, or external-research work
-    required_reads:
-      - rules/project-rules.md
-      - rules/coding-standards.md
     workflow: workflows/plan-feature.md
     trigger_examples:
       - 先帮我把这个需求问清楚
@@ -77,8 +70,6 @@ tasks:
       en: Profile / refresh project understanding
       zh: 梳理 / 刷新项目理解
     route: follow `workflows/profile-project.md`; write only evidence-labeled conclusions
-    required_reads:
-      - rules/project-rules.md
     workflow: workflows/profile-project.md
     trigger_examples:
       - 帮我理解这个项目
@@ -89,8 +80,6 @@ tasks:
       en: Update from skill-based-architecture upstream
       zh: 从上游 skill-based-architecture 更新
     route: follow `workflows/update-upstream.md`; agent compares, patches, and validates without asking user to diff
-    required_reads:
-      - rules/project-rules.md
     workflow: workflows/update-upstream.md
     trigger_examples:
       - 上游项目更新了,帮我更新一下
@@ -102,7 +91,6 @@ tasks:
       zh: 更新 skill 规则 / 记录经验
     route: follow `workflows/update-rules.md`; record only generalized, activated lessons; behavior failures go to `references/behavior-failures.md`
     required_reads:
-      - rules/project-rules.md
       - references/gotchas.md
       - references/behavior-failures.md
     workflow: workflows/update-rules.md
@@ -115,8 +103,6 @@ tasks:
       en: Multi-subtask / long run
       zh: 多子任务 / 长任务
     route: follow `workflows/subagent-driven.md`
-    required_reads:
-      - rules/project-rules.md
     workflow: workflows/subagent-driven.md
     trigger_examples:
       - 这个任务比较大,分几路做
@@ -127,8 +113,6 @@ tasks:
       en: Other / unlisted task
       zh: 其他 / 未列出的任务
     route: read `rules/project-rules.md` + `rules/coding-standards.md`, then match by workflow filename; if no match, proceed with Always Read rules
-    required_reads:
-      - rules/project-rules.md
     workflow: Check `workflows/` for closest match
     trigger_examples:
       - 其他没有明确路由的任务

@@ -10,6 +10,19 @@ Before adding a new workflow, script, hook, protocol block, generated file, or o
 
 Add the mechanism only if it replaces at least two repeated maintenance points, or fixes a real failure mode that has already happened or is highly likely across harnesses. Otherwise keep it as a reference note, checklist item, example, or `<!-- FILL: -->` prompt.
 
+## Borrowed-Pattern Acceptance Test
+
+When the candidate is **borrowed from an external skill, project, or benchmark** (an admired repo, a "how do they do it" comparison), the gate above is necessary but not sufficient — it tests *cost*, not whether the borrowed pattern is *real*. Run these four gates first; the pattern must pass **all four**, then still clear the cost gate above.
+
+1. **Recurrence** — the pattern shows up in more than one serious source, not just the one project you are copying. One repo doing it is a data point, not a pattern.
+2. **Generativity** — it guides *new* cases you have not seen yet, not just re-explains the example you copied. A rule that only fits the source's exact situation is a souvenir, not a pattern.
+3. **Distinctiveness** — it is more specific than generic good advice. This is our existing **"would two real projects disagree?"** test: if every reasonable project would phrase it the same bland way, it carries no information.
+4. **Boundary** — the pattern itself names where it does *not* apply, or what it costs. A pattern with no stated boundary gets over-applied.
+
+**Cost rule:** a borrow is worth it only if it raises skill quality faster than it raises context cost. If the imported idea makes the skill heavier without making it more reliable, drop it.
+
+**Worked example — this test itself.** Borrowed from an external meta-skill (`yao-meta-skill`, its `reference-scan.md` + `pattern-extraction-doctrine.md`) during a 2026-06-23 comparison. Applied to itself: *recurrence* — appears across that project's reference-scan and pattern-extraction docs and is standard design practice ✓; *generativity* — it guides every future "should we borrow X?" call, not just the yao comparison ✓; *distinctiveness* — it adds three gates our lone "two projects disagree?" test lacked ✓; *boundary* — scoped to borrowed-from-external candidates only, and explicitly defers to the cost gate ✓. The recurrence evidence in *our own* history is that borrow-pressure from admired projects keeps recurring (Karpathy, planning-with-files, yao-meta-skill) — which is why this gate earns a place here instead of in `references/`.
+
 ## Rejected
 
 ### Default lint/format rules

@@ -2,9 +2,7 @@
 
 Universal coding-behavior defaults for any agent working inside this skill. Pre-filled, not `FILL` placeholders: these apply regardless of project. Delete or override a principle only if this project explicitly needs different behavior (write the override in `rules/project-rules.md` with reasoning).
 
-Origin: principles 1–4 condensed from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) (Andrej Karpathy's observations on LLM coding pitfalls, 2025); principle 5 from [OthmanAdi/planning-with-files](https://github.com/OthmanAdi/planning-with-files); principle 6 from this project's response-discipline rule.
-
-**Before adding new principles, read the admission threshold in `templates/ANTI-TEMPLATES.md § Admission Threshold for Behavioral Principles`.** This file is capped at 100 lines; growth requires evidence of a real miss or an equal-weight replacement, not borrowing from an admired project.
+> Origin of these principles, the admission threshold for adding or editing them, and the activation-signal audit live in [`references/agent-behavior-meta.md`](../references/agent-behavior-meta.md) — read it before editing this file. Capped at 100 lines; growth requires evidence of a real miss or an equal-weight replacement, not borrowing from an admired project.
 
 ## 1. Think Before Coding
 
@@ -80,21 +78,8 @@ Origin: condensed from [OthmanAdi/planning-with-files](https://github.com/Othman
 - Correct objective errors neutrally. Do not infer the user's stance or motive; distinguish questions from claims before challenging.
 ✓ Check: can every sentence justify its utility to the user's explicit request? If not, delete it.
 
-## Observable Signals — Is This Working?
+## When to Override
 
-These defaults are being activated (not just stored) if diffs and sessions show:
+For trivial edits (typo fix, one-line comment, dependency version bump) use judgment — the full rigor isn't always warranted; for any non-trivial change, all six apply. Project-specific overrides go in `rules/project-rules.md` and must cite the reason (e.g. "rapid prototyping phase, simplicity first suspended until Milestone 2").
 
-- **Fewer drive-by changes** — every changed line traces to the request; no style churn, renaming, or dead-code deletion that wasn't asked for.
-- **Clarifying questions come before code, not after mistakes** — ambiguity is surfaced at the start of a turn, not during cleanup two iterations in.
-- **Shorter first drafts** — simple implementations that grow only when real pressure forces them; no speculative flags, strategy classes, or config for one-use code.
-- **Concrete verification per step** — every claimed "done" cites a test, grep result, or manual repro; no "looks right" or "should work."
-
-If none of these signals appear across several sessions, the defaults are stored but not activated. Log the incident in [`references/behavior-failures.md`](../references/behavior-failures.md) rather than re-reading the rule again — storage without activation is itself a tracked failure mode, not a reminder problem.
-
----
-
-## When to override
-
-These defaults bias toward caution over speed. For trivial edits (typo fix, one-line comment, dependency version bump), use judgment — the full rigor isn't always warranted. But for any non-trivial change, all six apply.
-
-Project-specific overrides go in `rules/project-rules.md` and must cite the reason (e.g. "rapid prototyping phase, simplicity first suspended until Milestone 2").
+Activation auditing ("are these defaults actually working, or just stored?") lives in [`references/agent-behavior-meta.md`](../references/agent-behavior-meta.md).
