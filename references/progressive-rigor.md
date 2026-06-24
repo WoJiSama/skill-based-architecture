@@ -8,17 +8,18 @@ Not every skill needs the full `skills/<name>/` tree. Start at the smallest tier
 |---|---|---|---|
 | **Single-file** | `SKILL.md` only (official minimum) | < 3 topics, no task routing needed, no lesson-capture history | ≤ 60 lines |
 | **Folder-light** | `skills/<name>/SKILL.md` + `rules/` | 3–5 topics, OR 1 recurring workflow that needs step-by-step instructions, OR a growing list of project conventions | 60–115 lines total (description + body), `rules/` adds 1–3 files |
-| **Full** | `skills/<name>/{SKILL,rules,workflows,references}/` + thin shells + Cursor registration entry | ≥ 3 routed task types, gotcha log needs a home, multi-harness repo (Cursor + Claude + Codex + Gemini), or lessons-learned across multiple sessions | Up to dual cap (description ≤ 25 + body ≤ 90), multiple files per subdir |
+| **Full** | `skills/<name>/{SKILL,architecture,conventions,gotchas,workflows,references}/` (or a single `rules/` before the rate-of-change split) + thin shells + Cursor registration entry | ≥ 3 routed task types, gotcha log needs a home, multi-harness repo (Cursor + Claude + Codex + Gemini), or lessons-learned across multiple sessions | Up to dual cap (description ≤ 25 + body ≤ 90), multiple files per subdir |
 
 ## Upgrade triggers
 
 Add structure when **any** of these fires, not before:
 
 1. **Line pressure** — `SKILL.md` body crosses 90 lines (or description exceeds 25 lines) despite compression attempts. Move body content to a sub-file in the next tier down (e.g. workflows go to `workflows/` once you have 2+); split intent clusters in description when activate-when grows long.
-2. **Recurrence pressure** — the same pitfall is recorded in Common Pitfalls twice, or the same question gets asked by the agent twice in different sessions. Promote it to `references/gotchas.md` with a dedicated section.
-3. **Procedure pressure** — you catch yourself writing "how to do X in steps" inside a rule file. Steps belong in `workflows/`, not `rules/`. Create the `workflows/` directory.
-4. **Harness-sharing pressure** — two harness entries (e.g. `AGENTS.md` and `CLAUDE.md`) need the same route lookup logic, or you're manually keeping them in sync. Move task data into `routing.yaml` and generate thin-shell blocks.
-5. **Cross-session lesson pressure** — you want a lesson from today to persist into a `/clear`-fresh session next week. A single-file skill with no `references/` has no durable place for it.
+2. **Recurrence pressure** — the same pitfall is recorded in Common Pitfalls twice, or the same question gets asked by the agent twice in different sessions. Promote it to a `gotchas/` file for that module (listed in `gotchas/index.md`). A single `references/gotchas.md` is the small-skill form; once one subsystem accumulates several, give each module its own file so a bug reads one small file, not a 200-line dump.
+3. **Rate-of-change tangle** — a `rules/` (or any) file mixes stable structure (layering, data-flow, the "why") with volatile house style (naming, paths, commands), so every convention edit re-touches stable material — or a refactor keeps churning a file that should have stayed put. Split by rate of change: stable structure → `architecture/`, volatile house style → `conventions/`, code-coupled landmines → per-module `gotchas/`; **cross-cutting agent behavior / methodology stays in `rules/`** (the split sheds architecture and conventions, not `rules/` itself). The most common Full-tier pressure for code-coupled skills — full playbook (path-migration, orphan hub, routing re-derivation): [rate-of-change-split.md](rate-of-change-split.md).
+4. **Procedure pressure** — you catch yourself writing "how to do X in steps" inside a rule file. Steps belong in `workflows/`, not `rules/`. Create the `workflows/` directory.
+5. **Harness-sharing pressure** — two harness entries (e.g. `AGENTS.md` and `CLAUDE.md`) need the same route lookup logic, or you're manually keeping them in sync. Move task data into `routing.yaml` and generate thin-shell blocks.
+6. **Cross-session lesson pressure** — you want a lesson from today to persist into a `/clear`-fresh session next week. A single-file skill with no `references/` has no durable place for it.
 
 **Downgrade is also fine.** If a skill lost a domain or shed complexity, collapse back. Structure serves the content, not the other way around. Empty `workflows/` or `references/` directories are a smell.
 

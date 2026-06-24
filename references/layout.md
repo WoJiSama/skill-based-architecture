@@ -24,7 +24,7 @@ project/
 └── .claude/                       # thin shells (Claude Code)
 ```
 
-For growth/topology decisions (when to upgrade tier, when to split into multiple skills), see [progressive-rigor.md](progressive-rigor.md). For where this skill sits in the broader agent stack, see the "Positioning" section at the bottom of this file.
+The tree above is the **Folder-light** form (a single `rules/`, gotchas in `references/gotchas.md`). At the **Full** tier this splits by **rate of change**: stable structure → `architecture/`, volatile house style → `conventions/`, gotchas → per-module `gotchas/` files under a `gotchas/index.md` hub, and cross-cutting agent-behavior / methodology stays in `rules/`. Split mechanics (path-migration, orphan hub, routing re-derivation): [rate-of-change-split.md](rate-of-change-split.md). For growth/topology decisions (when to upgrade tier, when to split into multiple skills), see [progressive-rigor.md](progressive-rigor.md). For where this skill sits in the broader agent stack, see the "Positioning" section at the bottom of this file.
 
 ## SKILL.md Template
 

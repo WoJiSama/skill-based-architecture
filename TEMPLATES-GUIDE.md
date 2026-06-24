@@ -37,12 +37,16 @@ Upgrade to the full skill-based directory only when the single file starts to sp
 
 ## Classification Guide
 
-When promoting content out of a single SKILL.md into the full directory:
+When promoting content out of a single SKILL.md into the full directory, tier by **rate of change**:
 
-- Long-lived, must-follow constraints → `rules/`
+- Stable structural invariants — layering, module map, data-flow, the "why" → `architecture/`
+- Volatile house style — naming, paths, commands, formats, must/never conventions → `conventions/`
+- Code-coupled landmines (symptom → cause → fix), **one file per module** → `gotchas/` (hub: `gotchas/index.md`)
 - Task procedures with ordered steps → `workflows/`
-- Architecture, routing, dependency explanations → `references/`
+- Pure index / background — source maps, build/env notes → `references/`
 - External-facing material → `docs/`
+
+A small skill uses a single `rules/` for constraints and splits it (stable → `architecture/`, volatile → `conventions/`) only under pressure — see [references/progressive-rigor.md](references/progressive-rigor.md).
 
 ## Sync Targets
 

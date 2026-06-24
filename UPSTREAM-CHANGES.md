@@ -48,6 +48,67 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-06-24 - plan-feature: depth scales with complexity + a Large tier with multi-perspective (立体) analysis
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `templates/skill/workflows/plan-feature.md` — Complexity Gate gains a **Large** tier (multi-subsystem / irreversible / high-uncertainty) above Complex; new **Large Plan — analyze from several angles (立体)** section: plan depth scales with task complexity, and a Large task is examined from several lenses (architecture / risks / alternatives / contracts / integration / rollout / decomposition), each its own file, with `prd.md` as the short synthesis/index. Lenses are an independent-analysis menu → optional parallel dispatch as Mode 2 subagents. Completion Checklist gains a Large-plan depth item.
+- Why it matters: every anti-bloat lever ("keep `prd.md` short", "one file is correct and complete", "don't pre-create files") pushed only toward minimalism, with no counter-pressure for genuine largeness — and the Complexity Gate capped at a flat "Complex", so a multi-subsystem architecture change and a 3-file change got identical treatment. Result: real Large tasks shipped 100-line single-file plans (under-analysis). The Large tier + depth-scaling reconciles with the anti-bloat rules — `prd.md` stays short; the depth moves into warranted angle files, which is exactly the existing "add siblings only when the task needs them" rule applied to a task that needs them.
+- Downstream refresh guidance: `plan-feature.md` is project-owned (not vendor-class), so this does not auto-propagate. Port the Large tier + Large Plan section into your skill's `workflows/plan-feature.md` if your project takes on multi-subsystem planning.
+
+## 2026-06-24 - NEW route-reachability.sh — guarantees active-tier files are activated, not just link-reachable
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - NEW `templates/skill/scripts/route-reachability.sh` (vendor-class) — from `routing.yaml` (always_read + required_reads + route text) it transitively follows hub-navigation edges (a routed file listing another file's skill-root-relative path) and asserts every active-tier file (`architecture/` `conventions/` `gotchas/` `rules/`) is in the reachable set. `references/` `docs/` (lookup tiers) and `workflows/` (routed by `workflow:` + covered by `check-cross-references.sh`) are exempt. Exit 1 on any unreachable file.
+  - `templates/skill/sync-manifest.yaml` — added (vendor-class).
+  - `templates/skill/workflows/task-closure.md` — path-integrity gate now runs it next to `audit-orphans.sh` (whenever a content file is added or routing changes).
+  - `scripts/README.md` — documented in all three matrices; `references/rate-of-change-split.md` § 6 added it to the validation list.
+- Why it matters: `audit-orphans.sh` only proves a file is *link*-reachable (its path is mentioned somewhere — e.g. the `SKILL.md` manifest). A fine-grained split can leave a file link-reachable but on **no task route** — "stored, not activated", pure waste. Real case: `architecture/transactions-locks.md` passed audit-orphans but no route led there, so transactional work never read the transaction invariants. This check closes that gap and is the enforcement behind the `references/rate-of-change-split.md` § 4 "route the hub, not every file" rule.
+- Downstream refresh guidance: vendor-class — re-vendor via `sync-vendor.sh`. Run after adding any `architecture/`/`conventions/`/`gotchas/`/`rules/` file or changing routing; also wired into the task-closure path-integrity gate.
+
+## 2026-06-24 - Distilled the rate-of-change split playbook from the chaos pilot (real-use feedback)
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - NEW `references/rate-of-change-split.md` — playbook for splitting an existing skill's tiers by rate of change, distilled from doing it twice on a real code-coupled skill: the **four** buckets (incl. methodology stays in `rules/`), verbatim-no-duplication authoring, **split-is-a-path-migration** (repoint / stub / delete every old-path reference), **every fine-grained tier needs a routed `index.md` hub** (link-reachable ≠ route-reachable: a file in the `SKILL.md` manifest but on no task route is stored-not-activated waste — the gotchas-hub pattern generalized to `architecture/`+`conventions/` with a "read when" column; route the hub, not every file), orphan-inbound mechanics (root-relative inline-code = inbound; relative `[]()` link = smoke-test link check), **routing re-derivation** (the `fix-bug`-reads-pitfalls-but-not-the-rule failure), validation, the assembled/vendored-copy trap, and the "batch ~4 concurrent" subagent-fanout note (avoids `ECONNRESET`).
+  - `references/progressive-rigor.md` — trigger 3 now names all four buckets and that `rules/` keeps methodology; links the playbook.
+  - `SKILL.md` Content Classification — header notes `rules/` keeps cross-cutting agent-behavior; links the playbook.
+  - `references/layout.md`, `workflows/full-migration.md` (Phase 6) — link the playbook.
+- Why it matters: the framework taught the rate-of-change *axis* but not the *mechanics*. Real use surfaced load-bearing gaps the docs didn't cover — methodology has no architecture/conventions home (the 4th bucket), a split breaks every old-path reference, per-module gotchas silently orphan without a hub registered as root-relative inline-code, and routes go incoherent if `required_reads` aren't re-derived across the new tiers.
+- Downstream refresh guidance: documentation only; no script/behavior change. Read `references/rate-of-change-split.md` before splitting a tier.
+
+## 2026-06-23 - Content Classification re-tiered by rate of change (architecture/ conventions/ gotchas/)
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `SKILL.md` — Content Classification table + Target Structure now teach the rate-of-change axis: stable structure → `architecture/`, volatile house style → `conventions/`, code-coupled landmines → per-module `gotchas/` (+ `gotchas/index.md` hub); Progressive Rigor gained a "split `rules/` by rate of change" trigger.
+  - `references/progressive-rigor.md` — Full-tier layout + upgrade triggers updated (recurrence → per-module `gotchas/`; new "rate-of-change tangle" trigger → split `rules/` into `architecture/`+`conventions/`).
+  - `references/layout.md`, `TEMPLATES-GUIDE.md` § Classification Guide — aligned to the new tiers.
+  - `templates/skill/scripts/smoke-test.sh` — `routing.yaml` cap 120 → 140 (tiered skills route to more files per task); SKILL.md body-overflow hint lists the new tiers.
+- Why it matters: the old `rules/` (normative) vs `references/` (background) split is orthogonal to rate of change, so stable architecture and volatile gotchas tangled in the same files — every volatile edit re-touched stable material and refactors churned files that should stay put. Tiering by rate of change keeps the stable spine small/cacheable/always-read and isolates volatile detail so refactors and conformance only touch the volatile set.
+- Downstream refresh guidance: NOT a forced migration. `rules/` stays a valid content tier (the tooling — audit-orphans / footprint / check-cross-references / sync-routing / smoke-test — already treats all tiers). Adopt the split when a `rules/` file tangles stable + volatile or a subsystem's gotchas pile up; worked split in `references/progressive-rigor.md`. Re-vendor the scripts (vendor-class) to pick up the cap + tier coverage.
+
+## 2026-06-23 - footprint / check-cross-references / sync-routing / smoke-test made tier-aware
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `templates/skill/scripts/footprint.sh` — read-everything baseline now sums `.md` under every content tier (`architecture/` `gotchas/` `conventions/` added to `rules/` `workflows/` `references/`); tiered skills were previously undercounted.
+  - `templates/skill/scripts/check-cross-references.sh` — workflow→content extraction and reverse lookup now match all content tiers, not just `(rules|references)/`.
+  - `templates/skill/scripts/sync-routing.sh` — `always_read` path-prefix allowlist now accepts `architecture/` `gotchas/` `conventions/` (previously rejected an always-read architecture spine).
+  - `templates/skill/scripts/smoke-test.sh` — 1a-gotchas recognizes a `gotchas/` directory (preferred) as the gotchas surface; the line-cap + duplicate-`## `-heading scan (2a) now also covers `gotchas/*.md` (skips `gotchas/index.md`); 1a-rules now accepts a constraint surface in `rules/` OR `architecture/` OR `conventions/` (was hardcoded to `rules/project-rules.md` + `rules/coding-standards.md`, which a skill that split `rules/` by rate of change no longer has); routing.yaml cap raised 120 → 140 and the SKILL.md body-overflow hint lists the new tiers.
+- Why it matters: companion to the audit-orphans tier fix below. These four still enumerated only `rules/`+`references/`, so a skill that adopted `architecture/`/`gotchas/` got an undercounted footprint, missed cross-reference staleness, a rejected always-read spine, and an unenforced gotchas line cap — the new taxonomy was only half-enforced.
+- Downstream refresh guidance: all four are vendor-class (`sync-manifest.yaml`); re-vendor via `sync-vendor.sh`. No behavior change for skills that never adopted the new tiers — the extra dirs simply don't exist and are skipped.
+
+## 2026-06-23 - audit-orphans covers all content tiers + scans routing.yaml
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `templates/skill/scripts/audit-orphans.sh` — generalized from `rules/`+`references/` to all content tiers (`rules/` `references/` `architecture/` `gotchas/` `conventions/`) via a `TIER_DIRS` array (existence-guarded — partial-tier skills behave exactly as before); added `routing.yaml` as an inbound-link source, so a file referenced only from a task's `required_reads` counts as reachable (whether that route can match is still route-health's job). 92 lines (was 84).
+  - `templates/skill/workflows/task-closure.md` (path-integrity gate line), `templates/README.md`, `scripts/README.md` — wording updated from "rules/ or references/" to "content-tier" to match the new coverage.
+- Why it matters: a skill that organizes gotchas/architecture/conventions into their own directories previously had ZERO orphan protection on exactly those files — the old script only audited `rules/`+`references/` and only counted inbound links from those dirs, so a new gotcha/architecture file could be created, never routed, and silently rot with no closure gate catching it. The mandatory path-integrity gate now actually covers the tiered structure.
+- Downstream refresh guidance: re-vendor `scripts/audit-orphans.sh` (vendor-class in `sync-manifest.yaml`; `sync-vendor.sh` overwrites an unedited local copy). After splitting content into `architecture/` / `gotchas/` / `conventions/` and wiring routing, run `(cd skills/<name> && bash scripts/audit-orphans.sh)` — any new-tier file with no inbound link from a workflow, another tier file, or `routing.yaml` now fails the gate.
+
 ## 2026-06-23 - Downstream token/latency cut: dedupe required_reads + split agent-behavior.md
 
 - Upstream commit: pending in this working tree

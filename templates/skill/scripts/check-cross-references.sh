@@ -50,11 +50,12 @@ mtime() {
   fi
 }
 
-# Extract unique rules/*.md and references/*.md paths from a markdown file.
+# Extract unique content-tier .md paths (rules/ references/ architecture/
+# gotchas/ conventions/) from a markdown file.
 # Strips URL fragments (#section). Safe on files with no matches.
 extract_refs() {
   local file="$1"
-  grep -oE '(rules|references)/[A-Za-z0-9_./-]+\.md' "$file" 2>/dev/null \
+  grep -oE '(rules|references|architecture|gotchas|conventions)/[A-Za-z0-9_./-]+\.md' "$file" 2>/dev/null \
     | sed 's/#.*$//' \
     | sort -u \
     || true
@@ -70,8 +71,8 @@ if [[ $# -gt 0 ]]; then
   found=0
   for wf in "$WORKFLOWS_DIR"/*.md; do
     [[ -f "$wf" ]] || continue
-    # Match the target by basename inside a rules/ or references/ path.
-    if grep -qE "(rules|references)/[^[:space:]\\\`\"')]*${target_basename}" "$wf" 2>/dev/null; then
+    # Match the target by basename inside any content-tier path.
+    if grep -qE "(rules|references|architecture|gotchas|conventions)/[^[:space:]\\\`\"')]*${target_basename}" "$wf" 2>/dev/null; then
       printf '  %s  (mtime: %s)\n' "${wf#$SKILL_ROOT/}" "$(mtime "$wf")"
       found=1
     fi

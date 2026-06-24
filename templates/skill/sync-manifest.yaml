@@ -14,6 +14,7 @@ vendor:
   - scripts/check-version-conformance.sh
   - scripts/footprint.sh
   - scripts/route-health.sh
+  - scripts/route-reachability.sh
   - scripts/smoke-test.sh
   - scripts/sync-routing.sh
   - scripts/sync-vendor.sh

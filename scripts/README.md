@@ -15,7 +15,8 @@ Each check covers a different drift dimension. The columns are intentional: a ch
 | Routing trigger coverage | Do `trigger_examples` actually route to the intended workflow? | `check-self-scenarios.sh` (upstream-only) |
 | Structural budgets + content | SKILL.md dual budget (desc ≤ 25 + body ≤ 90), FILL/placeholder residue, broken links, SessionStart-hook presence, description keyword-stuffing, and content conformance (§9, when `conformance.yaml` exists) | `smoke-test.sh` |
 | Growth pressure | Are files growing past evaluation thresholds? | `check-growth-health.sh` *(report-only)* |
-| Orphan rules / references | `rules/` or `references/` files with zero inbound links | `audit-orphans.sh` |
+| Orphan content-tier files | `rules/`/`references/`/`architecture/`/`gotchas/`/`conventions/` files with zero inbound links (link-reachable) | `audit-orphans.sh` |
+| Unactivated content files | active-tier files (`architecture/`/`conventions/`/`gotchas/`/`rules/`) on no task route — link-reachable but never read (stored-not-activated) | `route-reachability.sh` |
 | Cross-references | Broken inline markdown link targets | `check-cross-references.sh` |
 | **Content presence (downstream)** | Did downstream forget to copy a mandatory upstream section/phrase? | `check-version-conformance.sh <skill> --conformance <upstream-clone>/templates/skill/conformance.yaml` — also run by `smoke-test.sh` §9 against the skill's own `conformance.yaml` |
 | **Content presence (upstream-canon)** | Does THIS repo still teach what its templates promise? | `check-version-conformance.sh . --conformance references/self-hosting-conformance.yaml` |
@@ -35,7 +36,8 @@ Each check covers a different drift dimension. The columns are intentional: a ch
 | `smoke-test.sh` | `templates/skill/scripts/` | Downstream — Phase-aware structural gate |
 | `sync-routing.sh` | `templates/skill/scripts/` | Downstream — `routing.yaml` is the source of truth |
 | `check-growth-health.sh` | `templates/skill/scripts/` | Downstream + upstream |
-| `audit-orphans.sh` | `templates/skill/scripts/` | Downstream + upstream — finds zero-inbound rules/references files |
+| `audit-orphans.sh` | `templates/skill/scripts/` | Downstream + upstream — finds zero-inbound content-tier files |
+| `route-reachability.sh` | `templates/skill/scripts/` | Downstream — finds active-tier files on no route (link-reachable but not activated) |
 | `check-cross-references.sh` | `templates/skill/scripts/` | Downstream |
 | `check-version-conformance.sh` | `templates/skill/scripts/` | Both — runs against any skill root + manifest |
 | `_parse_conformance.py` | `templates/skill/scripts/` | Helper for `check-version-conformance.sh` (no standalone use) |
@@ -50,6 +52,7 @@ Each check covers a different drift dimension. The columns are intentional: a ch
 | Downstream just scaffolded | `bash skills/<name>/scripts/smoke-test.sh <name>` |
 | Downstream `update-upstream` | `smoke-test.sh` + `check-version-conformance.sh <skill> --conformance $tmp/upstream/templates/skill/conformance.yaml` (use upstream's manifest, NOT local — the local file is a snapshot from initial scaffold) |
 | Downstream doc edit | `audit-orphans.sh`, `check-cross-references.sh` |
+| Downstream added a content file or split a tier | `route-reachability.sh` (is it actually on a route?), `audit-orphans.sh` |
 | Suspected description hit-rate problem | Read SKILL.md description aloud; does it use the user's actual phrases? `routing.yaml` `trigger_examples` is the place to add more — no script substitute for human re-read. |
 
 ### Anti-pattern: bypass the matrix and add a new orphan check

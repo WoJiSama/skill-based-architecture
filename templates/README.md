@@ -25,7 +25,7 @@ templates/
 │       ├── route-health.sh              (static routing-quality lint; advisory)
 │       ├── check-cross-references.sh    (workflows → rules/references staleness heuristic)
 │       ├── check-growth-health.sh       (non-blocking growth pressure report)
-│       ├── audit-orphans.sh             (rules/ + references/ files with zero inbound links)
+│       ├── audit-orphans.sh             (content-tier files with zero inbound links)
 │       └── check-version-conformance.sh (downstream contract: required sections / files present)
 ├── shells/                   → becomes repo-root entry files
 │   ├── AGENTS.md / CLAUDE.md / CODEX.md / GEMINI.md
@@ -77,7 +77,7 @@ Two kinds — each with a different "fill" mechanism:
 | `skill/scripts/sync-vendor.sh` | ≤ 160 lines | Mechanical vendor sync; base check via upstream git history — no new state files |
 | `skill/sync-manifest.yaml` | ≤ 40 lines | Vendor-class file list only; project-owned files never belong here |
 | `skill/scripts/check-growth-health.sh` | ≤ 220 lines | Non-blocking pressure report for line counts, route counts, and script/workflow budgets |
-| `skill/scripts/audit-orphans.sh` | ≤ 120 lines | Zero-inbound report for `rules/` + `references/`; heuristic, run before deleting flagged files |
+| `skill/scripts/audit-orphans.sh` | ≤ 120 lines | Zero-inbound report for content tiers (`rules/` `references/` `architecture/` `gotchas/` `conventions/`); scans `routing.yaml` too; heuristic, run before deleting flagged files |
 | `skill/references/gotchas.md` | ≤ 25 lines (seed) | MUST stay near-empty — content grows post-deployment |
 | `skill/references/behavior-failures.md` | ≤ 25 lines (seed) | MUST stay near-empty — agent-behavior violations logged via AAR |
 

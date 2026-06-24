@@ -11,6 +11,7 @@ Use this for planning requests. Only complex plans get a `docs/plans/.../` folde
 | Trivial | typo, comment, obvious one-line change | skip this workflow |
 | Simple | clear goal, 1-2 files, no product ambiguity | ask at most one confirmation question; no folder |
 | Complex | multiple files, unclear behavior, external dependency, architecture choice, or long run | create a plan folder and continue below |
+| Large | multi-subsystem, irreversible / expensive, high uncertainty, or many unknowns to resolve before building | plan folder **+ multi-perspective analysis** (§ Large Plan) — depth and angle-count scale with the task; a thin single-file plan here is under-analysis |
 
 ## Question Gate
 
@@ -37,6 +38,24 @@ docs/plans/YYYY-MM-DD-<slug>/
 That is the entire required structure. Add whatever else this specific task needs — research notes, a decisions log (lifted into `rules/` / `references/gotchas.md` at closure, step 8), a research/ subfolder with quoted snippets + source paths/URLs — using natural filenames; none of these names are canonical. If the task only ever produces `prd.md`, that is correct and complete.
 
 Keep `prd.md` short: goal, scope, requirements, acceptance criteria, out of scope, and current open questions. Push supporting material out into sibling files when `prd.md` itself starts to bloat — not preemptively.
+
+## Large Plan — analyze from several angles (立体)
+
+**Plan depth scales with task complexity.** The anti-bloat guidance above ("keep `prd.md` short", "one file is correct and complete") forbids *ceremony* — pre-created empty files, boilerplate sections, a test-plan stanza copied into every plan. It is **not** a licence to under-analyze a hard problem. The same "add siblings only when the task needs them" rule (Complex Steps #2) cuts the other way for a Large task: it genuinely needs them. A multi-subsystem, irreversible, or high-uncertainty task that produces a 100-line single-file plan is **under-planned** — the analysis is missing, not concise.
+
+For a Large task, examine the problem from several **angles**, each its own file — a *lens* on the problem, not a boilerplate section. `prd.md` stays short and becomes the **synthesis/index**: it states the chosen path and points at the angle files; the depth lives in them. Pick the lenses this task actually warrants — this is a menu, not a checklist; an irrelevant lens is the ceremony the gate above forbids.
+
+| Lens (natural filename) | The angle it analyzes |
+|---|---|
+| `architecture.md` | components, boundaries, data flow, where the change lands |
+| `risks.md` | failure modes, blast radius, fail-open vs fail-closed, what state persists |
+| `alternatives.md` | the design space — options weighed and why the chosen one wins |
+| `contracts.md` | schema / API / wire-format / data-model impact + the concrete migration artifact |
+| `integration.md` | what it touches, who depends on it, cross-repo / cross-service surface |
+| `rollout.md` | sequencing, migration, rollback, verification strategy |
+| `decomposition.md` | build order + parallelizable cut-points (feeds Mode 2 subagent contracts) |
+
+Each angle is an **independent analysis** — ideal for parallel dispatch. When the lenses are independent, fan them out as analysis subagents ([`subagent-driven.md` § Mode 2](subagent-driven.md#mode-2-four-phases-when-to-invoke-this-mode)), one per lens, then **synthesize** their outputs in `prd.md`. That is the "立体" plan: one problem seen from several angles at once, not one linear pass. Before freezing, run **Decision Completeness** (below) and diff overlapping claims across the angle files — the same decision restated in two files drifts.
 
 ## Complex State File
 
@@ -111,4 +130,5 @@ Planning is complete. Make sure `prd.md` lists or clearly links to everything th
 - [ ] If the plan landed (`status: done`): step 8 was actually performed — every load-bearing conclusion was sorted into `rules/` / `references/gotchas.md` / SKILL.md Pitfalls / "no, pure provenance"; `distilled_to:` frontmatter reflects what was lifted
 - [ ] If the plan calls an external dependency: its unreachable/timeout behavior is decided, not only the config-missing case
 - [ ] Schema/contract changes point to a concrete migration artifact in the repo's existing convention, with unique-key column nullability/type pinned
+- [ ] Large task: plan depth and angle-count scaled with complexity — analyzed from the lenses it warranted (not a thin single-file plan); `prd.md` synthesizes the angle files
 - [ ] Multi-file dossier: overlapping claims and every "see Dx" / cross-file reference were diffed for drift before freeze

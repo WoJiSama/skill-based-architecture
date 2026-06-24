@@ -81,9 +81,9 @@ for a in always:
 always_total = sum(nlines(f) for f in always_set)
 skill_n = nlines(skill_md)
 
-# read-everything baseline = all .md under rules/ workflows/ references/ + SKILL.md
+# read-everything baseline = all .md under every content tier + workflows/ + SKILL.md
 content = set()
-for d in ("rules", "workflows", "references"):
+for d in ("rules", "workflows", "references", "architecture", "gotchas", "conventions"):
     dd = root / d
     if dd.exists():
         for f in dd.rglob("*.md"):

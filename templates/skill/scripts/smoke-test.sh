@@ -191,16 +191,22 @@ if sub_runs "1a-skill"; then
   fi
 fi
 
-# 1a-rules. rules/*.md (Phase 4+)
+# 1a-rules. constraint surface: rules/ OR architecture/ OR conventions/ (Phase 4+)
+# A skill carries constraints in rules/ (folder-light) or, after the rate-of-change
+# split, in architecture/ (stable) + conventions/ (volatile). Any non-empty one passes.
 if sub_runs "1a-rules"; then
-  for f in "$SKILL_DIR/rules/project-rules.md" \
-           "$SKILL_DIR/rules/coding-standards.md"; do
-    if [[ -f "$f" ]]; then
-      pass "$f exists"
-    else
-      fail "$f missing"
+  CONSTRAINT_N=0
+  for d in rules architecture conventions; do
+    if [[ -d "$SKILL_DIR/$d" ]]; then
+      n=$(find "$SKILL_DIR/$d" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+      CONSTRAINT_N=$((CONSTRAINT_N + n))
     fi
   done
+  if [[ "$CONSTRAINT_N" -gt 0 ]]; then
+    pass "constraint surface: $CONSTRAINT_N file(s) across rules/ architecture/ conventions/"
+  else
+    fail "no constraint surface — expected rules/, architecture/, or conventions/ with .md files"
+  fi
 fi
 
 # 1a-workflows. workflows/*.md (Phase 5+)
@@ -241,16 +247,19 @@ if sub_runs "1a-workflows"; then
   fi
 fi
 
-# 1a-gotchas. references/gotchas.md or equivalent (Phase 6+)
+# 1a-gotchas. gotchas/ tier, or references/gotchas.md, or equivalent (Phase 6+)
 if sub_runs "1a-gotchas"; then
-  if [[ -f "$SKILL_DIR/references/gotchas.md" ]]; then
+  if [[ -d "$SKILL_DIR/gotchas" ]] && find "$SKILL_DIR/gotchas" -maxdepth 1 -name '*.md' 2>/dev/null | grep -q .; then
+    GOTCHA_N=$(find "$SKILL_DIR/gotchas" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+    pass "gotchas/ tier with $GOTCHA_N file(s)"
+  elif [[ -f "$SKILL_DIR/references/gotchas.md" ]]; then
     pass "$SKILL_DIR/references/gotchas.md exists"
   else
     GOTCHA_FILE=$(find "$SKILL_DIR/references" -maxdepth 1 -type f \( -name '*pitfall*' -o -name '*gotcha*' \) 2>/dev/null | head -1)
     if [[ -n "$GOTCHA_FILE" ]]; then
       pass "gotchas/pitfalls reference found: $(basename "$GOTCHA_FILE")"
     else
-      fail "$SKILL_DIR/references/gotchas.md (or equivalent pitfalls file) missing"
+      fail "no gotchas/ tier, $SKILL_DIR/references/gotchas.md, or equivalent pitfalls file"
     fi
   fi
 fi
@@ -363,12 +372,12 @@ check_skill_md_budget() {
   if [[ "$body_lines" -le 90 ]]; then
     pass "SKILL.md body: $body_lines lines (≤ 90)"
   else
-    fail "SKILL.md body: $body_lines lines (exceeds 90 limit) — move detail to rules/ workflows/ references/"
+    fail "SKILL.md body: $body_lines lines (exceeds 90 limit) — move detail to architecture/ conventions/ gotchas/ workflows/ references/"
   fi
 }
 
 check_skill_md_budget "$SKILL_MD"
-check_lines "$ROUTING_YAML" 120 "routing.yaml"
+check_lines "$ROUTING_YAML" 140 "routing.yaml"  # tiered skills route to more files (architecture + gotchas/index + references) per task
 for shell in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
   check_lines "$shell" 60 "$shell (thin shell)"
 done
@@ -378,8 +387,9 @@ check_lines "$CURSOR_ENTRY" 60 "Cursor entry"
 # and on dup also consult `.maintenance-log.yaml` to advise full Tier-2 reorg vs one-off dedup.
 # Rationale + protocol: workflows/maintain-docs.md § Step 1b + Step 7, workflows/update-rules.md § Rule Deprecation.
 LEDGER="$SKILL_DIR/.maintenance-log.yaml"
-for gotcha_file in "$SKILL_DIR/references"/*gotcha*.md "$SKILL_DIR/references"/*pitfall*.md; do
+for gotcha_file in "$SKILL_DIR/references"/*gotcha*.md "$SKILL_DIR/references"/*pitfall*.md "$SKILL_DIR/gotchas"/*.md; do
   [[ -f "$gotcha_file" ]] || continue
+  [[ "$(basename "$gotcha_file")" == "index.md" ]] && continue
   check_lines "$gotcha_file" "$GOTCHAS_MAX_LINES" "$(basename "$gotcha_file") (pitfall log)"
   DUPLICATE_HEADINGS=$(grep "^## " "$gotcha_file" | sort | uniq -d)
   if [[ -n "$DUPLICATE_HEADINGS" ]]; then

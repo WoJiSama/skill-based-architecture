@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# audit-orphans.sh — Surface rules/ and references/ files with zero inbound links.
+# audit-orphans.sh — Surface content-tier files with zero inbound links.
 #
-# Replaces audit-references.sh + audit-route-paths.sh. An orphan is a file in
-# rules/ or references/ whose relative path does not appear (outside fenced
-# code blocks) in any workflow / rule / reference / top-level shell. Either
-# the activation pointer was never added, or the routing that used to mention
-# it was removed and the file lingered.
+# Content tiers = rules/ references/ architecture/ gotchas/ conventions/.
+# An orphan is a file in one of those whose relative path does not appear
+# (outside fenced code blocks) in any workflow / tier file / routing.yaml /
+# top-level shell. Either the activation pointer was never added, or the
+# routing that used to mention it was removed and the file lingered.
 #
 # Heuristic only: prose mentions of the concept without the path do not count.
-# Use judgment before removing anything. The dropped "route-path strict" check
-# (was: file must lie on a routing.yaml path) is now manual — `grep -rn <file>`
-# from the skill root tells you the same thing.
+# routing.yaml IS scanned, so a file referenced only from a task's
+# required_reads counts as reachable (it is on a route). Whether that route
+# can actually match (trigger quality) is route-health.sh's job, not this one's.
 #
-# Usage (run from the skill root, the dir containing rules/+references/):
+# Usage (run from the skill root, the dir holding the tier directories):
 #   bash audit-orphans.sh
 #
 # Exit code: 0 = no orphans, 1 = one or more orphans found.
@@ -21,11 +21,19 @@ set -euo pipefail
 
 ROOT="$PWD"
 
-SCAN_DIRS=("$ROOT/workflows" "$ROOT/rules" "$ROOT/references")
+# Content tiers: audited for orphan status AND scanned as inbound-link sources.
+# Each is existence-guarded below, so a skill that uses only some tiers is fine.
+TIER_DIRS=(rules references architecture gotchas conventions)
+
+SCAN_DIRS=("$ROOT/workflows")
+for t in "${TIER_DIRS[@]}"; do SCAN_DIRS+=("$ROOT/$t"); done
+
 SCAN_FILES=()
 for f in "$ROOT"/*.md; do
   [[ -f "$f" ]] && SCAN_FILES+=("$f")
 done
+# routing.yaml: a file in a task's required_reads is on a route → reachable.
+[[ -f "$ROOT/routing.yaml" ]] && SCAN_FILES+=("$ROOT/routing.yaml")
 # Nested under skills/<name>/? Also scan the parent harness shells.
 if [[ -f "$ROOT/../../AGENTS.md" || -f "$ROOT/../../CLAUDE.md" ]]; then
   for s in AGENTS.md CLAUDE.md CODEX.md GEMINI.md; do
@@ -58,9 +66,9 @@ count_inbound() {
 
 ORPHANS=0
 TOTAL=0
-echo "Orphan scan — rules/ and references/ files with zero inbound links"
+echo "Orphan scan — content-tier files with zero inbound links"
 echo "==================================================================="
-for dir_name in rules references; do
+for dir_name in "${TIER_DIRS[@]}"; do
   dir_abs="$ROOT/$dir_name"
   [[ -d "$dir_abs" ]] || continue
   for f in "$dir_abs"/*.md; do
@@ -78,7 +86,7 @@ done
 echo ""
 echo "Summary: $ORPHANS orphan(s) / $TOTAL file(s)"
 if [[ "$ORPHANS" -gt 0 ]]; then
-  echo "For each orphan: add an activation pointer (workflow/rule/SKILL.md route) or delete it."
+  echo "For each orphan: add an activation pointer (workflow / routing.yaml / SKILL.md route) or delete it."
   exit 1
 fi
 exit 0

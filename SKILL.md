@@ -27,17 +27,18 @@ Restructure oversized single-file Skills or scattered project rules into a well-
 
 ## Progressive Rigor
 
-Grow only under pressure. Tiers: **Single-file** (`SKILL.md` only, < 3 topics) → **Folder-light** (`+ rules/`, 3–5 topics or 1 recurring workflow) → **Full** (`+ workflows/` + `references/` + thin shells; ≥ 3 routed tasks, gotcha log, or multi-harness repo). Upgrade triggers: SKILL.md body > 90 lines or description > 25 lines, same pitfall surfaces twice, a task needs step-by-step instructions, or two harnesses share routing. Downgrade when content shrinks. Details: [references/progressive-rigor.md](references/progressive-rigor.md).
+Grow only under pressure. Tiers: **Single-file** (`SKILL.md` only, < 3 topics) → **Folder-light** (`+ rules/`, 3–5 topics or 1 recurring workflow) → **Full** (`+ workflows/` + `references/` + thin shells; ≥ 3 routed tasks, gotcha log, or multi-harness repo). Upgrade triggers: SKILL.md body > 90 lines or description > 25 lines, same pitfall surfaces twice, a task needs step-by-step instructions, or two harnesses share routing. **Split by rate of change** when a `rules/` file tangles stable structure with volatile conventions (→ `architecture/` + `conventions/`) or one subsystem's gotchas pile up (→ per-module `gotchas/` + `index.md`). Downgrade when content shrinks. Details: [references/progressive-rigor.md](references/progressive-rigor.md).
 
 ## Target Structure
 
 ```text
 skills/<name>/
 ├── SKILL.md          # dual budget (description ≤ 25 + body ≤ 90 lines): always-read list, task routing, priority
-├── rules/            # Long-lived constraints (what is always true)
+├── architecture/     # stable structural spine — layering, data-flow, the "why" (often always-read)
+├── conventions/      # volatile house style — naming, paths, commands, formats
+├── gotchas/          # volatile code-coupled landmines — one file per module; index.md hub lists them
 ├── workflows/        # Step-by-step procedures (how to do a task)
-├── references/       # Background: architecture, pitfalls, indexes
-│   └── gotchas.md    # Recommended: known gotchas / footguns (most valuable reference)
+├── references/       # pure index / background — source maps, build/env notes
 └── docs/             # Optional: prompts, reports, external-facing material
 ```
 
@@ -78,14 +79,14 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 
 ## Content Classification
 
-| Content type | Target |
-|---|---|
-| Stable constraints, must-follow rules | `rules/` |
-| Step-by-step task procedures | `workflows/` |
-| Architecture, pitfalls, source indexes | `references/` |
-| Known gotchas, footguns, edge cases | `references/gotchas.md` (or domain-specific pitfall files) |
-| Prompts, reports, external docs | `docs/` |
-| Editor/tool-specific config | `.cursor/` / `.claude/` (thin shells) |
+| Content type — tier by **rate of change**; `rules/` keeps cross-cutting agent-behavior, sheds the rest ([split playbook](references/rate-of-change-split.md)) | Target | Changes |
+|---|---|---|
+| Structural invariants — layering, module map, data-flow, the "why/shape" | `architecture/` | rarely (ADRs) |
+| House style — naming, paths, commands, formats, must/never conventions | `conventions/` | often |
+| Code-coupled landmines (symptom → cause → fix), **one file per module** | `gotchas/` (hub: `gotchas/index.md`) | often |
+| Step-by-step task procedures | `workflows/` | rarely |
+| Pure index / background — source maps, build/env notes | `references/` | varies |
+| Prompts/reports/docs · editor config (thin shells) | `docs/` · `.cursor/` `.claude/` | — |
 
 ## Multi-Skill & Composition
 

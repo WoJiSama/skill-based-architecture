@@ -148,8 +148,9 @@ def validate_schema(always_read, tasks):
     for item in always_read:
         if not item or "FILL:" in item:
             continue
-        if not any(item.startswith(prefix) for prefix in ("rules/", "workflows/", "references/")):
-            errors.append(f"always_read path should be skill-relative rules/, workflows/, or references/: {item}")
+        tier_prefixes = ("rules/", "workflows/", "references/", "architecture/", "gotchas/", "conventions/")
+        if not any(item.startswith(prefix) for prefix in tier_prefixes):
+            errors.append(f"always_read path should be skill-relative one of {', '.join(tier_prefixes)}: {item}")
     return errors
 
 schema_errors = validate_schema(always_read, tasks)
