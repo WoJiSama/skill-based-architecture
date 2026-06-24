@@ -124,7 +124,7 @@ Move explanatory content into `skills/<name>/references/`:
 - Architecture overviews
 - Environment/build notes
 - Source indexes and module maps
-- **Gotchas** — create `references/gotchas.md` (or domain-specific pitfall files like `frontend-pitfalls.md`) for known gotchas, footguns, and edge cases; then add brief summaries to SKILL.md's Known Gotchas section. Once one subsystem accumulates several, split into per-module `gotchas/` files under a `gotchas/index.md` hub — see [`references/rate-of-change-split.md`](../references/rate-of-change-split.md)
+- **Gotchas** — create `references/gotchas.md` (or domain-specific pitfall files like `frontend-pitfalls.md`) for known gotchas, footguns, and edge cases; then add brief summaries to SKILL.md's Known Gotchas section. Once one subsystem accumulates several, split into per-module `gotchas/` files under a `gotchas/index.md` hub — see [`references/skeleton-flesh-split.md`](../references/skeleton-flesh-split.md)
 - Third-party dependency notes
 
 The gotchas file is often the **most valuable reference** in a skill — it captures expensive lessons that are not obvious from code alone and prevents repeated debugging. Keep it actively maintained via the After-Action Review.

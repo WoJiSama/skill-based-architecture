@@ -24,7 +24,7 @@ project/
 └── .claude/                       # thin shells (Claude Code)
 ```
 
-The tree above is the **Folder-light** form (a single `rules/`, gotchas in `references/gotchas.md`). At the **Full** tier this splits by **rate of change**: stable structure → `architecture/`, volatile house style → `conventions/`, gotchas → per-module `gotchas/` files under a `gotchas/index.md` hub, and cross-cutting agent-behavior / methodology stays in `rules/`. Split mechanics (path-migration, orphan hub, routing re-derivation): [rate-of-change-split.md](rate-of-change-split.md). For growth/topology decisions (when to upgrade tier, when to split into multiple skills), see [progressive-rigor.md](progressive-rigor.md). For where this skill sits in the broader agent stack, see the "Positioning" section at the bottom of this file.
+The tree above is the **Folder-light** form (a single `rules/`, gotchas in `references/gotchas.md`). At the **Full** tier this splits by **abstraction (骨架/肉)**: abstract design theory → `architecture/`, **code maps** (module tree, dir layout, source index) → `references/`, house style → `conventions/`, per-module landmines → `gotchas/` (+ `gotchas/index.md` hub), methodology stays in `rules/`. The skeleton/flesh judgement test + split mechanics (path-migration, orphan hub, routing re-derivation): [skeleton-flesh-split.md](skeleton-flesh-split.md). For growth/topology decisions (when to upgrade tier, when to split into multiple skills), see [progressive-rigor.md](progressive-rigor.md). For where this skill sits in the broader agent stack, see the "Positioning" section at the bottom of this file.
 
 ## SKILL.md Template
 

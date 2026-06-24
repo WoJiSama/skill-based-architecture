@@ -37,16 +37,17 @@ Upgrade to the full skill-based directory only when the single file starts to sp
 
 ## Classification Guide
 
-When promoting content out of a single SKILL.md into the full directory, tier by **rate of change**:
+When promoting content out of a single SKILL.md into the full directory, tier by **abstraction (骨架/肉)** — invariant theory vs current-code facts:
 
-- Stable structural invariants — layering, module map, data-flow, the "why" → `architecture/`
-- Volatile house style — naming, paths, commands, formats, must/never conventions → `conventions/`
-- Code-coupled landmines (symptom → cause → fix), **one file per module** → `gotchas/` (hub: `gotchas/index.md`)
-- Task procedures with ordered steps → `workflows/`
-- Pure index / background — source maps, build/env notes → `references/`
+- Abstract design theory — layering/contract/orchestration **principles**, the "why" (**NOT** the module map) → `architecture/` (骨架)
+- Code maps — module tree, dir layout, source index, build/env notes → `references/` (肉)
+- House style — naming, paths, commands, formats, must/never conventions → `conventions/` (肉)
+- Code-coupled landmines (symptom → cause → fix), **one file per module** → `gotchas/` (肉; hub: `gotchas/index.md`)
+- Task procedures with ordered steps (process theory) → `workflows/` (骨架)
+- Cross-cutting agent behavior / methodology → `rules/` (骨架)
 - External-facing material → `docs/`
 
-A small skill uses a single `rules/` for constraints and splits it (stable → `architecture/`, volatile → `conventions/`) only under pressure — see [references/progressive-rigor.md](references/progressive-rigor.md).
+A small skill uses a single `rules/` for constraints and splits it by abstraction (theory → `architecture/`, maps → `references/`, house style → `conventions/`) only under pressure — see [references/progressive-rigor.md](references/progressive-rigor.md) and the judgement test in [references/skeleton-flesh-split.md](references/skeleton-flesh-split.md).
 
 ## Sync Targets
 

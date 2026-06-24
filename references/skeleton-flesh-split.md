@@ -1,19 +1,24 @@
-# Reference — Splitting a Skill by Rate of Change
+# Reference — Splitting a Skill by Abstraction (骨架 / 肉)
 
-When a `rules/` (or `references/`) file tangles stable structure with volatile detail, split it by **rate of change** ([Progressive Rigor](progressive-rigor.md) trigger 3). This is the playbook, distilled from doing it on a real code-coupled skill. It is a *re-tiering of an existing skill*, not the initial scattered→skill migration ([full-migration.md](../workflows/full-migration.md)).
+When a `rules/` (or `references/`) file tangles invariant design theory with current-code facts, split it by **abstraction** ([Progressive Rigor](progressive-rigor.md) trigger 3). This is the playbook, distilled from doing it on two real code-coupled skills. It is a *re-tiering of an existing skill*, not the initial scattered→skill migration ([full-migration.md](../workflows/full-migration.md)).
 
-## 1. Classify by rate of change — four buckets, not two
+**The judgement test:** *after a big refactor that renames modules and moves files, is this statement still true and useful? Yes → 骨架 (skeleton: invariant theory). It describes the current code — a map / name / path / a landmine at a symbol → 肉 (flesh: current-code facts).*
+
+> Rate of change is a correlated heuristic, but it mislabels **slow-drifting maps** (the module tree) as architecture — they are stable-ish yet they are flesh (a map of the code, not an invariant law). Abstraction is the real cut.
+
+## 1. Classify by abstraction — five buckets
 
 The split is not binary. Going section by section, each lands in one of:
 
-| Bucket | → | Changes | Example |
+| Bucket | → | Kind | Example |
 |---|---|---|---|
-| Stable structural invariants & principles — layering, data-flow, the "why", contract-is-a-boundary | `architecture/` | rarely (ADRs) | "an existing HTTP contract is a compatibility boundary" |
-| Volatile house style — naming, route shapes, paths, commands, formats | `conventions/` | often | "`POST /{entity}/create`", "param names `page`/`limit`" |
-| Code-coupled landmines — symptom→cause→fix on specific symbols | `gotchas/` (per module) | often | "change a Controller, rebuild the `start` fat-jar or you run stale bytecode" |
-| **Cross-cutting agent behavior / methodology** — delegation discipline, change-discipline, transparency-on-block, AAR triggers | **stays in `rules/`** | rarely | subagent-delegation Iron Law |
+| **Abstract design theory** — layering/contract/orchestration **principles**, the "why" (NOT the module map) | `architecture/` | 骨架 | "an existing HTTP contract is a compatibility boundary" |
+| **Code maps** — module tree, package/dir layout, source index, the call graph with real symbols | `references/` | 肉 | "modules: web → biz/shared → core → common/dal" |
+| Volatile house style — naming, route shapes, paths, commands, formats | `conventions/` | 肉 | "`POST /{entity}/create`", "param names `page`/`limit`" |
+| Code-coupled landmines — symptom→cause→fix on specific symbols | `gotchas/` (per module) | 肉 | "change a Controller, rebuild the `start` fat-jar or you run stale bytecode" |
+| **Cross-cutting agent behavior / methodology** — delegation discipline, change-discipline, transparency-on-block, AAR triggers | **stays in `rules/`** | 骨架 | subagent-delegation Iron Law |
 
-**The fourth bucket is the one that gets missed.** A `rules/` file usually carries methodology that is neither architecture nor convention nor gotcha. It does **not** evaporate into architecture+conventions — `rules/` survives as the home for always-applicable agent behavior, shedding only its structural and house-style content. (This is why the template ships `rules/agent-behavior.md`.)
+**Two buckets get missed.** (1) The **code map** looks like architecture but is flesh — `modules-and-packages.md`, a directory layout, a call graph with class names *describe the current code* and drift on every refactor; they go in `references/`, not `architecture/`. Mixing them in makes `architecture/` diverge (re-describing the code) instead of converging on the few invariant principles. (2) **Methodology** is neither architecture nor convention nor gotcha — `rules/` survives as its home (why the template ships `rules/agent-behavior.md`). `architecture/` should end up small and sparse: abstraction is compact.
 
 ## 2. Author the new files: verbatim, no duplication, cross-link
 

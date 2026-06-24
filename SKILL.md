@@ -27,18 +27,18 @@ Restructure oversized single-file Skills or scattered project rules into a well-
 
 ## Progressive Rigor
 
-Grow only under pressure. Tiers: **Single-file** (`SKILL.md` only, < 3 topics) → **Folder-light** (`+ rules/`, 3–5 topics or 1 recurring workflow) → **Full** (`+ workflows/` + `references/` + thin shells; ≥ 3 routed tasks, gotcha log, or multi-harness repo). Upgrade triggers: SKILL.md body > 90 lines or description > 25 lines, same pitfall surfaces twice, a task needs step-by-step instructions, or two harnesses share routing. **Split by rate of change** when a `rules/` file tangles stable structure with volatile conventions (→ `architecture/` + `conventions/`) or one subsystem's gotchas pile up (→ per-module `gotchas/` + `index.md`). Downgrade when content shrinks. Details: [references/progressive-rigor.md](references/progressive-rigor.md).
+Grow only under pressure. Tiers: **Single-file** (`SKILL.md` only, < 3 topics) → **Folder-light** (`+ rules/`, 3–5 topics or 1 recurring workflow) → **Full** (`+ workflows/` + `references/` + thin shells; ≥ 3 routed tasks, gotcha log, or multi-harness repo). Upgrade triggers: SKILL.md body > 90 lines or description > 25 lines, same pitfall surfaces twice, a task needs step-by-step instructions, or two harnesses share routing. **Split by abstraction (骨架/肉)** when content tangles invariant design theory with current-code facts: abstract theory → `architecture/`, code maps → `references/`, house style → `conventions/`, per-module landmines → `gotchas/` (methodology stays in `rules/`). Downgrade when content shrinks. Details: [references/progressive-rigor.md](references/progressive-rigor.md).
 
 ## Target Structure
 
 ```text
 skills/<name>/
 ├── SKILL.md          # dual budget (description ≤ 25 + body ≤ 90 lines): always-read list, task routing, priority
-├── architecture/     # stable structural spine — layering, data-flow, the "why" (often always-read)
-├── conventions/      # volatile house style — naming, paths, commands, formats
-├── gotchas/          # volatile code-coupled landmines — one file per module; index.md hub lists them
-├── workflows/        # Step-by-step procedures (how to do a task)
-├── references/       # pure index / background — source maps, build/env notes
+├── architecture/     # abstract design theory (骨架) — layering/contract principles, the "why" — NOT the module map
+├── conventions/      # house style (肉) — naming, paths, commands, formats
+├── gotchas/          # code-coupled landmines (肉) — one file per module; index.md hub lists them
+├── workflows/        # step-by-step procedures (骨架 — process theory)
+├── references/       # code maps + background (肉) — module tree, dir layout, source index, build/env
 └── docs/             # Optional: prompts, reports, external-facing material
 ```
 
@@ -79,13 +79,13 @@ Root entries (`AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`, `.cursor/rules/
 
 ## Content Classification
 
-| Content type — tier by **rate of change**; `rules/` keeps cross-cutting agent-behavior, sheds the rest ([split playbook](references/rate-of-change-split.md)) | Target | Changes |
+| Content type — tier by **abstraction**: 骨架 (architecture/workflows/rules = invariant theory) vs 肉 (conventions/gotchas/references = current-code facts) · [split playbook](references/skeleton-flesh-split.md) | Target | Kind |
 |---|---|---|
-| Structural invariants — layering, module map, data-flow, the "why/shape" | `architecture/` | rarely (ADRs) |
-| House style — naming, paths, commands, formats, must/never conventions | `conventions/` | often |
-| Code-coupled landmines (symptom → cause → fix), **one file per module** | `gotchas/` (hub: `gotchas/index.md`) | often |
-| Step-by-step task procedures | `workflows/` | rarely |
-| Pure index / background — source maps, build/env notes | `references/` | varies |
+| Abstract design theory — layering/contract/orchestration/transaction **principles**, the "why" (**NOT** the module map) | `architecture/` | 骨架 |
+| Code maps + background — module tree, dir layout, source index, build/env notes | `references/` | 肉 |
+| House style — naming, paths, commands, formats, must/never conventions | `conventions/` | 肉 |
+| Code-coupled landmines (symptom → cause → fix), **one file per module** | `gotchas/` (hub: `gotchas/index.md`) | 肉 |
+| Step-by-step task procedures (process theory) | `workflows/` | 骨架 |
 | Prompts/reports/docs · editor config (thin shells) | `docs/` · `.cursor/` `.claude/` | — |
 
 ## Multi-Skill & Composition

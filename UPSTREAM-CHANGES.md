@@ -48,6 +48,17 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-06-24 - Content axis re-based on skeleton/flesh (abstraction over rate-of-change)
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `SKILL.md` Content Classification + Target Structure: the axis is now **abstraction (骨架 invariant theory vs 肉 current-code facts)**, not rate of change. `architecture/` = abstract design theory only (layering/contract/orchestration **principles**) — **the module map / dir layout / call graph are flesh and move to `references/`**. `workflows/`+`rules/` = skeleton; `conventions/`+`gotchas/`+`references/` = flesh.
+  - `references/rate-of-change-split.md` → renamed `references/skeleton-flesh-split.md`; §1 reframed around the judgement test (*after a refactor that renames modules / moves files, is it still true? → skeleton; describes current code → flesh*) + a fifth bucket (**code maps → references/**). Rate of change demoted to a heuristic note (it mislabels slow-drifting maps as architecture). §2–§6 mechanics unchanged.
+  - `references/progressive-rigor.md` trigger 3, `references/layout.md`, `TEMPLATES-GUIDE.md § Classification Guide` — aligned to abstraction; module map → `references/`.
+  - `templates/skill/workflows/task-closure.md` — added a non-script **skeleton purity** review: a new `architecture/` file that is a map/name/path of the current code is flesh → `references/`.
+- Why it matters: tiering by rate of change conflated two stable-ish things — the abstract skeleton (invariant) and slow-drifting code maps (flesh) — so module trees landed in `architecture/`, making it diverge (re-describing the code) and drift instead of converging on the few invariant principles. Abstraction is the real cut; the skill holds both skeleton and flesh but no longer mixes them.
+- Downstream refresh guidance: move module trees / directory layouts / call-graph maps out of `architecture/` into `references/` (mark them "drifts with refactor"); keep only invariant principles in `architecture/`. Re-run `audit-orphans` + `route-reachability` (paths change, reachability shouldn't). Mostly docs; no script behavior change beyond the renamed reference + the task-closure prompt.
+
 ## 2026-06-24 - plan-feature: depth scales with complexity + a Large tier with multi-perspective (立体) analysis
 
 - Upstream commit: pending in this working tree
