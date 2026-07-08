@@ -10,7 +10,12 @@ installing it locally.
 ## How To Try It
 
 1. Open the hosted preview or a local agent session.
-2. Send this prompt:
+2. For hosted preview, open [`COPY-PASTE-INPUT.md`](COPY-PASTE-INPUT.md) and
+   paste the whole file into the chat. This avoids clone/fetch commands that
+   hosted environments may block.
+
+For local agents that can read this checkout directly, this shorter prompt is
+enough:
 
 ```text
 Use skill-based-architecture to refactor this demo repo's scattered agent rules into a skills/demo-shop/ source of truth.
@@ -21,9 +26,9 @@ https://github.com/WoJiSama/skill-based-architecture/tree/main/examples/simple-r
 Show the proposed skills/demo-shop/ structure and rewrite AGENTS.md, CLAUDE.md, and .cursor/rules/frontend.mdc as thin shells.
 ```
 
-The important input is [`repo/`](repo/), not this README page. If the hosted
-agent cannot read the GitHub folder link, paste the contents of these files into
-the chat before sending the prompt:
+The important input is [`repo/`](repo/), not this README page. If any agent
+cannot read the folder link, paste the contents of these files into the chat
+instead:
 
 - [`repo/AGENTS.md`](repo/AGENTS.md)
 - [`repo/CLAUDE.md`](repo/CLAUDE.md)

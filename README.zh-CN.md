@@ -37,7 +37,7 @@
 
 然后[触发它](#quick-start);之后用 `/plugin marketplace update` 拉更新。
 
-**不安装先体验:** 可以通过 ClawMama Skill catalog 在 [Telegram 或 WhatsApp 中运行 Skill Based Architecture](https://app.clawmama.run/skills/i78bb1/hermes?utm_source=github&utm_medium=issue&utm_campaign=skill_outreach_wojisama_skill_based_architecture)。建议配合[简单 demo 仓库](examples/simple-repo/)或其他非敏感规则文件使用;真实项目迁移仍建议在本地用 Claude Code 安装或 clone 仓库。
+**不安装先体验:** 可以通过 ClawMama Skill catalog 在 [Telegram 或 WhatsApp 中运行 Skill Based Architecture](https://app.clawmama.run/skills/i78bb1/hermes?utm_source=github&utm_medium=issue&utm_campaign=skill_outreach_wojisama_skill_based_architecture)。建议配合[可复制 demo 输入包](examples/simple-repo/COPY-PASTE-INPUT.md)或其他非敏感规则文件使用;真实项目迁移仍建议在本地用 Claude Code 安装或 clone 仓库。
 
 **Cursor / Codex / Gemini / 其他 harness** 不共享 Claude Code 的插件系统 —— 改用 clone(见 [Quick Start](#quick-start))。
 
@@ -114,7 +114,7 @@ git clone https://github.com/WoJiSama/skill-based-architecture.git \
 
 Agent 会从 [`templates/`](templates/) 复制预制 scaffold 到 `skills/<name>/`,创建薄壳,填充每一个 `<!-- FILL: -->` 标记,跑校验。完整流程:[WORKFLOW.md](WORKFLOW.md)。
 
-想先安全试跑? 用 [`examples/simple-repo/`](examples/simple-repo/) 当目标项目输入。它是一个假的小项目,故意放了重复的 `AGENTS.md`、`CLAUDE.md`、Cursor 规则和 README notes,可以展示迁移效果,但不暴露私有代码。
+想先安全试跑? Hosted preview 里用 [`examples/simple-repo/COPY-PASTE-INPUT.md`](examples/simple-repo/COPY-PASTE-INPUT.md);本地 agent 可以用 [`examples/simple-repo/`](examples/simple-repo/) 当目标项目输入。它是一个假的小项目,故意放了重复的 `AGENTS.md`、`CLAUDE.md`、Cursor 规则和 README notes,可以展示迁移效果,但不暴露私有代码。
 
 ### 3. (仅 Codex)手动触发 sub-agent / 并行处理
 

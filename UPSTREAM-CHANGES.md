@@ -48,6 +48,15 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-07-08 - Hosted preview demo uses copy-paste input
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `README.md`, `README.zh-CN.md`, `EXAMPLES.md` — hosted preview pointers now target `examples/simple-repo/COPY-PASTE-INPUT.md`.
+  - `examples/simple-repo/` — adds a single copy-paste input bundle and clarifies that hosted agents should not clone, fetch, or inspect the GitHub folder.
+- Why it matters: Hermes-style hosted previews may block clone flows that try to clean `/tmp` paths, so the safe demo path must pass the small fixture as pasted context instead of asking the hosted agent to read a GitHub directory.
+- Downstream refresh guidance: no downstream scaffold action. This is only an upstream README/examples demo-path clarification; projects that copied the previous hosted-preview wording may update it, but no templates, scripts, routing, or conformance behavior changed.
+
 ## 2026-07-08 - Skill authoring judgement checks
 
 - Upstream commit: pending in this working tree
