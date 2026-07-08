@@ -1,0 +1,10 @@
+{
+  "name": "demo-shop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node src/cart.js",
+    "check": "npm test"
+  }
+}

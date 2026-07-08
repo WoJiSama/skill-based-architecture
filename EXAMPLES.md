@@ -4,6 +4,8 @@ Concrete illustrations of skill-based architecture in action. Pick the subsectio
 
 For verbatim agent failure-mode patterns from real pressure tests (with rationalizations and the specific mechanism that catches each), see [`examples/behavior-failures.md`](examples/behavior-failures.md).
 
+For a safe first-run fixture, use [`examples/simple-repo/`](examples/simple-repo/). It is a tiny fake project with duplicated `AGENTS.md`, `CLAUDE.md`, Cursor rules, and README notes, suitable for hosted previews or evaluator demos without exposing private code.
+
 ---
 
 ## Migration shapes

@@ -1,0 +1,26 @@
+---
+description: Demo Shop frontend guidance.
+alwaysApply: false
+---
+
+# Frontend Rules
+
+- Use `summarizeCart` for cart display data; do not duplicate subtotal math in
+  UI components.
+- Keep raw cent values available for calculations and analytics.
+- Format display values only with `formatMoney`.
+- Show subtotal and total together when a discount is active.
+
+## Add UI Component Flow
+
+1. Confirm the component needs cart data.
+2. Use `summarizeCart` for derived values.
+3. Keep component state in raw cents, not formatted strings.
+4. Test a discounted and non-discounted cart.
+
+## Pitfalls
+
+- If a component stores `"$12.99"` in state, later discount math has to parse a
+  display string and can drift.
+- Cursor-only frontend rules drift from `AGENTS.md` and `CLAUDE.md`; this should
+  become `skills/demo-shop/rules/frontend-rules.md`.
