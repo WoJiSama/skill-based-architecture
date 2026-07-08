@@ -16,4 +16,4 @@ Recording Threshold: at least one of {repeatable pattern, multi-hour cost, not o
 Generalization rule: replace the project name — still makes sense? If no, rewrite as a pattern.
 -->
 
-<!-- FILL: this file starts empty. Entries grow via After-Action Review. Do NOT pre-populate with Python examples or generic "don't assume null" defaults — those are noise. Only record failures actually paid for in this project. -->
+<!-- OPTIONAL: this file starts empty. Entries grow via After-Action Review. Do NOT pre-populate with Python examples or generic "don't assume null" defaults — those are noise. Only record failures actually paid for in this project. -->

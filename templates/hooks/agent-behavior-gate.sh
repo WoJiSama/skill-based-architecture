@@ -125,7 +125,7 @@ fi
   echo ""
   echo "Paths to unblock:"
   echo "  (a) shrink existing principles to make room (any reducing edit is allowed)"
-  echo "  (b) route the new content to templates/protocol-blocks/ or templates/skill/references/"
+  echo "  (b) route the new content to templates/skill/protocol-blocks/ or templates/skill/references/"
   echo "  (c) write a concrete AAR row in $EVIDENCE_FILE (what was asked / what failed / cost / why existing principles missed it), then retry"
   echo "  (d) emergency override: run with AGENT_BEHAVIOR_GATE_OVERRIDE=1"
   echo ""

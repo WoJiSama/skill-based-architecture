@@ -16,6 +16,7 @@ templates/
 │   ├── workflows/{profile-project,plan-feature,update-upstream,update-rules,fix-bug,change-managed,edit-templates,maintain-docs,subagent-driven,subagent-orchestration}.md
 │   ├── workflows/invoke-skill.md.example  (copy-paste template for Pattern A composition; rename and adapt)
 │   ├── references/{gotchas,behavior-failures}.md
+│   ├── protocol-blocks/       → internal Task Closure / routing reinforcement blocks
 │   └── scripts/              → automated verification (lives inside the skill)
 │       ├── smoke-test.sh                (fully automated structural + routing checks)
 │       ├── sync-routing.sh              (generate/check routing summary + shell bootstraps from routing.yaml)
@@ -39,12 +40,6 @@ templates/
 │   ├── hooks-cursor.json          (Cursor config — same as above, per-harness wiring)
 │   ├── README.md                  (rollout / tuning / false-positive mitigations, per-hook)
 │   └── SECURITY.md                (trust boundary: what may vs must not be written to hook-read files)
-└── protocol-blocks/          → drop-in Task Closure reinforcement
-    ├── rationalizations-table.md
-    ├── red-flags-stop.md
-    ├── subagent-contract.md        (5-field worker task-prompt block)
-    ├── reboot-check.md              (5-question long-task/final re-orientation)
-    └── ambiguous-request-gate.md   (pre-routing Principle 1 check for vague verbs)
 ```
 
 ## Placeholders
@@ -54,9 +49,10 @@ Two kinds — each with a different "fill" mechanism:
 | Marker | Meaning | Filled by |
 |---|---|---|
 | `{{NAME}}`, `{{SUMMARY}}` | Mechanical substitution | Single `sed` pass in Quick Start |
-| `<!-- FILL: … -->` | Requires human/agent judgment | Must be replaced manually; `grep -r 'FILL:'` lists all pending |
+| `<!-- FILL: … -->` | Requires agent judgment before the skill ships | `grep -r 'FILL:'` lists pending migration work |
+| `<!-- OPTIONAL: … -->` | Advanced or organically-grown content | Leave empty unless the project has real evidence or user asks |
 
-**Audit after Quick Start:** run `grep -r 'FILL:' skills/{{NAME}} AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor` — every match is a required fill, not optional.
+**Audit after Quick Start:** run `grep -r 'FILL:' skills/{{NAME}} AGENTS.md CLAUDE.md CODEX.md GEMINI.md .cursor` — every match is required agent work before shipping. Users should not need to interpret these markers.
 
 ## Byte Budgets (hard limits — enforce in review)
 
@@ -72,7 +68,7 @@ Two kinds — each with a different "fill" mechanism:
 | `hooks/README.md` | ≤ 150 lines | Per-hook rollout guidance; allowed larger because it documents optional installs + tuning |
 | `skill/workflows/profile-project.md`, `plan-feature.md`, `update-upstream.md`, `fix-bug.md`, `change-managed.md`, `edit-templates.md`, `subagent-orchestration.md` | ≤ 100 lines | Task-specific workflows stay lean |
 | `skill/workflows/update-rules.md`, `maintain-docs.md`, `subagent-driven.md` | ≤ 250 lines | Protocol-heavy workflows allowed more room |
-| `protocol-blocks/*` | ≤ 40 lines each | One idea per block |
+| `skill/protocol-blocks/*` | ≤ 40 lines each | One idea per block |
 | `skill/SKILL.md.template` | dual budget: description ≤ 25 lines + body ≤ 90 lines | Same hard cap as downstream SKILL.md (smoke-test enforces both separately). description carries quoted trigger phrases; body navigates rules/workflows/references. Keep each shorter when possible. |
 | `skill/scripts/smoke-test.sh` | ≤ 950 lines (was 850; raised 2026-07-06 — file had already drifted to 903 unrecorded; +34 for two-root layout support (dir-path resolution, `path_resolution`-gated shell exemptions) + pipefail hardening, absorbed from the chaos downstream). **Next addition forces extraction** into a `check-<concern>.sh` companion script — no further raises. | Structural test harness; keep scenario behavior out of this script |
 | `skill/scripts/sync-routing.sh` | ≤ 400 lines (was 340; raised 2026-07-06 — two-root `skill:`/`code:` prefix awareness + inline-YAML parsing, honoring the routing.yaml two-root contract the docs already promised; parser ideas absorbed from the chaos downstream) | Generator/checker for routing.yaml-derived blocks; keep dependency-free |
@@ -126,8 +122,8 @@ Run these when templates change:
 1. **Growth health report** — run `bash templates/skill/scripts/check-growth-health.sh .`; WATCH/REVIEW rows force an explicit decision, but do not fail by default.
 2. **Placeholder audit** — `grep -r '{{' templates/` lists every placeholder; must match the `sed` substitution set in WORKFLOW.md Quick Start (no orphans).
 3. **Loader-safety audit** — `find templates -name 'SKILL.md'` must return no rows; template sources use `SKILL.md.template` until Quick Start materializes them downstream.
-4. **FILL audit** — `grep -r 'FILL:' templates/` must return expected lines for judgment-filled templates (`rules/`, `references/gotchas.md`, `SKILL.md.template`, `routing.yaml`, project-specific workflow comments). Thin shells may rely on mechanical placeholders / generated markers instead of `FILL:`.
+4. **FILL audit** — `grep -r 'FILL:' templates/` must return only required migration-work markers (`rules/`, `SKILL.md.template`, `routing.yaml`). Empty seed logs and advanced opt-in sections use `OPTIONAL:`, not `FILL:`.
 5. **Routing manifest audit** — run `bash templates/skill/scripts/sync-routing.sh templates/skill --check`; then instantiate a sample, fill `routing.yaml`, run `bash skills/<name>/scripts/sync-routing.sh <name> --check`; generated Always Read lists, summaries, and bootstraps must match.
 6. **Orphan audit** — run `(cd skills/<name> && bash scripts/audit-orphans.sh)` to surface `rules/` or `references/` files with zero inbound links. Add an activation pointer or delete the file; read it before deleting.
 7. **Homogeneity spot-check** — run Quick Start against two toy projects of very different types (Go CLI + Next.js site) and `diff -r` the output. Skeleton files should be near-identical; `rules/`, `gotchas.md`, `routing.yaml`, `SKILL.md` Always Read + Common Tasks must **not** be identical. If they are, the template overreached.
-8. **Upstream check suite** — run `bash scripts/check-all.sh` from this upstream repo. At minimum it includes the upstream change-note gate: if downstream-facing upstream files changed, the same diff must update `UPSTREAM-CHANGES.md`; if there is no downstream refresh impact, record that explicitly there.
+8. **Upstream check suite** — run `bash scripts/check-all.sh` from this upstream repo. It instantiates a temporary downstream skill and runs its smoke test so scaffold internals stay black-boxed. It also includes the upstream change-note gate: if downstream-facing upstream files changed, the same diff must update `UPSTREAM-CHANGES.md`; if there is no downstream refresh impact, record that explicitly there.

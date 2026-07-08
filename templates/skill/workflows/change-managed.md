@@ -36,4 +36,4 @@ Use this for non-bug changes where partial edits can create drift: new features,
 - [ ] Targeted validation completed
 - [ ] Task Closure Protocol was run
 
-<!-- FILL: project-specific sync/drift commands, for example `bash scripts/sync-*.sh`, `bash scripts/check-*.sh`, codegen, formatters, or schema validators. Also declare the cheapest-sufficient validation path (e.g. hot-reload dev server instead of a full production build) and the conditions that escalate to the expensive one (release evidence, cross-module contract change, build-chain edits). -->
+<!-- OPTIONAL: project-specific sync/drift commands, for example `bash scripts/sync-*.sh`, `bash scripts/check-*.sh`, codegen, formatters, or schema validators. Also declare the cheapest-sufficient validation path (e.g. hot-reload dev server instead of a full production build) and the conditions that escalate to the expensive one (release evidence, cross-module contract change, build-chain edits). -->

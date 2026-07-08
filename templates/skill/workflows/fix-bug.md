@@ -97,4 +97,4 @@ Close with these five fields — the checklist above is the agent's gate; this i
 - **Blast radius** — callers / contracts / data compatibility / async effects, per Fix Impact Analysis
 - **Uncovered risk** — what was not verified and why; anything needing user sign-off
 
-<!-- FILL: add project-specific validation steps here — e.g. specific test suites to run, linters, smoke tests; declare the cheapest-sufficient verification path (e.g. hot-reload dev server) and what triggers escalation to a full build. -->
+<!-- OPTIONAL: add project-specific validation steps here — e.g. specific test suites to run, linters, smoke tests; declare the cheapest-sufficient verification path (e.g. hot-reload dev server) and what triggers escalation to a full build. -->

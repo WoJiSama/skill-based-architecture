@@ -233,7 +233,7 @@ Give the subagent a realistic migration or bug-fix task that *should* trigger th
 
 ### GREEN — Fold verbatim rationalizations into the table
 
-Open `skills/<name>/workflows/task-closure.md` § "Rationalizations to Reject" (or `templates/protocol-blocks/rationalizations-table.md` for the reusable version). Add a new row:
+Open `skills/<name>/workflows/task-closure.md` § "Rationalizations to Reject" (or `templates/skill/protocol-blocks/rationalizations-table.md` for the reusable version). Add a new row:
 
 | Rationalization (verbatim from subagent) | Reality (the rebuttal) |
 |---|---|

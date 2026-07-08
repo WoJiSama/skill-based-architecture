@@ -15,7 +15,7 @@
 | New/renamed workflow or reference file | `routing.yaml`, then run `scripts/sync-routing.sh` |
 | UI convention / host compatibility / overlay layering / z-index / styling behavior issue that future agents would guess wrong without docs | Update the relevant `rules/*.md` or `references/*.md`, and update `SKILL.md` summary if the pitfall should surface earlier |
 | Plan landed (`status: done`) with a load-bearing conclusion | Lift the conclusion: "must / must not do X" → `rules/<topic>.md`; "tried Y, Y is wrong" → `references/gotchas.md` or SKILL.md § Common Pitfalls. Set the plan's `distilled_to:` frontmatter to the files that received content. Pure-provenance conclusions stay in the plan archive only |
-| <!-- FILL: project-specific trigger → target file --> | <!-- FILL --> |
+| <!-- OPTIONAL: project-specific trigger → target file --> | <!-- OPTIONAL --> |
 
 Threshold: if this change would cause someone to guess wrong on a similar task without reading the docs, update. Otherwise skip.
 

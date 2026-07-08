@@ -72,7 +72,7 @@ This guide intentionally does not restate the protocol. When the protocol change
 
 For the protocol-level concepts (recording threshold, where to record, generalization rule, activation check, when not to record), see [`references/protocols.md`](references/protocols.md).
 
-Reusable reinforcement blocks live in [`templates/protocol-blocks/`](templates/protocol-blocks/) — drop them into workflows that need extra pressure against skipped closure (`reboot-check.md`, `rationalizations-table.md`, `red-flags-stop.md`, `ambiguous-request-gate.md`, `subagent-contract.md`).
+Reusable reinforcement blocks live in [`templates/skill/protocol-blocks/`](templates/skill/protocol-blocks/) and are copied inside each downstream skill — workflows link them without user-visible setup (`reboot-check.md`, `rationalizations-table.md`, `red-flags-stop.md`, `ambiguous-request-gate.md`, `subagent-contract.md`).
 
 ## Workflow Templates
 

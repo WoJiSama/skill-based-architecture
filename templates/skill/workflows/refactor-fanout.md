@@ -93,5 +93,5 @@ If Stage B finds inconsistencies → record which batch deviated, re-dispatch wi
 
 After all batches merge and Stage B passes: run the **Task Closure Protocol** from `workflows/task-closure.md` exactly once (not per batch). A multi-site refactor often produces one or two real lessons — about the old shape, the new shape, or the migration mechanic itself. Apply the recording threshold.
 
-<!-- FILL: project-specific Stage B commands (test runner, lint, type-check) -->
-<!-- FILL: project-specific Forbidden Zone defaults (e.g., migrations/, vendored deps) -->
+<!-- OPTIONAL: project-specific Stage B commands (test runner, lint, type-check) -->
+<!-- OPTIONAL: project-specific Forbidden Zone defaults (e.g., migrations/, vendored deps) -->

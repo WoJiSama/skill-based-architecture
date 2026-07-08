@@ -192,7 +192,7 @@ Agent scans the project structure, identifies "15+ business modules", produces a
 
 Agent reads SKILL.md, hits the pre-routing check: verb "重构" + "让结构更清晰" (vague verb + vague outcome "clearer" = both conditions satisfied). Agent **stops immediately** and asks: "改哪个具体模块 / 文件?'更清晰'是指分包更一致、函数更小、依赖更少、还是更易新人上手?" No scanning, no partial plan, no "here are 3 options". Only after the user specifies scope + outcome does the Agent route.
 
-**Mechanism:** Ambiguous Request Gate — `templates/protocol-blocks/ambiguous-request-gate.md`. The gate fires BEFORE the routing table as a Principle 1 pre-check, not AS a routing option (that was the v2 design that didn't hold — Haiku matched it as a task row and still proposed plans).
+**Mechanism:** Ambiguous Request Gate — `templates/skill/protocol-blocks/ambiguous-request-gate.md`. The gate fires BEFORE the routing table as a Principle 1 pre-check, not AS a routing option (that was the v2 design that didn't hold — Haiku matched it as a task row and still proposed plans).
 
 ### Lessons folded back upstream
 

@@ -170,7 +170,7 @@ If none of the above apply, **don't invoke Mode 2** — Mode 1 direct dispatch i
 
 **The four-phase procedure (Plan → Dispatch → Two-Stage Review → Merge/Reject) and its Degraded Mode live in [`subagent-orchestration.md`](subagent-orchestration.md).** Read it when the triggers above fire. The Iron Law, Parallelism Premise, Negative list, Interception Transparency Rule, and the Rationalizations / Red Flags below bind Mode 2 workers and their orchestrator too.
 
-**Coming from a plan?** If the work already has a [`plan-feature.md` § Task Breakdown](plan-feature.md), each task maps 1:1 onto a contract — lift Files / Consumes / Produces / Acceptance straight in, no re-derivation. Each worker ends with one **Return Status** word (`DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED`); the contract template and per-status routing live in [`../../protocol-blocks/subagent-contract.md`](../../protocol-blocks/subagent-contract.md) and `subagent-orchestration.md` Phase 4.
+**Coming from a plan?** If the work already has a [`plan-feature.md` § Task Breakdown](plan-feature.md), each task maps 1:1 onto a contract — lift Files / Consumes / Produces / Acceptance straight in, no re-derivation. Each worker ends with one **Return Status** word (`DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED`); the contract template and per-status routing live in [`../protocol-blocks/subagent-contract.md`](../protocol-blocks/subagent-contract.md) and `subagent-orchestration.md` Phase 4.
 
 ---
 

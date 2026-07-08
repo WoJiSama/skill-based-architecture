@@ -11,6 +11,6 @@ If you catch yourself thinking **any** of the following, stop and re-read the wo
 - "This is overhead, not work" — Task Closure *is* the task; anything that ships without it is half-done
 - "The protocol doesn't fit this case" — if true, fix the protocol in `update-rules.md`, don't bypass it silently
 
-<!-- FILL: add project-specific red flags captured from real pressure-test failures. Each should be a short phrase the agent thought before a skip. -->
+<!-- OPTIONAL: add project-specific red flags captured from real pressure-test failures. Each should be a short phrase the agent thought before a skip. -->
 
 **Rule of thumb:** red flags are not meant to shame the agent — they are circuit breakers. The moment one fires, run the full protocol, don't argue with it.

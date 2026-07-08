@@ -43,14 +43,22 @@ mv ".cursor/skills/{{NAME}}/SKILL.md.template" ".cursor/skills/{{NAME}}/SKILL.md
 mv ".cursor/skills/{{NAME}}" ".cursor/skills/$NAME"
 
 # 4) Substitute mechanical placeholders (macOS sed syntax; on Linux drop the '' after -i)
-find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
+find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .cursor \
   -type f \( -name '*.md' -o -name '*.mdc' \) \
   -exec sed -i '' \
     -e "s/{{NAME}}/$NAME/g" \
     -e "s/{{SUMMARY}}/$SUMMARY/g" \
     {} +
 
-# 5) (Optional) install hooks — router restore, workflow-state hints, behavior gate
+# 5) Record the upstream baseline so future "update from upstream" is automatic
+UPSTREAM_REF="$(git -C "$UPSTREAM" config --get remote.origin.url 2>/dev/null || printf '%s' "$UPSTREAM")"
+UPSTREAM_SHA="$(git -C "$UPSTREAM" rev-parse HEAD 2>/dev/null || true)"
+if [ -n "$UPSTREAM_SHA" ]; then
+  printf 'upstream: %s\nsynced_sha: %s\nsynced_date: %s\n' \
+    "$UPSTREAM_REF" "$UPSTREAM_SHA" "$(date +%F)" > "skills/$NAME/.upstream-sync"
+fi
+
+# 6) (Optional) install hooks — router restore, workflow-state hints, behavior gate
 # mkdir -p .claude/hooks
 # cp "$UPSTREAM/templates/hooks/session-start" .claude/hooks/session-start
 # cp "$UPSTREAM/templates/hooks/workflow-state" .claude/hooks/workflow-state
@@ -59,9 +67,9 @@ find "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .codex .cursor \
 # test -f .claude/settings.json || cp "$UPSTREAM/templates/hooks/hooks.json" .claude/settings.json
 # # If settings exists, merge the top-level "hooks" object instead.
 
-# 6) Done — scaffold equivalent to completing Phases 3–7 in one pass
+# 7) Done — scaffold equivalent to completing Phases 3–7 in one pass
 echo "✅ Scaffold created at skills/$NAME/"
-echo "Next: fill every <!-- FILL: --> marker with real project content, then run smoke-test.sh for Phase 8."
+echo "Next: ask the agent to profile the project, fill the remaining project-specific markers, and run smoke-test.sh for Phase 8."
 echo "If this step fails partway through, run: rm -rf skills/$NAME .cursor/skills/$NAME && rerun this script."
 ```
 
@@ -82,13 +90,13 @@ echo "If this step fails partway through, run: rm -rf skills/$NAME .cursor/skill
 | `{{NAME}}`, `{{SUMMARY}}` | Done by the `sed` pass in Step 1 |
 | `<!-- FILL: … -->` | Requires judgment — you must read each marker and write real project content |
 
-Run this to list every pending FILL:
+Agent-facing check for pending project-specific content:
 
 ```bash
 grep -rn 'FILL:' "skills/$NAME" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .cursor
 ```
 
-Every hit is mandatory. A skill with unfilled FILL markers will silently fail to activate (agents read generic trigger phrases and never match user intent).
+Every hit is mandatory for the agent before shipping the skill. A user should not have to interpret these markers; they are migration work items.
 
 Always Read lists, Common Tasks, and shell bootstraps are generated from `skills/$NAME/routing.yaml`. Edit that manifest, then run:
 

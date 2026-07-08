@@ -7,6 +7,11 @@
 # This manifest is itself vendor-class: upstream's copy wins on sync.
 vendor:
   - sync-manifest.yaml
+  - protocol-blocks/ambiguous-request-gate.md
+  - protocol-blocks/rationalizations-table.md
+  - protocol-blocks/reboot-check.md
+  - protocol-blocks/red-flags-stop.md
+  - protocol-blocks/subagent-contract.md
   - scripts/_parse_conformance.py
   - scripts/audit-orphans.sh
   - scripts/check-cross-references.sh

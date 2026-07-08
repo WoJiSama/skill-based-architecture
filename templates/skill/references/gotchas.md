@@ -54,4 +54,4 @@ contexts, merge into ONE entry with both contexts listed under Symptom.
 ═════════════════════════════════════════════════════════════════════════
 -->
 
-<!-- FILL: this file starts empty. Entries grow via After-Action Review. Do NOT pre-populate. -->
+<!-- OPTIONAL: this file starts empty. Entries grow via After-Action Review. Do NOT pre-populate. -->

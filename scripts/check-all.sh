@@ -14,6 +14,8 @@ Runs the self-hosting upstream maintenance checks used before commit/push:
   - upstream change-note guard
   - upstream supersedes refs check
   - template routing manifest check
+  - template SessionStart hook runtime contract
+  - temporary downstream scaffold smoke test
   - self-hosting shells + activation check
   - whitespace diff check
   - growth health report
@@ -61,6 +63,51 @@ run() {
   "$@"
 }
 
+check_downstream_scaffold() {
+  local tmp name summary upstream_ref upstream_sha status
+  tmp="$(mktemp -d)"
+  name="sample-skill"
+  summary="Sample downstream scaffold for upstream regression checks"
+  upstream_ref="$(git -C "$ROOT" config --get remote.origin.url 2>/dev/null || printf '%s' "$ROOT")"
+  upstream_sha="$(git -C "$ROOT" rev-parse HEAD)"
+
+  set +e
+  (
+    set -euo pipefail
+    cd "$tmp"
+    mkdir -p "skills/$name"
+    cp -R "$ROOT/templates/skill/." "skills/$name/"
+    mv "skills/$name/SKILL.md.template" "skills/$name/SKILL.md"
+    cp -R "$ROOT/templates/shells/." .
+    mv ".cursor/skills/{{NAME}}/SKILL.md.template" ".cursor/skills/{{NAME}}/SKILL.md"
+    mv ".cursor/skills/{{NAME}}" ".cursor/skills/$name"
+
+    find "skills/$name" AGENTS.md CLAUDE.md CODEX.md GEMINI.md .cursor \
+      -type f \( -name '*.md' -o -name '*.mdc' -o -name '*.yaml' \) \
+      -exec sed -i.bak \
+        -e "s/{{NAME}}/$name/g" \
+        -e "s/{{SUMMARY}}/$summary/g" \
+        -e "s/<trigger phrase 1>/fix sample bug/g" \
+        -e "s/<trigger phrase 2>/plan sample feature/g" \
+        -e "s/<trigger phrase 3 \\/ 中文触发短语>/更新示例技能/g" \
+        -e "s/<condition 1>/working on the sample project/g" \
+        -e "s/<condition 2>/maintaining sample project rules/g" \
+        -e "s/FILL:/FILLED:/g" \
+        {} +
+    find . -name '*.bak' -type f -delete
+
+    printf 'upstream: %s\nsynced_sha: %s\nsynced_date: %s\n' \
+      "$upstream_ref" "$upstream_sha" "$(date +%F)" > "skills/$name/.upstream-sync"
+
+    bash "skills/$name/scripts/sync-routing.sh" "$name" --check
+    bash "skills/$name/scripts/smoke-test.sh" "$name" --phase 8
+  )
+  status=$?
+  set -e
+  rm -rf "$tmp"
+  return "$status"
+}
+
 if [[ "$MODE" == "staged" ]]; then
   run "upstream change-note guard (staged)" bash scripts/check-upstream-changes.sh --base "$BASE" --staged
   run "whitespace diff check (staged)" git diff --cached --check
@@ -72,6 +119,8 @@ fi
 run "upstream supersedes refs check" bash scripts/check-upstream-supersedes.sh
 
 run "template routing manifest check" bash templates/skill/scripts/sync-routing.sh templates/skill --check
+run "template SessionStart hook runtime contract" bash scripts/check-template-hooks.sh
+run "temporary downstream scaffold smoke test" check_downstream_scaffold
 run "self-hosting shells + activation check" bash scripts/check-self-shells.sh
 run "growth health report" bash templates/skill/scripts/check-growth-health.sh .
 run "self-hosting scenario checks" bash scripts/check-self-scenarios.sh

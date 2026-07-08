@@ -44,4 +44,4 @@ This axis is **independent from but paired with** the design axis (code correctn
 
 Opt-in; kept out of `conformance.yaml`. Orthogonal to **blast-radius buckets** (path → closure rigor) and the **subagent negative list** (operation → delegation) — cross-reference, never merge; three axes. The project's concrete 🔴/🟡 operations, with **scope** (target) and **enforcement-layer** columns, live in a single flesh table in the code repo.
 
-<!-- FILL: the project's operation table (code_root, one file). Columns: operation | tier | scope (only when target = prod/shared) | enforcement (now→target, 🔴 only) | blast/why. 🟢 = default (not listed). Move operation-🔴 HERE, not into the design-prohibitions file. -->
+<!-- OPTIONAL: the project's operation table (code_root, one file). Columns: operation | tier | scope (only when target = prod/shared) | enforcement (now→target, 🔴 only) | blast/why. 🟢 = default (not listed). Move operation-🔴 HERE, not into the design-prohibitions file. -->

@@ -34,7 +34,6 @@ These files apply to every task. Read them first:
 
 - **Re-match the route every task** (scan Common Tasks / `routing.yaml`). Never assume the new task uses the last route.
 - **Re-read the route's files only when the route changed, or context was compacted** (a fresh SKILL.md injection from your SessionStart hook is the signal context was dropped). Otherwise the files you read last task are still in context — re-reading them every task is wasted work and the main per-task tax this skill exists to avoid.
-- **Background** (Core Principles, Known Gotchas, Project Boundaries) is read once at session start and does not change between tasks; re-read it only after a compaction/clear.
 - **If you cannot tell whether context was compacted, re-read** — partial memory is worse than no memory.
 - Before final validation/commit after a long or interrupted task, run `protocol-blocks/reboot-check.md`: restate the original user constraints and chosen route; if you cannot, re-read the request, the route's files, and the workflow before proceeding.
 
@@ -66,7 +65,7 @@ Each entry lists the exact files to read — don't read files not listed for you
 
 ## Known Gotchas
 
-<!-- FILL: brief, scannable list of the most costly pitfalls. Full details in `references/gotchas.md`. Start empty; grows via AAR. -->
+<!-- OPTIONAL: brief, scannable list of the most costly pitfalls. Full details in `references/gotchas.md`. Start empty; grows via AAR. -->
 - <!-- e.g. Controller X needs Y registered before Z — see `references/gotchas.md#x-registration` -->
 
 ## Core Principles

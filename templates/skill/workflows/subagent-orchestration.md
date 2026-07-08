@@ -31,7 +31,7 @@ For each contract:
 
 **Dispatch discipline:**
 
-- Require a **Return Status**: the worker must end its report with exactly one of `DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED` (defined in [`../../protocol-blocks/subagent-contract.md`](../../protocol-blocks/subagent-contract.md) § Worker Return Status). Phase 4 routes on this word.
+- Require a **Return Status**: the worker must end its report with exactly one of `DONE` / `DONE_WITH_CONCERNS` / `NEEDS_CONTEXT` / `BLOCKED` (defined in [`../protocol-blocks/subagent-contract.md`](../protocol-blocks/subagent-contract.md) § Worker Return Status). Phase 4 routes on this word.
 - Never stream mid-task "clarifications" into the worker's context. If the contract was wrong, cancel and rewrite the contract.
 - Never let a worker spawn its own workers (no recursion). Flatten the plan instead.
 - Never ask a worker to review its own output.
@@ -69,7 +69,7 @@ If Stage B finds issues but Stage A passed → record the issues, then decide: r
 - `DONE_WITH_CONCERNS` → read the flagged concern, then Stage A + B; queue a follow-up contract if the concern is real.
 - `NEEDS_CONTEXT` → do not review; widen the contract's `Inputs` and re-dispatch.
 - `BLOCKED` → resolve the obstruction (surface to the user per the Interception Transparency Rule if you cannot), then re-dispatch.
-- *No status word at all* → treat as `NEEDS_CONTEXT` (per [`../../protocol-blocks/subagent-contract.md`](../../protocol-blocks/subagent-contract.md) rule 6): clarify and re-dispatch.
+- *No status word at all* → treat as `NEEDS_CONTEXT` (per [`../protocol-blocks/subagent-contract.md`](../protocol-blocks/subagent-contract.md) rule 6): clarify and re-dispatch.
 
 **Mechanics:**
 
@@ -90,5 +90,5 @@ When the harness has no subagent primitive and you're invoking **Mode 2** (Curso
 
 You lose process isolation but keep contract discipline and two-stage review. That alone catches most drive-by defects.
 
-<!-- FILL: project-specific Phase 3 verification commands (test runner, lint, type-check) -->
-<!-- FILL: project-specific Forbidden Zone defaults (e.g., migrations/, vendored deps) -->
+<!-- OPTIONAL: project-specific Phase 3 verification commands (test runner, lint, type-check) -->
+<!-- OPTIONAL: project-specific Forbidden Zone defaults (e.g., migrations/, vendored deps) -->

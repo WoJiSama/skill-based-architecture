@@ -17,6 +17,6 @@ Drop this block into any project workflow that enforces Task Closure Protocol, A
 | "This agent is unstable — the model must not be smart enough" | Before blaming the model, run the **four-primitive audit**: does the system have (1) **state** tracking, (2) node-level **validation**, (3) **orchestration** with checkpoints, (4) **recovery** paths? Three "no"s means it is a harness problem, not a model problem — prompt re-tuning cannot patch a missing harness |
 | "It crashed — I'll just rerun the migration from the start" | Re-running amplifies pollution. A half-completed Phase 5 leaves `{{NAME}}` stubs that a Phase 3 rerun cannot see; Phase 8 then passes on a broken tree. Either **detect-and-resume** via `.migration-state`, or `rm -rf` the skill tree first. No in-between |
 
-<!-- FILL: add project-specific rows captured from Phase 9 pressure tests. Every row must be a verbatim rationalization the agent produced, not a hypothetical. -->
+<!-- OPTIONAL: add project-specific rows captured from Phase 9 pressure tests. Every row must be a verbatim rationalization the agent produced, not a hypothetical. -->
 
 **How to use this table:** When the agent catches itself thinking any phrase in the left column, it must stop and re-read the right column. Do not negotiate. The table grows by pressure-testing, not by imagination.

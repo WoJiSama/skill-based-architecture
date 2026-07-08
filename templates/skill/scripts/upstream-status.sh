@@ -44,6 +44,7 @@ other_pointers() {
 }
 
 SYNC_FILE="$SKILL_ROOT/.upstream-sync"
+MISSING_SYNC=0
 if [[ ! -f "$SYNC_FILE" ]]; then
   OTHERS="$(other_pointers)"
   if [[ -n "$OTHERS" ]]; then
@@ -52,29 +53,32 @@ if [[ ! -f "$SYNC_FILE" ]]; then
     echo "  The live skill line is probably there — do not port into this stale copy."
     exit 2
   fi
-  echo "No sync point: $SYNC_FILE not found."
-  echo "Run workflows/update-upstream.md once — its final step creates this file."
-  exit 2
+  MISSING_SYNC=1
 fi
 
 field() { grep -E "^$1:[[:space:]]*" "$SYNC_FILE" 2>/dev/null | head -1 | sed -E "s/^$1:[[:space:]]*//"; }
 UPSTREAM="${UPSTREAM_OVERRIDE:-$(field upstream)}"
 SYNCED_SHA="$(field synced_sha)"
+NO_BASE=0
 
-if [[ -z "$UPSTREAM" || -z "$SYNCED_SHA" || "$SYNCED_SHA" == *"<"* ]]; then
-  echo "FAIL: $SYNC_FILE needs a real 'upstream:' URL and 'synced_sha:' (run update-upstream.md to set them)." >&2
-  echo "  current: upstream='$UPSTREAM' synced_sha='$SYNCED_SHA'" >&2
+if [[ -z "$UPSTREAM" ]]; then
+  echo "FAIL: no upstream URL found. Pass --upstream <repo-url-or-path> or set it in $SYNC_FILE." >&2
   exit 2
 fi
+if [[ "$MISSING_SYNC" -eq 1 || -z "$SYNCED_SHA" || "$SYNCED_SHA" == *"<"* ]]; then
+  NO_BASE=1
+fi
 
-while IFS= read -r p; do
-  [[ -z "$p" ]] && continue
-  osha="$(grep -E '^synced_sha:' "$p" 2>/dev/null | head -1 | sed -E 's/^synced_sha:[[:space:]]*//')"
-  if [[ -n "$osha" && "$osha" != "$SYNCED_SHA" ]]; then
-    echo "⚠ Sibling checkout has a different sync point: $p (${osha:0:7} vs here ${SYNCED_SHA:0:7})."
-    echo "  Verify THIS checkout is the live skill-maintenance line before porting."
-  fi
-done <<< "$(other_pointers)"
+if [[ "$NO_BASE" -eq 0 ]]; then
+  while IFS= read -r p; do
+    [[ -z "$p" ]] && continue
+    osha="$(grep -E '^synced_sha:' "$p" 2>/dev/null | head -1 | sed -E 's/^synced_sha:[[:space:]]*//')"
+    if [[ -n "$osha" && "$osha" != "$SYNCED_SHA" ]]; then
+      echo "⚠ Sibling checkout has a different sync point: $p (${osha:0:7} vs here ${SYNCED_SHA:0:7})."
+      echo "  Verify THIS checkout is the live skill-maintenance line before porting."
+    fi
+  done <<< "$(other_pointers)"
+fi
 
 # Get the upstream repo: reuse a local clone if given, else clone to a temp dir.
 CLEAN=""; trap '[[ -n "$CLEAN" ]] && rm -rf "$CLEAN"' EXIT
@@ -88,6 +92,13 @@ fi
 
 HEAD_SHA="$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)"
 [[ -z "$HEAD_SHA" ]] && { echo "FAIL: no upstream HEAD found." >&2; exit 2; }
+
+if [[ "$NO_BASE" -eq 1 ]]; then
+  echo "⚠ No usable sync point in $SYNC_FILE."
+  echo "  Showing the 8 most recent entries for a first refresh; update-upstream.md will set synced_sha after validation."
+  git -C "$REPO" show "HEAD:UPSTREAM-CHANGES.md" 2>/dev/null | grep -E '^## [0-9]{4}-' | head -8 | sed 's/^/  /'
+  exit 1
+fi
 
 if [[ "$SYNCED_SHA" == "$HEAD_SHA" ]]; then
   echo "✓ Up to date with upstream ($HEAD_SHA)."; exit 0

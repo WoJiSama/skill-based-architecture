@@ -51,4 +51,4 @@ Push back by **correcting, not defending**: state the evidence, skip the apology
 - [ ] Changes re-verified with fresh evidence before claiming done
 - [ ] Task Closure Protocol run if the changes altered behavior
 
-<!-- FILL: project-specific review surfaces — e.g. how PR/MR inline replies are posted (gh api / glab), required reviewers, CI that must re-pass after review changes. -->
+<!-- OPTIONAL: project-specific review surfaces — e.g. how PR/MR inline replies are posted (gh api / glab), required reviewers, CI that must re-pass after review changes. -->

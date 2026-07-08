@@ -12,6 +12,7 @@ Each check covers a different drift dimension. The columns are intentional: a ch
 |---|---|---|
 | Routing source-of-truth (downstream) | Did SKILL.md / shells drift from `routing.yaml`? | `sync-routing.sh --check` |
 | Shell + activation source-of-truth (self-hosting) | Did this repo's root shells drift from generated content, or `skill.yaml` description drift from `SKILL.md`? | `check-self-shells.sh` |
+| Template hook runtime contract | Does `templates/hooks/session-start` emit the right per-harness JSON shape and inject at most one router? | `check-template-hooks.sh` *(upstream-only)* |
 | Routing trigger coverage | Do `trigger_examples` actually route to the intended workflow? | `check-self-scenarios.sh` (upstream-only) |
 | Structural budgets + content | SKILL.md dual budget (desc ≤ 25 + body ≤ 90), FILL/placeholder residue, broken links, SessionStart-hook presence, description keyword-stuffing, and content conformance (§9, when `conformance.yaml` exists) | `smoke-test.sh` |
 | Growth pressure | Are files growing past evaluation thresholds? | `check-growth-health.sh` *(report-only)* |
@@ -27,6 +28,7 @@ Each check covers a different drift dimension. The columns are intentional: a ch
 | Script | Path | Audience |
 |---|---|---|
 | `check-all.sh` | `scripts/` | Upstream maintainer — orchestrator that runs the full gate before commit/push |
+| `check-template-hooks.sh` | `scripts/` | Upstream-only (validates hook template runtime output without installing hooks) |
 | `check-self-shells.sh` | `scripts/` | Upstream-only (calls `sync-self-shells.sh --check` + validates SKILL.md/skill.yaml description identity) |
 | `check-self-scenarios.sh` | `scripts/` | Upstream-only (self-hosting trigger routing) |
 | `check-upstream-changes.sh` | `scripts/` | Upstream-only (UPSTREAM-CHANGES.md guard) |

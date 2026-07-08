@@ -10,7 +10,7 @@ The downstream template embeds the upstream source:
 https://github.com/WoJiSama/skill-based-architecture.git
 ```
 
-No lockfile is required. The agent clones the latest upstream into a temp directory, compares local files itself, patches in useful upstream changes, and validates the result.
+No user-managed lockfile is required. The scaffold records an internal `.upstream-sync` pointer so the agent can clone the latest upstream, compare local files itself, patch useful upstream changes, and validate the result.
 
 The upstream repo also carries `UPSTREAM-CHANGES.md`. During a refresh, the agent should read it from the cloned upstream repo to identify likely changed areas and intended downstream handling. The file is only a map: actual upstream/downstream diffs remain the source of truth, and downstream projects should not copy, create, or maintain their own version.
 

@@ -45,4 +45,4 @@ If any answer blocks the change, stop and propose the correct destination instea
 - [ ] Temporary instantiated sample passes smoke or equivalent validation
 - [ ] Task Closure Protocol was run
 
-<!-- FILL: project-specific sample-instantiation command and validation command. -->
+<!-- OPTIONAL: project-specific sample-instantiation command and validation command. -->
