@@ -48,6 +48,14 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-07-15 - Restore harness-aware subagent fallback
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `templates/skill/workflows/subagent-driven.md` — restores the decision-time fallback from the previously published market snapshot: when Codex or another harness has no proactive subagent authorization, Mode 1 continues inline instead of stalling on its dispatch Iron Law. The fallback is explicitly separated from an unexpected execution-time tool denial, which still follows Interception Transparency.
+- Why it matters: market version 1.12 commit `2301541` captured a real Codex harness constraint, but the fallback was lost while later upstream work added the Parallelism Premise and worker Return Status vocabulary. Without the fallback, a downstream can read "must dispatch" and "dispatch is unauthorized" as a blocking conflict even though inline execution is valid for that harness.
+- Downstream refresh guidance: port the Harness Compatibility row and the inline capability fallback if the downstream can run under per-turn subagent authorization. Preserve local dispatch primitives, the current Parallelism Premise, Return Status handling, and execution-time Interception Transparency; do not replace the whole workflow with the older market copy.
+
 ## 2026-07-09 - Minimal sufficient context route intake
 
 - Upstream commit: pending in this working tree

@@ -14,10 +14,12 @@
 | Harness | Mode 1 + Mode 2 |
 |---|---|
 | Claude Code | Full — real subagent dispatch via `Task` tool |
-| Codex (with `developer_instructions` in `~/.codex/config.toml`) | Full — `spawn_agent` works directly |
+| Codex | Full with proactive authorization (`developer_instructions` below); without it, Mode 1 auto-dispatch is unavailable and uses the inline fallback below |
 | Cursor / Gemini / Copilot | Mode 2 degraded — see § "Degraded Mode" at end of file |
 
 **Codex setup**: add `developer_instructions = """\nSubagents may be used proactively. Do not require per-turn user authorization for subagent use.\n"""` to `~/.codex/config.toml` to enable Mode 1 direct dispatch.
+
+> **Never block on unavailable proactive dispatch.** When the current harness requires explicit user authorization and none has been given, Mode 1's auto-dispatch degrades to the **main agent doing the step inline**. Do not stall, repeatedly request authorization, or report a workflow conflict merely to satisfy the Iron Law; continue within the harness's current capability. This is a decision-time capability fallback, not a silent response to an attempted tool denial — an unexpected execution-time denial still follows the Interception Transparency Rule below.
 
 ---
 
