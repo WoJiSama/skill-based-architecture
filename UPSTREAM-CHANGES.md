@@ -48,6 +48,17 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-07-22 - Semantic completeness before minimality
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `templates/skill/rules/agent-behavior.md` replaces Simplicity First with **Semantic Completeness Before Minimality**: Product Development is the default; agents trace invariant, ownership/provenance, producer-to-consumer call chain, and all full/incremental/read/write paths before choosing repair depth. Minimality becomes a tie-breaker among semantically complete solutions.
+  - `templates/skill/workflows/fix-bug.md` adds a Repair-depth gate between root-cause discovery and implementation; `change-managed.md` adds the same ownership and semantic-fan-out ordering for features/refactors.
+  - Operational Stabilization is now an explicit exception for production incidents, hotfix/availability containment, stop-the-bleeding work, or frozen scope. Containment must be reversible and report that structural repair remains unresolved.
+  - Conformance and self-hosting scenarios protect the default mode, invariant-owning boundary, cross-path inspection, and minimality ordering.
+- Why it matters: an availability-first default can produce a locally usable patch while leaving the real invariant broken, such as mutating a collection without tracing its immutable owner or updating one incremental path without the shared filter used by the full path. Dependency count measures repair risk; it must not silently redefine correctness.
+- Downstream refresh guidance: replace or reconcile existing Simplicity First wording rather than appending another Always Read principle. Port the Repair-depth gate into bug and managed-change workflows, preserve stricter project-specific production controls, then validate both an ownership/mutation case and a full-vs-incremental invariant case.
+
 ## 2026-07-21 - Task Anchor and harness-native execution plans
 
 - Upstream commit: pending in this working tree

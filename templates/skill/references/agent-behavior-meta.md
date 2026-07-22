@@ -4,7 +4,7 @@ Read this when **editing** `rules/agent-behavior.md` (e.g. on the `update-rules`
 
 ## Origin
 
-Principles 1–4 condensed from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) (Andrej Karpathy's observations on LLM coding pitfalls, 2025); principle 5 combines [OthmanAdi/planning-with-files](https://github.com/OthmanAdi/planning-with-files) with this project's Task Anchor, harness-native Plan, scope, permission, evidence, and Goodhart boundaries; principle 6 comes from the recorded spawn-then-wait failure in [`behavior-failures.md`](behavior-failures.md); principle 7 comes from this project's response-discipline rule.
+Principles 1, 3, and 4 condensed from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) (Andrej Karpathy's observations on LLM coding pitfalls, 2025). Principle 2 replaces Simplicity First after repeated surface-patch failures showed that minimal-disturbance defaults can preserve availability while violating ownership and cross-path invariants; minimality now applies only after semantic completeness, with an explicit Operational Stabilization exception. Principle 5 combines [OthmanAdi/planning-with-files](https://github.com/OthmanAdi/planning-with-files) with this project's Task Anchor, harness-native Plan, scope, permission, evidence, and Goodhart boundaries; principle 6 comes from the recorded spawn-then-wait failure in [`behavior-failures.md`](behavior-failures.md); principle 7 comes from this project's response-discipline rule.
 
 ## Admission Threshold for New Principles
 
@@ -15,6 +15,7 @@ Before adding a new principle to `rules/agent-behavior.md`, read the admission t
 These defaults are being activated (not just stored) if diffs and sessions show:
 
 - **Fewer drive-by changes** — every changed line traces to the request; no style churn, renaming, or dead-code deletion that wasn't asked for.
+- **Invariant-complete repairs** — ownership and producer-to-consumer paths are traced before repair depth is chosen; full and incremental paths preserve the same filter/contract, and immutable state is changed at its owning boundary instead of mutated by a downstream consumer.
 - **Clarifying questions come before code, not after mistakes** — ambiguity is surfaced at the start of a turn, not during cleanup two iterations in.
 - **Shorter first drafts** — simple implementations that grow only when real pressure forces them; no speculative flags, strategy classes, or config for one-use code.
 - **Proportional, repeated goal anchoring without Simple-task ceremony** — Managed tasks establish Goal and Done When, use natural-language alignment by default, avoid duplicating a visible Native Plan, and reserve a structured task brief for complex or scope-sensitive work; compact Anchor Checkpoints still run internally before each main step and after correction/failure/interruption; no planning files are created.

@@ -24,7 +24,7 @@ If only one condition holds (e.g. "refactor the `auth` module for readability" �
 
 - **"Let me scan the project first, then ask"** — the scan itself is unrequested work and primes a biased answer
 - **"Here are 3 possible directions, pick one"** — still offers plans; just ask what the user meant
-- **"Let me give a rough plan so you can steer"** — starts speculative work in violation of Principle 2 (Simplicity First)
+- **"Let me give a rough plan so you can steer"** — starts speculative work before the ambiguity gate and Principle 1 are satisfied
 - **"This looks big, I'll propose phases"** — authority transfer; you are guessing scope
 - **"I'll use the planner agent to generate a detailed plan"** — delegates the gate violation to another agent
 

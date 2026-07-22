@@ -186,6 +186,12 @@ assert_not_contains "$task_execution" "cross-tool state sync" "task execution no
 assert_not_contains "$task_execution" "Plan: <concise task-specific steps" "task execution no fixed chat block"
 
 agent_behavior="$(<templates/skill/rules/agent-behavior.md)"
+assert_contains "$agent_behavior" "## 2. Semantic Completeness Before Minimality" "always-read semantic completeness precedence"
+assert_contains "$agent_behavior" "Default to **Product Development**" "always-read development default"
+assert_contains "$agent_behavior" "state ownership/provenance" "always-read ownership trace"
+assert_contains "$agent_behavior" "full/incremental/read/write path" "always-read all-path trace"
+assert_contains "$agent_behavior" "Dependency count is risk evidence, not a veto" "always-read dependency-count boundary"
+assert_contains "$agent_behavior" "Enter **Operational Stabilization** only when" "always-read operational exception"
 assert_contains "$agent_behavior" "One clear action with one direct check proceeds without planning ceremony" "always-read Simple direct path"
 assert_contains "$agent_behavior" "task-execution.md" "always-read Task Execution activation"
 assert_contains "$agent_behavior" "present only useful alignment" "always-read proportional Anchor presentation"
@@ -225,6 +231,15 @@ assert_contains "$fix_bug" "IMPLEMENTATION_BUG" "fix-bug implementation classifi
 assert_contains "$fix_bug" "DESIGN_CHANGE" "fix-bug design-change classification"
 assert_contains "$fix_bug" "INSUFFICIENT_BUSINESS_CONTEXT" "fix-bug insufficient-context classification"
 assert_contains "$fix_bug" "changes a business type, flow direction, state machine, or core invariant" "fix-bug plan escalation red line"
+assert_contains "$fix_bug" "Repair-depth gate" "fix-bug repair-depth gate"
+assert_contains "$fix_bug" "invariant-owning boundary" "fix-bug owning-boundary repair"
+assert_contains "$fix_bug" "smallest semantically complete repair" "fix-bug minimality tie-breaker"
+assert_contains "$fix_bug" "full/incremental/read/write path" "fix-bug all-path inspection"
+
+change_managed="$(<templates/skill/workflows/change-managed.md)"
+assert_contains "$change_managed" "Map semantic fan-out" "change-managed invariant fan-out"
+assert_contains "$change_managed" "full/incremental/read/write path" "change-managed all-path map"
+assert_contains "$change_managed" "smallest semantically complete change" "change-managed minimality tie-breaker"
 
 assert_contains "$plan_feature" "business-model impact: unchanged / proposed change / unknown" "plan business-model impact"
 assert_contains "$plan_feature" "update the formal model only when code, tests, and behavior land" "plan current-baseline contract"

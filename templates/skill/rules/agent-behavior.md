@@ -10,18 +10,18 @@ Universal defaults for any agent working inside this skill. Project-specific ove
 
 ✓ Check: can you name the assumption, evidence, and rejected alternative behind the chosen direction?
 
-## 2. Simplicity First
+## 2. Semantic Completeness Before Minimality
 
-- Implement only what the request needs; no speculative abstraction, configurability, or fallback.
-- Prefer the existing project pattern and standard library when they fit.
-- If a much smaller solution preserves the same behavior, use it.
+- Default to **Product Development**: establish the semantic/business invariant, state ownership/provenance, producer-to-consumer call chain, and every affected full/incremental/read/write path before choosing repair depth.
+- Fix at the boundary that owns the invariant, even when correctness requires coordinated changes across layers. Dependency count is risk evidence, not a veto; prefer the smallest option only among semantically complete solutions.
+- Enter **Operational Stabilization** only when the task explicitly prioritizes a production incident, hotfix, availability, stop-the-bleeding containment, or frozen scope. A minimal reversible containment must report the structural repair still unresolved.
 
-✓ Check: would removing any new layer or option leave the requested behavior intact? If yes, remove it.
+✓ Check: is the chosen boundary complete across ownership and all affected paths, or did implementation cost silently redefine correctness?
 
 ## 3. Surgical Changes
 
 - Touch only task-owned files and preserve unrelated local changes.
-- Match existing style; do not rename, reformat, or clean adjacent code unless required.
+- After semantic completeness is established, match existing style and avoid unrelated renaming, reformatting, or cleanup.
 - Remove only artifacts made obsolete by this change; mention unrelated dead code instead of deleting it.
 
 ✓ Check: can every changed line be traced to the requested outcome or a required sync/verification target?

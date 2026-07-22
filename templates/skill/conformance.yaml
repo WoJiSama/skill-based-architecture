@@ -80,6 +80,10 @@ required_sections:
     must_contain:
       - "## Mandatory Pre-Step"
       - "Design-or-defect gate"
+      - "Repair-depth gate"
+      - "invariant-owning boundary"
+      - "smallest semantically complete repair"
+      - "full/incremental/read/write path"
       - "Task Closure Protocol"
     must_not_contain:
       - "Pervasive reverse-question — default habit"
@@ -87,6 +91,11 @@ required_sections:
 
   - file: rules/agent-behavior.md
     must_contain:
+      - "## 2. Semantic Completeness Before Minimality"
+      - "Default to **Product Development**"
+      - "state ownership/provenance"
+      - "Dependency count is risk evidence, not a veto"
+      - "Enter **Operational Stabilization** only when"
       - "## 4. Minimal Context, Sufficient Evidence"
       - "explicit boundaries/non-goals"
       - "One clear action with one direct check proceeds without planning ceremony"
@@ -136,6 +145,10 @@ required_sections:
       - "conformance.yaml"
 
   - file: workflows/change-managed.md
+    must_contain:
+      - "Map semantic fan-out"
+      - "full/incremental/read/write path"
+      - "smallest semantically complete change"
     must_not_contain:
       - "Pervasive reverse-question — default habit"
       - "directly `spawn_agent`"

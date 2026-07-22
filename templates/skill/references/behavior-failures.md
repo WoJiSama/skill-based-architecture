@@ -1,6 +1,6 @@
 # Behavior Failures
 
-Real incidents where an Agent violated one of the behavior defaults in [`rules/agent-behavior.md`](../rules/agent-behavior.md) — Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution, Three-Strike Stop Condition, Response Discipline, or Delegate Only for Net Benefit. Complements `gotchas.md` (which records *technical* traps); this file records *agent-behavior* traps.
+Real incidents where an Agent violated one of the behavior defaults in [`rules/agent-behavior.md`](../rules/agent-behavior.md) — Think Before Coding, Semantic Completeness Before Minimality, Surgical Changes, Goal-Driven Execution, Three-Strike Stop Condition, Response Discipline, or Delegate Only for Net Benefit. Complements `gotchas.md` (which records *technical* traps); this file records *agent-behavior* traps.
 
 <!--
 Format per entry:
