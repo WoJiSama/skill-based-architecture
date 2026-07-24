@@ -22,9 +22,21 @@
 
 <p align="center"><strong>English</strong> | <a href="README.zh-CN.md">中文</a></p>
 
-A **lifecycle framework for AI-agent rule systems.** Turns scattered prompt documents (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, README rules) into routable, verifiable, updatable engineering assets under `skills/<name>/`.
+**Skill-Based Architecture (SBA) is a Skill, not an Agent operating system or a project-management platform.** It turns real project rules, business meaning, ownership, workflows, and validation contracts into a routable project skill, so an ordinary team member can clone a repository and let the Agent work reliably without first learning how to design Skills.
 
-It focuses on the rule system itself: structure, routing, workflows, validation, after-action learning, and upstream/downstream updates. It does **not** ship technology-specific rules — those belong in your downstream project skill.
+SBA absorbs the authoring and engineering complexity that should not belong to ordinary users. It helps the current Agent use the Plan, Subagent, and tool capabilities already provided by its harness, and degrades gracefully when a capability is unavailable. It does not add a resident service, task database, universal state machine, or independent execution runtime. Technology-specific facts still belong to the downstream project skill.
+
+## What success looks like
+
+SBA is not trying to make the Agent busier. It should make the Agent better at three things:
+
+1. **See enough of the real situation.** Find the source of truth, owner, business invariant, producer-to-consumer path, contradictions, and evidence boundary without loading the whole repository.
+2. **Judge without a standard answer.** Make trade-offs under incomplete information, state uncertainty honestly, and revisit the approach, acceptance criteria, boundaries, and Task Anchor when new evidence overturns a load-bearing conclusion.
+3. **Organize reliable execution.** Turn intent into reviewable roles, inputs, outputs, forbidden zones, and validation contracts; delegate only for net benefit; and keep final synthesis and verification with the main Agent.
+
+The outcome is not more files, tests, or process. It is a result that can be reviewed: sources, boundaries, owners, fitted evidence, and stop conditions are clear. Validation effort follows risk; test count is not a proxy for evidence quality.
+
+Real leverage does not come from routing every action through one Agent. It comes from defining standards, judging risk, coordinating resources, and bringing out a result when information, resources, or requirements are incomplete.
 
 ## Install
 
@@ -116,36 +128,16 @@ The agent then copies the pre-built scaffold from [`templates/`](templates/) int
 
 Want a safe first run? Use [`examples/simple-repo/COPY-PASTE-INPUT.md`](examples/simple-repo/COPY-PASTE-INPUT.md) in hosted previews, or [`examples/simple-repo/`](examples/simple-repo/) as a local target project input. It is a deliberately tiny fake project with duplicated `AGENTS.md`, `CLAUDE.md`, Cursor rules, and README notes. Treat it as the most basic proof of routing/thin-shell behavior, not as a showcase of the full migration depth a real repo can produce.
 
-### 3. (Codex only) Manually request sub-agent / parallel work
-
-Several workflows in this meta-skill lean on sub-agent delegation and parallel agent fan-out (see [`templates/skill/workflows/subagent-driven.md`](templates/skill/workflows/subagent-driven.md) and [`templates/skill/workflows/refactor-fanout.md`](templates/skill/workflows/refactor-fanout.md)). In most harnesses the in-repo rules are enough — the agent decides on its own when to fan out.
-
-**Codex is the exception.** Its runtime imposes a tool-level rule on `spawn_agent`: it may only be invoked when the user **explicitly** asks for sub-agent, delegation, or parallel agent work. That tool-level rule outranks anything in this repo's `AGENTS.md` or skill files, so the fan-out patterns will **not** fire automatically — even though the workflow documents tell the agent to use them.
-
-If you're in Codex and want sub-agent work to actually happen — fan-out or anything else — you have to authorize it explicitly. Two equivalent patterns:
-
-**Per-task** — name the specific work you want delegated:
-
-> "Use a sub-agent to refactor the rule files."
-> "Spawn sub-agents to review each workflow file in parallel."
-> "请使用 sub-agent 来扫一遍 templates 目录。"
-
-**Session-wide** — grant blanket permission once at the start:
-
-> "In this session you may use sub-agents whenever the workflow calls for it."
-> "本次会话我允许你使用 sub-agent。"
-> "Feel free to delegate to sub-agents in this session."
-
-Either form satisfies the tool-level rule. Without one of them, Codex will silently skip the delegation step — even when the workflow documents tell the agent to use sub-agents.
+Advanced workflows can use the current harness's native Plan, Subagent, and tool capabilities when they are available. SBA degrades to a serial or inline workflow when they are not. Some harnesses require explicit user authorization before delegation; that is a tool permission boundary, not another system the project member must install or maintain.
 
 ## Key features
 
-- **Two-layer routing.** `SKILL.md` keeps a short generated **Always Read** list; **Common Tasks** routes the agent to extra files only when needed. `routing.yaml` is the editable source of truth in downstream projects.
-- **Thin shells with routing bootstrap.** Every entry file embeds a short bootstrap that points to `routing.yaml`. The route table is not duplicated across shells; natural-language-only instructions get lost during context summarization.
-- **Description as trigger condition.** Domain-level activation phrases in the user's actual language(s), not workflow keyword stuffing. Re-read aloud after edits — no script substitutes for hearing whether it sounds like a real user.
-- **Session Discipline + Task Anchor + Task Closure.** Re-match every new task; execute one clear action/check directly, otherwise establish Goal + Done When, present only useful alignment, use the harness-native Plan without duplicating it in chat, and run a compact Anchor Checkpoint before each main step; close only on fresh Goal-level evidence. The loop stays in the current Session and creates no planning files. See [the Task Anchor design](docs/task-anchor-native-plan.md).
-- **Self-maintenance.** Line-count signals trigger evaluation, not automatic action; split/merge procedures and freshness checks keep docs lean.
-- **Cross-harness.** Compatible with Cursor, Claude Code, Codex, Windsurf, Gemini, OpenCode, and AGENTS.md-based tools.
+- **Routed project truth.** `routing.yaml` selects one task workflow and only the extra domain context needed for the current decision. Business meaning, code facts, and historical evidence keep explicit owners and boundaries instead of becoming one undifferentiated knowledge dump.
+- **Activation over storage.** A rule or lesson has value only when the normal task path reaches it and changes the Agent's next action. Thin shells and real user-language trigger conditions keep important knowledge live without duplicating rule bodies.
+- **Goal and evidence discipline.** One clear action/check stays lightweight; other work establishes Goal, Done When, and material Boundaries. Before verification, each material risk is bound to fitted evidence and a stop/escalation condition. See [the Task Anchor design](docs/task-anchor-native-plan.md).
+- **Reviewable coordination.** Delegated work carries role, inputs, outputs, forbidden zones, context provenance, checks, and remaining risks. Worker claims are candidate evidence; the main Agent still integrates and verifies the result.
+- **Progressive rigor, small complete defaults.** Start with a single `SKILL.md`, grow only under real pressure, and remove or merge machinery when the pressure disappears. Ordinary users should not need to choose an architecture kit.
+- **Graceful cross-harness operation.** Cursor, Claude Code, Codex, Windsurf, Gemini, OpenCode, and AGENTS.md-based tools use their native capabilities. A limitation in one harness does not redefine the overall product model.
 
 ## Tool compatibility
 
@@ -183,6 +175,9 @@ Per-tool templates: [`references/per-tool-shells.md`](references/per-tool-shells
 | [scripts/](scripts/) | Upstream maintenance + check suite ([scripts/README.md](scripts/README.md) has the matrix) |
 
 ## FAQ
+
+**Is SBA an Agent operating system?**
+No. SBA is a Skill that helps the current Agent use project rules, business semantics, workflows, and the harness's existing capabilities reliably. It does not own a task database, persistent scheduler, universal runtime, or project-management surface.
 
 **Does this replace the official Anthropic skill template?**
 No. The official template defines the *minimal* skill shape (a folder with SKILL.md + frontmatter). This meta-skill starts one level later — it adds structure when a single small SKILL.md is no longer enough.

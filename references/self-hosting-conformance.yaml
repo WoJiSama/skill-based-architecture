@@ -88,6 +88,22 @@ required_sections:
       - "## 方向决策检查"
       - "它不进入下游模板"
 
+  - file: README.md
+    must_contain:
+      - "SBA) is a Skill, not an Agent operating system"
+      - "ordinary team member can clone a repository"
+      - "## What success looks like"
+      - "test count is not a proxy for evidence quality"
+      - "degrades to a serial or inline workflow"
+
+  - file: README.zh-CN.md
+    must_contain:
+      - "SBA）是一个 Skill，不是 Agent 操作系统"
+      - "普通成员拉下仓库后"
+      - "## 什么才算成功"
+      - "不能用测试数量代替证据质量"
+      - "降级为串行或内联执行"
+
   # WORKFLOW.md after the 2026-05-09 split is the Quick Start entry; the full
   # 9-phase content (including Phase 9 pressure-test) moved to
   # workflows/full-migration.md. Assert WORKFLOW.md still routes to the new

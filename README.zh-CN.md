@@ -22,9 +22,21 @@
 
 <p align="center"><a href="README.md">English</a> | <strong>中文</strong></p>
 
-一个**面向 AI Agent 规则系统的生命周期管理框架**。把散落的提示词文档(`AGENTS.md`、`CLAUDE.md`、`.cursor/rules/`、README 规则)整理成位于 `skills/<name>/` 下、可路由、可验证、可更新的工程资产。
+**Skill-Based Architecture（SBA）是一个 Skill，不是 Agent 操作系统，也不是项目管理平台。**它把真实项目规则、业务语义、owner、工作流和验证契约组织成可路由的项目 Skill，让普通成员拉下仓库后，Agent 就能可靠工作，而不需要每个人先学会设计 Skill。
 
-它关注规则系统本身:结构、路由、workflow、校验、任务复盘、上游/下游更新。它**不**提供具体技术栈规则 —— 后端、前端、部署等内容应放在下游项目 skill 里。
+SBA 负责吸收不应由普通用户承担的作者和工程复杂度。它帮助当前 Agent 使用所在 harness 已有的 Plan、Subagent 和工具能力，并在能力不可用时优雅降级；它不增加常驻服务、任务数据库、统一状态机或独立执行 runtime。具体技术栈事实仍然属于下游项目 Skill。
+
+## 什么才算成功
+
+SBA 不是为了让 Agent 变得更忙，而是要让它更能做到三件事：
+
+1. **看到足够完整的真实情况。** 找到 source of truth、owner、业务不变量、生产者到消费者的路径、矛盾和证据边界，而不是无边界读取整个仓库。
+2. **在没有标准答案时做判断。** 在信息不完整时权衡收益、代价和风险，诚实表达不确定性；新证据推翻承重结论时，重新检查方案、验收、边界和 Task Anchor。
+3. **组织别人可靠执行。** 把意图转成可复核的角色、输入、输出、禁止区和验证契约；只在有净收益时委派，并由主 Agent 保留最终整合与复核责任。
+
+结果不应是更多文件、测试或流程，而应是一个可复核的交付：来源、边界、owner、适配证据和停止条件都清楚。验证成本跟随风险，不能用测试数量代替证据质量。
+
+真正的杠杆不来自让所有动作都经过一个 Agent，而来自在信息不完整、资源不足或需求不清晰时，仍能定义标准、判断风险、协调资源并带出结果。
 
 ## 安装
 
@@ -116,36 +128,16 @@ Agent 会从 [`templates/`](templates/) 复制预制 scaffold 到 `skills/<name>
 
 想先安全试跑? Hosted preview 里用 [`examples/simple-repo/COPY-PASTE-INPUT.md`](examples/simple-repo/COPY-PASTE-INPUT.md);本地 agent 可以用 [`examples/simple-repo/`](examples/simple-repo/) 当目标项目输入。它是一个故意做得很小的假项目,包含重复的 `AGENTS.md`、`CLAUDE.md`、Cursor 规则和 README notes。把它当作最基础的 routing / thin-shell 行为验证,不要把它当成真实项目迁移深度的展示上限。
 
-### 3. (仅 Codex)手动触发 sub-agent / 并行处理
-
-这个 meta-skill 的几条 workflow 会用到 sub-agent 委派和并行 agent 扇出(见 [`templates/skill/workflows/subagent-driven.md`](templates/skill/workflows/subagent-driven.md)、[`templates/skill/workflows/refactor-fanout.md`](templates/skill/workflows/refactor-fanout.md))。大多数 harness 里仓库内的规则足以让 agent 自己决定何时扇出,直接走默认就行。
-
-**Codex 是例外。** 它的运行环境给 `spawn_agent` 工具加了一条工具级规则:**只有当用户明确要求 sub-agent、delegation 或并行 agent 工作时**,才允许调用 `spawn_agent`。这条工具级规则**优先级高于**仓库里的 `AGENTS.md` / skill 规则 —— 即使 workflow 文档里写了"用 sub-agent",扇出模式也**不会**自动触发。
-
-在 Codex 里如果想让 sub-agent 真的被调起来 —— 不论是扇出还是别的场景 —— 都要**显式授权**。两种等价写法:
-
-**按任务点名** —— 指明具体哪件事交给 sub-agent:
-
-> "请使用 sub-agent 来重构这几个规则文件。"
-> "用 sub-agent 并行 review 每个 workflow 文件。"
-> "Use a sub-agent to scan the templates directory."
-
-**整段会话放权** —— 在会话开头一次性放开:
-
-> "在这个会话我允许你使用 sub-agent。"
-> "本次会话需要扇出的步骤你可以随意起 sub-agent 委派。"
-> "In this session you may use sub-agents whenever the workflow calls for it."
-
-任一种说法都能让工具级规则放行。**少了这一句**,即使 workflow 文档里写了"用 sub-agent",Codex 也会静默跳过委派步骤。
+高级工作流可以在当前 harness 支持时使用它原生的 Plan、Subagent 和工具能力；能力不可用时，SBA 会降级为串行或内联执行。某些 harness 在委派前要求用户显式授权，这是工具权限边界，不是普通项目成员还要安装或维护的另一套系统。
 
 ## 关键特性
 
-- **两层路由**:`SKILL.md` 维护一个生成的 **Always Read** 列表;**Common Tasks** 仅在需要时把 agent 路由到额外文件。下游用 `routing.yaml` 作可编辑的单一路由源。
-- **薄壳 + 路由 bootstrap**:每个入口文件嵌入指向 `routing.yaml` 的短 bootstrap。路由表不在每个 shell 里复制 —— 自然语言指令在长会话压缩中会丢失。
-- **description 即触发条件**:用用户实际语言的领域级激活短语,不是 workflow 关键字堆砌。改完后**朗读一遍** —— 听起来不像真用户就重写,脚本替代不了这件事。
-- **Session Discipline + Task Anchor + Task Closure**:每个新任务重新匹配 route;一个明确动作/检查直接执行,其他任务建立 Goal + Done When,只展示对用户有用的对齐信息,并使用当前工具原生 Plan 推进而不在对话中重复步骤;每个主步骤前运行紧凑 Anchor Checkpoint,只有目标级新鲜证据齐全才闭合。循环只存在于当前 Session,不创建计划文件。详见 [Task Anchor 设计](docs/task-anchor-native-plan.md)。
-- **自维护**:行数信号触发评估而非自动操作;split/merge 流程 + 新鲜度检查保持文档精简。
-- **跨 harness**:Cursor、Claude Code、Codex、Windsurf、Gemini、OpenCode、AGENTS.md 类工具均兼容。
+- **路由到真实项目知识。** `routing.yaml` 为当前任务选择一个工作流，并只追加本次判断需要的领域上下文。业务语义、代码事实和历史证据保留清楚的 owner 与边界，不混成一份无差别知识库。
+- **激活优先于存储。** 一条规则或经验只有被正常任务路径读到，并改变 Agent 的下一步动作，才真正产生价值。薄壳和真实用户语言的触发条件让重要知识保持生效，同时避免复制规则正文。
+- **目标与证据纪律。** 一个明确动作和检查保持轻量；其他任务建立 Goal、Done When 和实质 Boundaries。验证前，把每个实质风险绑定到适配证据和停止 / 升级条件。详见 [Task Anchor 设计](docs/task-anchor-native-plan.md)。
+- **可复核的协作。** 委派任务携带角色、输入、输出、禁止区、context provenance、检查和剩余风险。Worker 的结论只是候选证据，主 Agent 仍负责整合和复核。
+- **渐进严格，小而完整的默认核心。** 从单个 `SKILL.md` 开始，只在真实压力下增长；压力消失时删除或合并机制。普通用户不应承担“该装哪套架构组件”的选择成本。
+- **跨 harness 优雅降级。** Cursor、Claude Code、Codex、Windsurf、Gemini、OpenCode 和 AGENTS.md 类工具使用各自原生能力；某个 harness 的限制不应重新定义整体产品模型。
 
 ## 工具兼容
 
@@ -183,6 +175,9 @@ Agent 会从 [`templates/`](templates/) 复制预制 scaffold 到 `skills/<name>
 | [scripts/](scripts/) | 上游维护 + check 套件([scripts/README.md](scripts/README.md) 有矩阵) |
 
 ## FAQ
+
+**SBA 是 Agent 操作系统吗？**
+不是。SBA 是一个 Skill，帮助当前 Agent 可靠使用项目规则、业务语义、工作流和 harness 已有能力。它不拥有任务数据库、常驻调度器、统一 runtime 或项目管理界面。
 
 **这个替代官方 Anthropic skill 模板吗?**
 不替代。官方模板定义最小 skill 形态(SKILL.md + frontmatter)。这个 meta-skill 从其上一层开始 —— 当单个小 SKILL.md 不够用时再启用。
