@@ -83,6 +83,43 @@ Do not ship a heavy scenario harness in the default template. Start with this
 reference and add project-owned tests only when the project has real behavior to
 protect.
 
+## Context Efficiency Evaluation
+
+Use this evaluation when claiming that routing or retrieval reduces time,
+reading, or Token cost. Run the same representative tasks and correctness oracle
+through these variants:
+
+1. **Ordinary Agent** — proficient `rg`/LSP plus targeted local reads; no
+   intentionally naive whole-repository preload.
+2. **SBA routing only** — Always Read plus the matched route and its workflow,
+   with the layered retrieval clauses disabled as an explicit ablation.
+3. **SBA plus layered retrieval** — routed knowledge → symbol location → local
+   implementation → one-hop callers/consumers/tests → evidence-driven expansion.
+4. **SBA plus an optional relationship backend** — only when such a backend is
+   already available. Its absence skips this variant; never install one merely
+   to complete the benchmark.
+
+Correctness and semantic completeness are admission gates, not weighted metrics.
+Define the expected decision, invariant, and key call-chain relationships before
+the run. A result that saves time or Tokens but misses any load-bearing item
+fails; do not average that miss into an efficiency win.
+
+For every admitted run, record:
+
+- elapsed completion time;
+- actual source/output characters or Tokens read;
+- tool-call count and files/symbols/line spans inspected;
+- key call-chain coverage and final-decision correctness;
+- whether truncation was disclosed and detail was requested only when needed;
+- any index build, refresh, query, and stale-result recovery cost.
+
+Keep the task, repository revision, harness/model class, available tools, and
+acceptance oracle comparable. Include localized, ordinary cross-file, and
+complex-call-chain tasks instead of selecting only graph-friendly cases. If an
+optional backend is measured, report cold, warm, and amortized cost separately;
+its preprocessing is not free. Prefer distributions and failure cases over one
+headline percentage.
+
 ## Baseline-First for Discipline Content
 
 The layers above verify *routing and behavior* — they prove a finished skill does

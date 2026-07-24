@@ -28,12 +28,29 @@ required_sections:
       - "## Progressive Rigor"
       - "Routing.yaml as source"
       - "Activation over storage"
-      - "every loaded file needs an independent task-time reason"
+      - "missing decision information"
+      - "correctness-gated context"
+      - "one-hop consumers/tests"
       - "Self-maintenance"
       - "Token efficiency"
       - "Task Execution + Closure"
       - "present it proportionally"
       - "Anchor Checkpoint"
+
+  - file: references/executable-skill-architecture.md
+    must_contain:
+      - "compact, decision-ready"
+      - "explicit truncation state"
+      - "candidate view, never proof of completeness"
+      - "suggestion is non-authoritative"
+
+  - file: references/scenario-testing.md
+    must_contain:
+      - "## Context Efficiency Evaluation"
+      - "proficient `rg`/LSP plus targeted local reads"
+      - "Correctness and semantic completeness are admission gates"
+      - "fails; do not average that miss into an efficiency win"
+      - "report cold, warm, and amortized cost separately"
 
   # TEMPLATES-GUIDE.md after the 2026-05-09 slim only carries Minimal Starter,
   # Classification Guide, Sync Targets, and pointers to canonical workflow

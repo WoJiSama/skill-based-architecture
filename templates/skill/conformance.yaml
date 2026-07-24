@@ -130,8 +130,14 @@ required_sections:
       - "Dependency count is risk evidence, not a veto"
       - "Enter **Operational Stabilization** only when"
       - "## 4. Minimal Context, Sufficient Evidence"
+      - "Before expanding context, answer"
+      - "what judgment the next read could change"
+      - "routed knowledge → `rg`/LSP/index symbol location"
+      - "One hop is an initial budget, not a correctness limit"
       - "For a localized continuation"
       - "tool output bounded to the next decision"
+      - "Prefer decision-ready results"
+      - "never treat a truncated or Top-N view as complete"
       - "explicit boundaries/non-goals"
       - "freeze a risk-sized **Done Contract**"
       - "Once the Done Contract is green"
@@ -148,6 +154,12 @@ required_sections:
     must_not_contain:
       - "must directly call `spawn_agent`"
       - "continuous self-judgment + auto-dispatch"
+
+  - file: references/agent-behavior-meta.md
+    must_contain:
+      - "Retrieval expands by decision, not curiosity"
+      - "smallest sufficient slice"
+      - "disclose truncation"
 
   - file: workflows/subagent-auxiliary.md
     must_contain:

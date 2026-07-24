@@ -86,8 +86,15 @@ Executable skills need contracts earlier than rule-only skills:
 - Every non-idempotent workflow has a confirmation point immediately before the
   side effect.
 - Every local config value has a source order and a safe missing-value behavior.
-- Every large or noisy external response has a way to inspect targeted fields
-  without loading the whole payload into context.
+- Every large or noisy external response defaults to a compact, decision-ready
+  result: summary; precise path/line/symbol or equivalent identifiers; only the
+  most important relationships; explicit truncation state; and a detail or
+  cursor mechanism. This is a semantic contract, not a mandatory serialization.
+- A bounded or Top-N result is a candidate view, never proof of completeness.
+  Callers request more only when the current decision, key relationship, or
+  semantic boundary remains unresolved.
+- A tool may suggest a next query, but the suggestion is non-authoritative: the
+  workflow's decision gap and stop evidence determine whether more work occurs.
 
 ## What Not To Promote
 

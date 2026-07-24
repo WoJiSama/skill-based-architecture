@@ -48,6 +48,17 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-07-24 - Minimal sufficient context and correctness-first efficiency evaluation
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `SKILL.md`, `templates/skill/rules/agent-behavior.md`, and `templates/skill/references/agent-behavior-meta.md` — every context expansion now names its missing decision information, affected judgment, smallest sufficient slice, and stop evidence; retrieval proceeds from routed knowledge through symbol/local/one-hop inspection before evidence-driven widening.
+  - `references/executable-skill-architecture.md` — noisy tools default to a compact semantic result contract with precise locations, key relationships, truncation disclosure, detail-on-demand, and non-authoritative next-step suggestions.
+  - `references/scenario-testing.md` — efficiency claims now compare a proficient ordinary baseline, an SBA routing-only ablation, layered retrieval, and an optional already-available relationship backend under a correctness-and-semantic-completeness gate.
+  - Paired conformance manifests protect the active protocol, compact-result semantics, honest baseline, and cold/warm/amortized cost disclosure.
+- Why it matters: fewer reads and Tokens create value only when the Agent still reaches the correct decision with the load-bearing call chain and semantics intact. Decision-sized expansion makes the stopping point explicit; correctness-first evaluation prevents naive whole-repository baselines or incomplete Top-N results from manufacturing an efficiency win.
+- Downstream refresh guidance: port the Principle 4 and meta activation wording plus the paired conformance anchors. Preserve project-specific search tools and routes; `rg`, LSP, IDE indexes, or equivalent symbol tools may implement the same ladder. Do not install CRG, add a graph runtime, or create a new route/workflow for this change. Relationship backends remain optional benchmark variants, and the first three variants are sufficient when none exists.
+
 ## 2026-07-24 - Proportional execution and green stop gate
 
 - Upstream commit: pending in this working tree

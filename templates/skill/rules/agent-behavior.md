@@ -29,13 +29,15 @@ Universal defaults for any agent working inside this skill. Project-specific ove
 ## 4. Minimal Context, Sufficient Evidence
 
 - Start with Always Read, the matched route's `required_reads`, its workflow, and the smallest source slice that proves the next step.
+- Before expanding context, answer: which decision-required information is missing; what judgment the next read could change; the smallest sufficient slice (file, symbol, method, or lines); and what evidence will stop the search. If these answers are unclear, narrow the question before reading more.
+- Follow this retrieval ladder: routed knowledge → `rg`/LSP/index symbol location → local implementation → one-hop callers, consumers, and tests → evidence-driven expansion. One hop is an initial budget, not a correctness limit; cross it whenever ownership, behavior, or semantic completeness remains unproven.
 - For a localized continuation, start from the current diff, the last verified boundary, and the files directly involved in the requested delta. After compaction, recover from the Task Anchor and re-read only lost material needed for the next decision.
 - Expand one target at a time when ownership/source of truth is unclear, evidence conflicts, the change crosses contracts/config/generated/shared runtime, a routed file names a relevant leaf, or the current premise fails.
-- Keep each read, search, diff, log, and tool output bounded to the next decision it supports.
+- Keep each read, search, diff, log, and tool output bounded to the next decision it supports. Prefer decision-ready results: a concise summary, exact path/line/symbol, a few key relationships, and explicit truncation/detail metadata; request raw detail only for an unresolved decision, and never treat a truncated or Top-N view as complete.
 - Validate at the cheapest sufficient level: targeted command first; runtime only for wiring/config/data/UI behavior; release/build artifacts only when that chain changed or the user requires it.
 - Do not preload the skill tree or run a full build as a confidence ritual.
 
-✓ Check: what concrete signal justified every extra file read and every validation escalation?
+✓ Check: what decision justified each expansion, what evidence stopped it, and did the final context preserve the key call chain and semantic meaning?
 
 ## 5. Goal-Driven Execution
 
