@@ -31,7 +31,8 @@ If any condition is missing, return to [`task-execution.md`](task-execution.md);
    - targeted command/test/typecheck first;
    - runtime/service/browser evidence only for wiring, config, permissions, serialization, data state, or UI behavior;
    - packaged/release/deploy evidence only when that chain changed or the user requires it.
-   Stop when the bound evidence proves the contract; escalate only when a check fails, the risk crosses another boundary, or a stated uncertainty remains. Test count is not evidence quality. A fresh command against a stale artifact is not fresh evidence.
+   **Evidence survives context compaction or turn resumption** when the completed result and exit code remain in the task record, the command postdates the final relevant edit, and no covered source or artifact changed afterward. Re-run only affected checks when that chronology, readability, artifact freshness, or claim coverage breaks; never re-run merely to make evidence same-message. A fresh command against a stale artifact is not fresh evidence.
+   **Green stop gate:** once the frozen Done Contract is proven and every triggered gate below is handled, finish. Escalate only when a check fails, the risk crosses another boundary, a stated uncertainty remains, or the user explicitly requires stronger evidence; name that trigger before adding coverage, runtime startup, or a broader suite. Test count is not evidence quality.
 3. **Run the AAR below.** Any yes enters `update-rules.md`; all no stops recording.
 4. **Run conditional integrity work**:
    - routing/shell/generated-block or structure/path changes → follow `maintain-docs.md` Step 6 and the repository's sync/smoke commands;
@@ -45,7 +46,8 @@ If any condition is missing, return to [`task-execution.md`](task-execution.md);
 | Rationalization | Reality |
 |---|---|
 | “The change is small.” | Behavior/structure is the trigger; read-only work is already exempt. |
-| “Tests passed earlier.” | A completion claim requires fresh evidence after the final edit. |
+| “Tests passed earlier.” | Check chronology, not message boundaries. If the recorded run postdates the final relevant edit and no covered artifact changed, it remains fresh after compaction; otherwise rerun only affected checks. |
+| “Everything is green; one more interaction test/runtime smoke cannot hurt.” | Green on the frozen Done Contract is the stop signal. Extra validation without a new uncovered risk is scope expansion, not rigor; name the trigger or finish. |
 | “I will reconcile links/rules later.” | The decision context will be gone; do it in the same change. |
 | “The file exists and smoke is green.” | Reachable structure can still be inert; state the next action it changes. |
 | “I should add a safeguard just in case.” | No concrete recurring failure means no new mechanism. |

@@ -48,6 +48,16 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-07-24 - Proportional execution and green stop gate
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - `templates/skill/rules/agent-behavior.md` — Minimal Context now bounds localized continuations and tool output to the next decision; Goal-Driven Execution freezes a risk-sized Done Contract and stops when its checks are green.
+  - `templates/skill/workflows/change-managed.md`, `fix-bug.md`, and `task-closure.md` — task workflows consume the frozen validation set; recorded results remain fresh across compaction when no covered source/artifact changed; closure cannot invent stronger checks after green.
+  - `templates/skill/references/agent-behavior-meta.md`, `templates/skill/conformance.yaml`, `references/protocols.md`, `references/self-hosting-conformance.yaml`, and `examples/behavior-failures.md` — evidence provenance, mandatory propagation checks, the canonical rationalization, and the organic failure scenario.
+- Why it matters: a localized UI continuation spent 10m15s after broad reads triggered compaction and green checks triggered three unrequested brittle test attempts. An adjacent task also escalated from passing code checks into an unrequested local-service startup. The reusable failure was a missing boundary between sufficient proof and speculative extra work.
+- Downstream refresh guidance: port the Done Contract/green-stop wording as one contract across Always Read behavior, change/fix workflows, and Task Closure. Preserve project-specific validation commands, but require each expensive escalation to name its concrete risk trigger. Do not restore the removed `minimal-sufficient-context.md` or rationalizations protocol block; do not add a separate fast-path route, timer, token quota, or framework-specific testing rule. Run conformance after refresh.
+
 ## 2026-07-23 - Orthogonal domain context and knowledge-retirement integrity
 
 - Upstream commit: pending in this working tree

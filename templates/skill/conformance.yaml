@@ -64,6 +64,8 @@ required_sections:
       - "### Entry Gate"
       - "return to [`task-execution.md`](task-execution.md)"
       - "final Anchor Checkpoint"
+      - "Evidence survives context compaction"
+      - "Green stop gate"
       - "### Rationalizations to Reject"
       - "### Red Flags"
       - "## After-Action Review"
@@ -114,6 +116,7 @@ required_sections:
       - "invariant-owning boundary"
       - "smallest semantically complete repair"
       - "full/incremental/read/write path"
+      - "Validate the frozen set"
       - "Task Closure Protocol"
     must_not_contain:
       - "Pervasive reverse-question — default habit"
@@ -127,7 +130,11 @@ required_sections:
       - "Dependency count is risk evidence, not a veto"
       - "Enter **Operational Stabilization** only when"
       - "## 4. Minimal Context, Sufficient Evidence"
+      - "For a localized continuation"
+      - "tool output bounded to the next decision"
       - "explicit boundaries/non-goals"
+      - "freeze a risk-sized **Done Contract**"
+      - "Once the Done Contract is green"
       - "One clear action with one direct check proceeds without planning ceremony"
       - "harness's native Plan"
       - "present only useful alignment"
@@ -195,9 +202,11 @@ required_sections:
 
   - file: workflows/change-managed.md
     must_contain:
+      - "Define the Done Contract"
       - "Map semantic fan-out"
       - "full/incremental/read/write path"
       - "smallest semantically complete change"
+      - "frozen validation set"
     must_not_contain:
       - "Pervasive reverse-question — default habit"
       - "directly `spawn_agent`"

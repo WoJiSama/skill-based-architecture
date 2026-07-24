@@ -45,6 +45,12 @@ reference, behavior-validation, or external-fact checks. Keep the exact gate
 wording and trigger table in `task-closure.md` so the protocol does not drift
 across guide/reference copies.
 
+Verification freshness follows edits, not conversation boundaries: a recorded
+result that postdates the final relevant edit remains valid after context
+compaction. Closure consumes the task's cheapest-sufficient Done Contract; once
+it is green and all triggered gates are handled, green is a stop condition, not
+a reason to invent stronger checks.
+
 **Pure Q&A, code explanation, read-only investigation, and advice with no file
 changes are exempt** — do not enter the protocol, do not run AAR, do not run
 `smoke-test.sh`. `smoke-test.sh` is a skill structure/routing/link validator,

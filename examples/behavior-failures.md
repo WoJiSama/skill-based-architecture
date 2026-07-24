@@ -221,6 +221,42 @@ Test author uses **relative paths** in subagent prompts ("in this repo, edit `ru
 
 ---
 
+## Scenario 7 — Green checks triggered more work instead of stopping
+
+**Observed:** a localized frontend continuation in a long session, 2026-07. The requested delta was Chinese display labels plus local layout polish; storage values and API behavior were unchanged.
+
+### ❌ Agent behavior without a frozen Done Contract
+
+The Agent entered the first tool call with 201,836 input tokens in a 258,400-token window, requested several broad 30k–40k reads, and reached 242,797 tokens. The first targeted test, typecheck, and diff check passed, then compaction fired and the Agent replayed rule, source, diff, and screenshot reads.
+
+After replacing one deprecated component property, targeted Jest, TypeScript, and diff checks were green again. Instead of stopping, the Agent added an unrequested test of the UI library's virtualized dropdown internals. Three brittle attempts failed for different DOM/testing-library reasons before the assertion was reduced to a pure mapping check.
+
+Cost: seven Jest runs, 10m15s total, and 4m22s after the required checks were already green. An adjacent task showed the same pattern at a different boundary: code-level tests passed, then the Agent added an unrequested local-service preparation/startup and diagnosed an unrelated startup failure.
+
+### ✅ Agent behavior with risk-sized execution and the green stop gate
+
+Before editing, the Agent freezes this Done Contract:
+
+- Scope: display mapping and local component styles; no stored values, API, or global theme changes.
+- Evidence: one targeted component test, one typecheck, and one diff check.
+- Escalation signals: changed serialization/API wiring, unresolved component behavior, or an explicit request for browser/runtime inspection.
+
+It starts from the current diff and involved component instead of replaying broad discovery. If compaction occurs, it recovers from the task anchor and recorded command results. Once the three declared checks pass and no escalation signal fired, it runs the lightweight triggered closure gates and finishes. A green check is not treated as a prompt to invent another check.
+
+**Mechanisms that catch it:**
+
+1. [`rules/agent-behavior.md § Goal-Driven Execution`](../templates/skill/rules/agent-behavior.md#5-goal-driven-execution) is Always Read and freezes the Done Contract.
+2. [`rules/agent-behavior.md § Minimal Context, Sufficient Evidence`](../templates/skill/rules/agent-behavior.md#4-minimal-context-sufficient-evidence) bounds continuation recovery, reads, tool output, and validation escalation.
+3. [`task-closure.md § Task Closure Protocol`](../templates/skill/workflows/task-closure.md#task-closure-protocol) keeps evidence valid across compaction and makes green the stop gate.
+
+**Rationalization that would have bypassed it:**
+
+| Excuse | Reject |
+|---|---|
+| "Everything is green; one more interaction test / runtime smoke can't hurt" | Without a newly discovered uncovered risk, this is scope expansion, not rigor. Finish the frozen contract. |
+
+---
+
 ## How to add new scenarios here
 
 This file grows only via **real pressure-test failures** — same rule as the Rationalizations Table:

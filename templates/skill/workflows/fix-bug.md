@@ -16,14 +16,14 @@ A Design Change leaves this workflow for an approved Plan. For insufficient cont
 
 ## Steps
 
-1. Restate the observed behavior, affected scope, and expected result.
+1. Restate the observed behavior, affected scope, and expected result; freeze the Done Contract: reproduction, smallest relevant regression, and concrete signals that would require broader validation.
 2. Classify with the Design-or-defect gate.
 3. Reproduce the defect with a failing automated check for the reported reason; if automation is impossible, give repeatable manual steps and why.
 4. Trace the real root cause. Identify the violated invariant, state ownership/provenance, producer-to-consumer call chain, and every affected full/incremental/read/write path. If several independent hypotheses survive and delegation has positive Net Benefit, use `subagent-auxiliary.md`; synthesis stays with the main agent.
 5. Apply the **Repair-depth gate** — default to Product Development and repair the invariant-owning boundary, including coordinated multi-layer changes when required. Use Operational Stabilization only for an explicit production/availability/frozen-scope constraint; containment must be reversible and leave the structural repair visibly unresolved.
 6. Implement the smallest semantically complete repair; dependency count increases validation duty but cannot veto the correct boundary. Avoid unrelated cleanup.
 7. Inspect direct and indirect consumers plus changed contracts, data compatibility, shared state/config, events, and async ordering. Resolve any unknown that could invalidate the fix.
-8. Run the same acceptance check to green and the smallest relevant regression across every affected path. Escalate to runtime/release evidence only when the changed behavior requires it.
+8. **Validate the frozen set:** run the same acceptance check to green and the smallest relevant regression across every affected path. Escalate only when a named risk signal fired; green is the stop signal, not permission to add new coverage, runtime startup, or broader suites.
 9. Run the [Task Closure Protocol](task-closure.md). Record only a lesson that passes its gates and has an action-changing route.
 
 After three failed approaches, stop and report the attempts and false premise instead of trying a fourth variant.

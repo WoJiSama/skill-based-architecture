@@ -131,6 +131,8 @@ required_sections:
       - "visible native Plan owns step display"
       - "Anchor Checkpoint"
       - "## Task Closure Protocol"
+      - "Verification freshness follows edits, not conversation boundaries"
+      - "green is a stop condition"
       - "## Recording Threshold"
       - "## Generalization Rule"
       - "fidelity"

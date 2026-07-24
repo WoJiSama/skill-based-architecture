@@ -29,7 +29,9 @@ Universal defaults for any agent working inside this skill. Project-specific ove
 ## 4. Minimal Context, Sufficient Evidence
 
 - Start with Always Read, the matched route's `required_reads`, its workflow, and the smallest source slice that proves the next step.
+- For a localized continuation, start from the current diff, the last verified boundary, and the files directly involved in the requested delta. After compaction, recover from the Task Anchor and re-read only lost material needed for the next decision.
 - Expand one target at a time when ownership/source of truth is unclear, evidence conflicts, the change crosses contracts/config/generated/shared runtime, a routed file names a relevant leaf, or the current premise fails.
+- Keep each read, search, diff, log, and tool output bounded to the next decision it supports.
 - Validate at the cheapest sufficient level: targeted command first; runtime only for wiring/config/data/UI behavior; release/build artifacts only when that chain changed or the user requires it.
 - Do not preload the skill tree or run a full build as a confidence ritual.
 
@@ -37,8 +39,9 @@ Universal defaults for any agent working inside this skill. Project-specific ove
 
 ## 5. Goal-Driven Execution
 
-- Convert the request into one observable goal, explicit boundaries/non-goals, and acceptance evidence before editing; re-anchor only when discovery changes the frame.
+- Before editing, freeze a risk-sized **Done Contract**: one observable goal, owned scope, explicit boundaries/non-goals, cheapest sufficient acceptance evidence, and concrete signals that would expand context or escalate validation. Re-anchor only when discovery changes the frame.
 - Before verification, bind each material risk to the cheapest fitted evidence that can falsify it and to an explicit stop/escalation condition. Stop when that contract is satisfied; do not use test count as a proxy for evidence quality.
+- Once the Done Contract is green and no escalation signal fired, stop. New coverage, runtime startup, or broader suites require newly discovered uncovered risk, a relevant edit after the last check, or an explicit user requirement.
 - One clear action with one direct check proceeds without planning ceremony. Otherwise follow [`task-execution.md`](../workflows/task-execution.md): establish the Task Anchor, present only useful alignment, use the harness's native Plan without duplicating visible steps in chat, and verify each step before advancing.
 - Before every main Plan step, run its compact Anchor Checkpoint; repeat after user correction, failed/surprising evidence, interruption, or Subagent return. This is Session recitation, not file persistence or per-tool narration.
 - Run scoped, reversible work end-to-end; pause only at a blocking choice, authorization boundary, shared/irreversible action, or scope expansion.
