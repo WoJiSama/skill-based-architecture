@@ -926,7 +926,7 @@ files = sorted({
 code_project_root = None
 
 external_re = re.compile(r"^(?:https?|mailto|data|javascript)://|^(?:mailto|data|javascript):", re.I)
-markdown_link_re = re.compile(r"!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))")
+markdown_link_re = re.compile(r"!?\[([^\]]*)\]\(\s*(?:<([^>]+)>|([^\s)]+))")
 inline_code_re = re.compile(r"(?<!`)`([^`\n]+)`(?!`)")
 reference_cue_re = re.compile(
     r"(?:\bread\b|\bsee\b|\bload\b|\bopen\b|\bfollow\b|\brun\b|"
@@ -1189,11 +1189,18 @@ skipped_code_root = 0
 for src in files:
     content = without_fences(src.read_text(encoding="utf-8", errors="replace"))
     references: list[tuple[str, str]] = []
-    for match in markdown_link_re.finditer(content):
-        references.append(("markdown link", match.group(1) or match.group(2)))
+    markdown_links = list(markdown_link_re.finditer(content))
+    for match in markdown_links:
+        references.append(("markdown link", match.group(2) or match.group(3)))
     if should_check_inline(src):
         for line in content.splitlines():
+            markdown_label_ranges = [
+                (match.start(1), match.end(1))
+                for match in markdown_link_re.finditer(line)
+            ]
             for match in inline_code_re.finditer(line):
+                if any(start <= match.start() and match.end() <= end for start, end in markdown_label_ranges):
+                    continue
                 raw = match.group(1)
                 context_before = line[max(0, match.start() - 80):match.start()]
                 if path_like_inline(src, raw, context_before):

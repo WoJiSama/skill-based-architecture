@@ -1609,9 +1609,10 @@ JSON
 )
 
 # Evidence input: valid local Markdown references include one path-like inline
-# code span, one heading fragment, fenced example paths, and placeholder/glob
-# examples. Expected: the valid fixture passes; deleting the inline target and
-# renaming the heading each fail for the exact affected reference.
+# code span, a Markdown link whose label contains a backticked path, one heading
+# fragment, fenced example paths, and placeholder/glob examples. Expected: the
+# valid fixture passes; deleting the standalone inline target and renaming the
+# heading each fail for the exact affected reference.
 check_inline_paths_and_heading_fragments() (
   set -euo pipefail
   local tmp skill smoke output status
@@ -1619,7 +1620,7 @@ check_inline_paths_and_heading_fragments() (
   trap 'rm -rf "$tmp"' EXIT
   skill="$tmp/skills/path-contract"
   smoke="$ROOT/templates/skill/scripts/smoke-test.sh"
-  mkdir -p "$skill/references"
+  mkdir -p "$skill/references" "$skill/workflows/rule-update"
 
   cat > "$skill/SKILL.md" <<'MARKDOWN'
 ---
@@ -1647,6 +1648,11 @@ MARKDOWN
 
 Read `references/details.md` before applying the local procedure.
 
+Follow [`rule-update/business-truth.md` § Requirement Decision Source](../workflows/rule-update/business-truth.md#requirement-decision-source).
+
+`missing-catalog/entry.md` is a non-binding inventory example; a reference cue
+on the preceding line must not turn it into a dependency.
+
 Do not treat `path with spaces.md`, `references/<name>/missing.md`, or
 `references/*.md` as concrete dependencies.
 
@@ -1670,6 +1676,14 @@ MARKDOWN
 ## Completion Gate
 
 The referenced completion section exists.
+MARKDOWN
+  cat > "$skill/workflows/rule-update/business-truth.md" <<'MARKDOWN'
+# Business Truth
+
+## Requirement Decision Source
+
+The Markdown link target resolves relative to its source file; the backticked
+path in the link label is presentation text, not a second inline dependency.
 MARKDOWN
 
   output="$(cd "$tmp" && bash "$smoke" path-contract --phase 7 --workspace-root "$tmp")"

@@ -48,6 +48,30 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-08-14 - Keep Markdown link labels out of inline-path validation
+
+- Upstream commit: the commit containing this entry
+- Changed areas:
+  - `templates/skill/scripts/smoke-test.sh` records same-line Markdown link
+    label ranges and does not reinterpret backticked presentation text inside a
+    label as a second standalone path dependency.
+  - Local-reference scanning retains its original per-line context boundary;
+    a reference cue on one line cannot activate an otherwise non-binding
+    inline-code example on the next line.
+  - `scripts/check-validation-contract.sh` protects the valid label shape while
+    still proving that a missing standalone inline-code target and a renamed
+    heading fragment fail independently.
+- Why it matters: downstream workflows commonly display a backticked
+  `rule-update/business-truth.md` path inside a Requirement Decision Source
+  link label. The target already resolves relative to its source file;
+  treating the label as another workspace-root path creates a false
+  broken-reference failure.
+- Downstream refresh guidance: port the scanner change into project-customized
+  `smoke-test.sh` copies without replacing their path-root or workspace logic.
+  Rerun the fitted local-reference phase and confirm both valid backticked-link
+  labels and genuinely missing standalone inline targets retain opposite
+  outcomes.
+
 ## 2026-08-13 - Separate Requirement Definition from implementation planning
 
 - Upstream commit: the commit containing this entry
