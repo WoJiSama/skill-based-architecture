@@ -54,11 +54,11 @@ When one outcome governed by a common Requirement projection consumes technical 
 
 ### Presentation Gate
 
-Present only useful alignment for the user to verify direction; do not expose protocol labels or repeat a visible Native Plan merely to prove an Anchor exists.
+Present only useful alignment for the user to verify direction; do not repeat a visible Native Plan merely to prove an Anchor exists. Write user-facing messages in the user's natural language. Internal SBA terms — protocol, gate, and state names such as Task Anchor, `requirement-ready`, Native Plan, or blast-radius — may appear only with a one-sentence plain-language explanation at that spot, and section headers use plain user-language words, never internal terms.
 
 Evaluate **Structured Brief first**. If any Structured condition matches, it wins; Compact Alignment is allowed only when all Structured conditions are false.
 
-- **Structured Brief**: trigger when the task is long, complex, scope-sensitive, confirmation-dependent, or lacks a visible native Plan surface. The first user-facing task-start message MUST begin with separate Goal, Done When, material Boundaries, and Steps sections in the user's language. Steps must be numbered; do not collapse the brief into prose or render empty headings.
+- **Structured Brief**: trigger when the task is long, complex, scope-sensitive, confirmation-dependent, or lacks a visible native Plan surface. The first user-facing task-start message MUST begin with separate plain-language sections for the goal, completion criteria, material boundaries, and steps — headed with natural words in the user's language (例如 目标 / 完成标准 / 边界 / 步骤), never internal terms such as "Goal / Done When / Boundaries". Steps must be numbered; do not collapse the brief into prose or render empty headings.
 - **Compact Alignment**: only when no Structured condition matches, use one compact natural-language alignment when useful. If the native Plan/Task surface is visible, do not repeat its steps in chat.
 
 After `implementation-ready`, use the harness's native Plan/Task surface or a concise Session checklist for step state. Before that state, keep only the current Requirement/Anchor and bounded implementation-binding question; do not disguise discovery as an implementation Plan. This protocol does not create durable planning files or recover task state across Sessions. Proceed unless a real decision, authority boundary, scope expansion, or shared/irreversible action blocks.

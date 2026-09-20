@@ -62,6 +62,9 @@ required_sections:
       - "Evaluate **Structured Brief first**"
       - "Compact Alignment is allowed only when all Structured conditions are false"
       - "first user-facing task-start message MUST begin"
+      - "Write user-facing messages in the user's natural language"
+      - "may appear only with a one-sentence plain-language explanation at that spot"
+      - 'never internal terms such as "Goal / Done When / Boundaries"'
       - "Steps must be numbered"
       - "do not collapse the brief into prose or render empty headings"
       - "Before each main Plan step"

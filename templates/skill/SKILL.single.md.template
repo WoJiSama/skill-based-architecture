@@ -21,6 +21,10 @@ primary: true
 
 ## Always Read
 
+- Write user-facing messages in the user's natural language; an internal term
+  appears only with a one-sentence plain explanation at that spot, and task
+  headers use plain user-language words, never internal terms.
+
 <!-- FILL: Add only evidence that every admitted task needs before acting. -->
 - <!-- core project rule or source -->
 

@@ -48,6 +48,34 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces a same-diff entry in `UPSTREAM-CHANGES.md`; archived entries are out of its scope.
 
+## 2026-09-20 - User-facing plain-language rule in Presentation Gate
+
+- Upstream commit: the commit containing this entry
+- Changed areas:
+  - `templates/skill/workflows/task-execution.md` § Presentation Gate now
+    requires user-facing messages in the user's natural language; internal SBA
+    terms (Task Anchor, `requirement-ready`, Native Plan, blast-radius, ...)
+    may appear only with a one-sentence plain-language explanation at that
+    spot, and Structured Brief section headers use plain user-language words
+    (例如 目标 / 完成标准 / 边界 / 步骤), never internal terms such as
+    "Goal / Done When / Boundaries".
+  - `templates/skill/SKILL.single.md.template` carries the same rule as a
+    fixed Always Read bullet for direct Single-file results.
+  - `references/self-hosting-shell-base.md` extends the session
+    presentation clause; self-hosting shells were regenerated.
+  - `templates/skill/conformance.yaml` and
+    `references/self-hosting-conformance.yaml` pin the new wording.
+- Why it matters: internal vocabulary previously leaked into user-visible
+  chat (Structured Brief headers mandated "Done When"), transferring SBA
+  authoring complexity to ordinary users — the opposite of the product
+  principle that users only own product/business decisions.
+- Downstream refresh guidance: compare any materialized
+  `workflows/task-execution.md` § Presentation Gate, Single-file `SKILL.md`
+  Always Read lists, and conformance pins; port the plain-language rule and
+  natural-language header requirement, and drop any local pin that still
+  requires "Goal, Done When, material Boundaries, and Steps sections" as
+  user-visible headers.
+
 ## 2026-08-14 - Keep Markdown link labels out of inline-path validation
 
 - Upstream commit: the commit containing this entry

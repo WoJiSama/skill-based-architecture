@@ -336,6 +336,8 @@ required_sections:
       - "reclassify before more mutation"
       - "build only the remaining Native Plan rather than asking the user to restate the task"
       - "remaining Done When evidence must be explicitly delivery-dependent"
+      - "Write user-facing messages in the user's natural language"
+      - "never internal terms such as \"Goal / Done When / Boundaries\""
       - "Closure decides readiness/completion"
       - "cross-cutting modifier, never a first-workflow route"
       - "task size or duration alone does not activate it"
