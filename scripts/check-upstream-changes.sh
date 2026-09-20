@@ -65,6 +65,25 @@ if ! git rev-parse --verify "$BASE^{commit}" >/dev/null 2>&1; then
   exit 1
 fi
 
+# Archive policy gate (see UPSTREAM-CHANGES.md § Archive Policy): the active
+# file must stay small because downstream refresh agents read only the newest
+# entries; everything older belongs in UPSTREAM-CHANGES-archive.md.
+max_entries="${UPSTREAM_CHANGES_MAX_ENTRIES:-8}"
+max_lines="${UPSTREAM_CHANGES_MAX_LINES:-320}"
+active_entries="$(grep -c '^## 20' UPSTREAM-CHANGES.md || true)"
+active_lines="$(wc -l < UPSTREAM-CHANGES.md | tr -d ' ')"
+if [[ "$active_entries" -gt "$max_entries" || "$active_lines" -gt "$max_lines" ]]; then
+  cat >&2 <<EOF
+FAIL: UPSTREAM-CHANGES.md exceeds its archive policy
+($active_entries entries / $active_lines lines; limits: $max_entries entries / $max_lines lines).
+
+Move the oldest entries to UPSTREAM-CHANGES-archive.md (top of file, newest
+first) and keep only the most recent 3-5 in the active file.
+EOF
+  exit 1
+fi
+echo "OK: UPSTREAM-CHANGES.md within archive policy ($active_entries entries / $active_lines lines)"
+
 is_watched() {
   case "$1" in
     templates/*) return 0 ;;

@@ -7,6 +7,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 "$ROOT/scripts/sync-self-shells.sh" --check
 
+# SKILL.md dual budget (SKILL.md principle 1): description ≤ 25 lines,
+# body ≤ 90 lines. Budgets are overridable for legitimate experiments.
+DESC_MAX="${SKILL_DESC_MAX_LINES:-25}"
+BODY_MAX="${SKILL_BODY_MAX_LINES:-90}"
+read -r desc_lines body_lines <<< "$(awk '/^---$/{n++; next} n==1{d++} n>=2{b++} END{print d+0, b+0}' "$ROOT/SKILL.md")"
+if (( desc_lines > DESC_MAX || body_lines > BODY_MAX )); then
+  echo "FAIL: SKILL.md exceeds dual budget (description ${desc_lines}/${DESC_MAX} lines, body ${body_lines}/${BODY_MAX} lines)."
+  echo "Split intent clusters or move detail to references/ — see SKILL.md principle 1."
+  exit 1
+fi
+echo "OK: SKILL.md within dual budget (description ${desc_lines}/${DESC_MAX}, body ${body_lines}/${BODY_MAX} lines)."
+
 python3 - "$ROOT" <<'PY'
 from pathlib import Path
 import sys
