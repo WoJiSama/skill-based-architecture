@@ -1303,6 +1303,9 @@ render_fitted_conformance() {
   local conformance="$stage/skills/$NAME/conformance.yaml"
   {
     echo "# Fitted content contract: only owners admitted by this evidence plan."
+    if [[ "$EXTERNAL_WRITE_PRESSURE" -eq 1 ]]; then
+      echo "# Fitted external-write responsibility: adopted"
+    fi
     echo "required_files:"
     echo "  - path: SKILL.md"
     echo "    reason: Primary routed skill owner."
@@ -1323,71 +1326,17 @@ render_fitted_conformance() {
       echo "  - path: workflows/task-closure.md"
       echo "    reason: Admitted completion owner."
     fi
-    echo "required_sections:"
-    echo "  - file: SKILL.md"
-    echo "    must_contain:"
-    echo "      - '## Common Tasks'"
-    echo "      - 'routing.yaml'"
-    if [[ "$MANAGED_PRESSURE" -eq 1 ]]; then
-      echo "  - file: workflows/task-execution.md"
-      echo "    must_contain:"
-      echo "      - 'Before Each Main Step'"
-    fi
-    if [[ "$CLOSURE_PRESSURE" -eq 1 ]]; then
-      echo "  - file: workflows/task-closure.md"
-      echo "    must_contain:"
-      echo "      - 'Completion Gate'"
-    fi
-    if [[ "$EXTERNAL_WRITE_PRESSURE" -eq 1 ]]; then
-      echo "  - file: rules/project-rules.md"
-      echo "    must_contain:"
-      echo "      - 'Task scope does not automatically grant external write authority for databases, deployments, configuration, or shared systems; obtain explicit authorization before performing such writes.'"
-    fi
-    for id in ${ROUTE_IDS[@]+"${ROUTE_IDS[@]}"}; do
-      case "$id" in
-        define-requirement)
-          echo "  - file: workflows/define-requirement.md"
-          echo "    must_contain:"
-          echo "      - '## Requirement Definition'"
-          echo "      - 'return \`requirement-ready\` without another confirmation turn'"
-          echo "      - 'current understanding, name the real risk/conflict, ask the minimum normative question, and stop'"
-          echo "      - 'does not produce an implementation Plan, Task Breakdown, code mutation, or proof command'"
-          echo "      - 'Create or update the smallest Governing Requirement only when the user explicitly requests a Requirement/PRD artifact'"
-          echo "      - 'A later Plan links this owner one way and cannot copy, narrow, resolve, or update it'"
-          echo "    must_not_contain:"
-          echo "      - 'Make one risk-sized change'"
-          ;;
-        plan-feature)
-          echo "  - file: workflows/plan-feature.md"
-          echo "    must_contain_in_order:"
-          echo "      - 'Consume a named \`requirement-ready\` source'"
-          echo "      - 'Project Goal, Done When, and material Boundaries into a Task Anchor'"
-          echo "      - 'Reach \`implementation-ready\` before deriving technical options'"
-          echo "      - 'return the implementation Plan'"
-          echo "      - 'Any durable implementation Plan is a separate one-way consumer'"
-          echo "      - 'never stores technical Plan content or lifecycle state in the Governing Requirement file'"
-          echo "    must_not_contain:"
-          echo "      - 'Make one risk-sized change'"
-          ;;
-        change-managed)
-          echo "  - file: workflows/change-managed.md"
-          echo "    must_contain_in_order:"
-          echo "      - '\`requirement-ready\`'"
-          echo "      - 'Task Anchor'"
-          echo "      - '\`implementation-ready\`'"
-          echo "      - 'derive the implementation Plan'"
-          echo "      - 'make one risk-sized change'"
-          ;;
-      esac
-    done
   } > "$conformance"
+  # Initial materialization and later upgrades use the same current checks.
+  bash "$ROOT/scripts/render-fitted-conformance.sh" "$conformance" > "$conformance.refreshed"
+  mv "$conformance.refreshed" "$conformance"
 }
 
 render_fitted_sync_manifest() {
   [[ "$MATERIALIZATION" == "broad" && "$UPSTREAM_PRESSURE" -eq 1 ]] || return 0
   local manifest="$stage/skills/$NAME/sync-manifest.yaml"
   {
-    echo "# Evidence-selected vendor owners for upstream refresh."
+    echo "# Project-owned vendor selection for upstream refresh; preserve this subset."
     echo "vendor:"
     echo "  - sync-manifest.yaml"
     echo "  - scripts/sync-vendor.sh"
@@ -1451,6 +1400,7 @@ render_light_routes() {
     case "$id" in
       define-requirement) render_requirement_workflow "$destination" "$title" ;;
       plan-feature) render_plan_workflow "$destination" "$title" ;;
+      update-upstream) stage_copy "workflows/update-upstream.md" "$destination" ;;
       *) render_light_workflow "$destination" "$title" ;;
     esac
   done

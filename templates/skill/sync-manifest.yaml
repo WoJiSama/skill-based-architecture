@@ -1,14 +1,14 @@
-# Owner classes: vendor entries below are byte-identical upstream mechanisms;
-# project-owned paths are everything else and are merged, never overwritten;
-# generated routing/shell blocks come only from sync-routing.sh; runtime data,
-# secrets, caches, and local instances stay gitignored and never enter sync.
-# scripts/sync-vendor.sh syncs only this vendor block during update-upstream:
-# base = the upstream version at your recorded .upstream-sync synced_sha;
-# a local file matching base is provably unedited and safe to overwrite,
-# a local file differing from base is reported, never overwritten.
-# Allowed vendor owners are this manifest, protocol-blocks/**, and scripts/**;
-# all other paths are rejected even if someone adds them to this block.
-# This manifest is itself vendor-class: upstream's copy wins on sync.
+# Upstream vendor catalog: allowed payloads are byte-identical mechanisms.
+# Downstream sync-manifest.yaml is project-owned selection metadata: preserve
+# its fitted subset, and adopt additional entries only through an explicit
+# project decision. sync-vendor.sh uses this catalog only for legacy bootstrap
+# when no local manifest exists, or to validate an existing selection.
+# A selected path removed from the catalog is reported for manual review.
+# Base = upstream at .upstream-sync synced_sha; a local payload matching base
+# may update, while a differing local payload is reported and never overwritten.
+# Allowed owners are protocol-blocks/** and scripts/**. sync-manifest.yaml is
+# retained as bootstrap metadata, never overwritten when it already exists.
+# All other paths are project-owned or generated and are not vendor payloads.
 vendor:
   - sync-manifest.yaml
   - protocol-blocks/ambiguous-request-gate.md

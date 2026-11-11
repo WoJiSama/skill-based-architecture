@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# upstream-status.sh — Report which upstream UPSTREAM-CHANGES.md entries are newer
+# upstream-status.sh — Report which active or archived upstream entries are newer
 # than this project's recorded sync point (.upstream-sync). Diagnosis only; porting
 # stays manual via workflows/update-upstream.md.
 #
@@ -16,10 +16,12 @@ set -uo pipefail
 TARGET=""; UPSTREAM_OVERRIDE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --upstream) UPSTREAM_OVERRIDE="${2:-}"; shift 2 ;;
+    --upstream)
+      [[ $# -ge 2 && -n "$2" && "$2" != --* ]] || { echo "FAIL: --upstream requires a URL or path." >&2; exit 2; }
+      UPSTREAM_OVERRIDE="$2"; shift 2 ;;
     -h|--help)
       echo "Usage: bash upstream-status.sh [skill-name|skill-root] [--upstream <url-or-path>]"
-      echo "Lists UPSTREAM-CHANGES entries newer than .upstream-sync synced_sha. Exit 1 if behind."
+      echo "Lists active and archived UPSTREAM-CHANGES entries newer than .upstream-sync synced_sha. Exit 1 if behind."
       exit 0 ;;
     *) TARGET="$1"; shift ;;
   esac
@@ -80,54 +82,92 @@ if [[ "$NO_BASE" -eq 0 ]]; then
   done <<< "$(other_pointers)"
 fi
 
-# Get the upstream repo: reuse a local clone if given, else clone to a temp dir.
+# Resolve one comparison revision. Fetching a clone does not advance its checkout;
+# use the fetched tracking ref and never turn a failed fetch into a current claim.
 CLEAN=""; trap '[[ -n "$CLEAN" ]] && rm -rf "$CLEAN"' EXIT
-if [[ -d "$UPSTREAM/.git" ]]; then
-  REPO="$UPSTREAM"; git -C "$REPO" fetch -q 2>/dev/null || true
+LOCAL_REPO=0
+if [[ -d "$UPSTREAM" ]] && git -C "$UPSTREAM" rev-parse --git-dir >/dev/null 2>&1; then
+  REPO="$UPSTREAM"; LOCAL_REPO=1
 else
   CLEAN="$(mktemp -d)"; echo "Fetching upstream: $UPSTREAM"
   git clone -q "$UPSTREAM" "$CLEAN" 2>/dev/null || { echo "FAIL: cannot clone $UPSTREAM" >&2; exit 2; }
   REPO="$CLEAN"
 fi
 
-HEAD_SHA="$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)"
-[[ -z "$HEAD_SHA" ]] && { echo "FAIL: no upstream HEAD found." >&2; exit 2; }
+REMOTES="$(git -C "$REPO" remote)"
+if [[ "$LOCAL_REPO" -eq 1 && -z "$REMOTES" ]]; then
+  TARGET_REF="HEAD"
+  TARGET_DESCRIPTION="local snapshot: $UPSTREAM HEAD; remote freshness not checked"
+else
+  BRANCH_REF="$(git -C "$REPO" symbolic-ref -q HEAD 2>/dev/null || true)"
+  [[ -n "$BRANCH_REF" ]] || { echo "FAIL: detached upstream checkout; cannot determine a tracked remote target." >&2; exit 2; }
+  BRANCH="${BRANCH_REF#refs/heads/}"
+  REMOTE="$(git -C "$REPO" config --get-all "branch.$BRANCH.remote" || true)"
+  MERGE_REF="$(git -C "$REPO" config --get-all "branch.$BRANCH.merge" || true)"
+  TARGET_REF="$(git -C "$REPO" for-each-ref --format='%(upstream)' "$BRANCH_REF")"
+  if [[ -z "$REMOTE" || "$REMOTE" == . || "$REMOTE" == *$'\n'* ||
+        -z "$MERGE_REF" || "$MERGE_REF" == *$'\n'* || -z "$TARGET_REF" ]] ||
+     ! printf '%s\n' "$REMOTES" | grep -Fx -- "$REMOTE" >/dev/null; then
+    echo "FAIL: branch $BRANCH has no unambiguous remote tracking ref; cannot determine upstream freshness." >&2
+    exit 2
+  fi
+  if ! git -C "$REPO" fetch -q -- "$REMOTE" "+$MERGE_REF:$TARGET_REF"; then
+    echo "FAIL: cannot fetch $REMOTE $MERGE_REF; upstream freshness is unknown." >&2
+    exit 2
+  fi
+  TARGET_DESCRIPTION="fetched $TARGET_REF from $REMOTE ($MERGE_REF)"
+fi
+TARGET_SHA="$(git -C "$REPO" rev-parse --verify "${TARGET_REF}^{commit}" 2>/dev/null || true)"
+[[ -n "$TARGET_SHA" ]] || { echo "FAIL: no upstream comparison commit found." >&2; exit 2; }
+echo "Comparison target: $TARGET_SHA ($TARGET_DESCRIPTION)."
+
+# The identity is the dated heading, independent of its current source file.
+# Compare the union at both revisions so archival neither loses nor invents notes.
+notes_at() {
+  local revision="$1" source
+  for source in UPSTREAM-CHANGES.md UPSTREAM-CHANGES-archive.md; do
+    git -C "$REPO" show "$revision:$source" 2>/dev/null |
+      awk -v source="$source" '/^## [0-9][0-9][0-9][0-9]-/ { print $0 "\t" source }'
+  done
+}
+recent_notes() {
+  notes_at "$TARGET_SHA" | awk -F '\t' '!seen[$1]++ { print "  " $1 " [" $2 "]"; if (++count == 8) exit }'
+}
 
 if [[ "$NO_BASE" -eq 1 ]]; then
   echo "⚠ No usable sync point in $SYNC_FILE."
   echo "  Showing the 8 most recent entries for a first refresh; update-upstream.md will set synced_sha after validation."
-  git -C "$REPO" show "HEAD:UPSTREAM-CHANGES.md" 2>/dev/null | grep -E '^## [0-9]{4}-' | head -8 | sed 's/^/  /'
+  recent_notes
   exit 1
 fi
 
-if [[ "$SYNCED_SHA" == "$HEAD_SHA" ]]; then
-  echo "✓ Up to date with upstream ($HEAD_SHA)."; exit 0
+if [[ "$SYNCED_SHA" == "$TARGET_SHA" ]]; then
+  echo "✓ Up to date with comparison target ($TARGET_SHA)."; exit 0
 fi
 
 if ! git -C "$REPO" cat-file -e "${SYNCED_SHA}^{commit}" 2>/dev/null; then
   echo "⚠ Recorded synced_sha ($SYNCED_SHA) not found upstream (rebased or shallow clone?)."
   echo "  Showing the 8 most recent entries instead — verify manually:"
-  git -C "$REPO" show "HEAD:UPSTREAM-CHANGES.md" 2>/dev/null | grep -E '^## [0-9]{4}-' | head -8 | sed 's/^/  /'
+  recent_notes
   exit 1
 fi
 
-# New entries = dated '## ' headings added to the changelog since synced_sha.
-NEW="$(git -C "$REPO" diff "$SYNCED_SHA..$HEAD_SHA" -- UPSTREAM-CHANGES.md 2>/dev/null \
-        | grep -E '^\+## [0-9]{4}-' | sed -E 's/^\+//' || true)"
+NEW="$(awk -F '\t' 'FILENAME == ARGV[1] { seen[$1]=1; next } !seen[$1]++ { print $1 " [" $2 "]" }' \
+        <(notes_at "$SYNCED_SHA") <(notes_at "$TARGET_SHA"))"
 
 if [[ -z "$NEW" ]]; then
   echo "✓ No new UPSTREAM-CHANGES entries since your sync point."
-  echo "  (Upstream HEAD moved $SYNCED_SHA → $HEAD_SHA, but nothing downstream-facing.)"
+  echo "  (Compared $SYNCED_SHA → $TARGET_SHA; no newly added dated headings.)"
   exit 0
 fi
 
 COUNT="$(printf '%s\n' "$NEW" | grep -c '^##' || true)"
 echo "▲ Behind by $COUNT UPSTREAM-CHANGES entr$([[ "$COUNT" == 1 ]] && echo y || echo ies)."
 echo "  your sync point : $SYNCED_SHA"
-echo "  upstream HEAD   : $HEAD_SHA"
+echo "  upstream target : $TARGET_SHA"
 echo ""
-echo "New since your sync point (read these in upstream UPSTREAM-CHANGES.md for refresh guidance):"
+echo "New since your sync point (read each entry in its listed upstream source at $TARGET_SHA):"
 printf '%s\n' "$NEW" | sed 's/^/  /'
 echo ""
-echo "→ Port via workflows/update-upstream.md, then set 'synced_sha: $HEAD_SHA' in $SYNC_FILE"
+echo "→ Port via workflows/update-upstream.md, then set 'synced_sha: $TARGET_SHA' in $SYNC_FILE"
 exit 1

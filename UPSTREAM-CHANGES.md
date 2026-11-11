@@ -48,6 +48,13 @@ Downstream refresh agents almost always only read the most recent 3–5 entries.
 
 The archive file has the same format and is read on demand if a downstream agent is investigating a specific historical change. `scripts/check-upstream-changes.sh` enforces a same-diff entry in `UPSTREAM-CHANGES.md` plus the archive policy limits; archived entries are out of the same-diff check's scope.
 
+## 2026-11-11 - Keep fitted upgrades selected and make sync results truthful
+
+- Changed: vendor refresh preserves the local selection and checks write/readback failures; status compares the fetched tracking revision and includes archived notes. First materialization and fitted refresh share `scripts/render-fitted-conformance.sh`; the Single-file live verifier runs in the fixture directory.
+- Why it matters: same-version refresh previously expanded valid fitted projects, failed copies reported success, and archived changes or stale local HEADs hid pending updates.
+- Downstream action: absorb the current sync/status scripts and upgrade workflow; keep the local vendor subset and project assertions. Refresh fitted checks from their declared owners, not the complete scaffold. No project requires newly unselected protocols.
+- Validation: deterministic lifecycle, filesystem-failure, local-Git status, and live-harness stub regressions are part of `scripts/check-all.sh`; real Agent behavior remains a separate opt-in proof.
+
 ## 2026-09-20 - Enforce archive policy and SKILL.md dual budget
 
 - Upstream commit: the commit containing this entry

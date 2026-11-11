@@ -263,7 +263,10 @@ run_codex() {
 }
 
 verify_single_file_journey() {
-  bash "$project/scripts/check-version.sh" 1.2.4
+  (
+    cd "$project"
+    bash scripts/check-version.sh 1.2.4
+  )
   [[ "$(cksum "$project/AGENTS.md")" == "$AGENTS_BEFORE" ]] || {
     echo "Live Agent changed AGENTS.md outside the requested task" >&2
     exit 1

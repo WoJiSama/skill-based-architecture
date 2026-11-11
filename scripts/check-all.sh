@@ -636,6 +636,368 @@ check_vendor_sync_guards() (
   [[ ! -e "$outside/payload.sh" ]] || { echo "symlink target escaped the skill root" >&2; return 1; }
 )
 
+check_vendor_selection_and_io_contract() (
+  set +e
+  set -uo pipefail
+  local script="$ROOT/templates/skill/scripts/sync-vendor.sh"
+script="$(cd "$(dirname "$script")" && pwd)/$(basename "$script")"
+tmp="$(mktemp -d)"; trap "$(printf 'rm -rf -- %q' "$tmp")" EXIT
+export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_TERMINAL_PROMPT=0
+up="$tmp/up"; skill="$tmp/skill"; pass=0; fail=0
+ok() { echo "PASS $1"; pass=$((pass+1)); }
+no() { echo "FAIL $1"; printf '%s\n' "$output"; fail=$((fail+1)); }
+run() { output="$(bash "$script" "$skill" --upstream "$up" --apply 2>&1)"; status=$?; }
+reset_skill() {
+  rm -rf "$skill"; mkdir -p "$skill/scripts"
+  printf '# fixture\n' > "$skill/SKILL.md"
+  printf 'synced_sha: %s\n' "$sha" > "$skill/.upstream-sync"
+  printf 'vendor:\n  - sync-manifest.yaml\n  - scripts/payload.sh\n' > "$skill/sync-manifest.yaml"
+  printf '# base\n' > "$skill/scripts/payload.sh"
+}
+mkdir -p "$up/templates/skill/scripts" "$up/templates/skill/protocol-blocks"
+printf '# base\n' > "$up/templates/skill/scripts/payload.sh"
+printf '# extra\n' > "$up/templates/skill/scripts/extra.sh"
+printf '# extra\n' > "$up/templates/skill/protocol-blocks/extra.md"
+printf 'vendor:\n  - sync-manifest.yaml\n  - scripts/payload.sh\n  - scripts/extra.sh\n  - protocol-blocks/extra.md\n' > "$up/templates/skill/sync-manifest.yaml"
+git -C "$up" init -q && git -C "$up" config user.name Fixture && git -C "$up" config user.email fixture@example.invalid && git -C "$up" add . && git -C "$up" commit -qm base || exit 2
+sha="$(git -C "$up" rev-parse HEAD)"; reset_skill
+cp "$skill/sync-manifest.yaml" "$tmp/selection"
+run
+if [[ $status -eq 0 && ! -e "$skill/scripts/extra.sh" && ! -e "$skill/protocol-blocks" && "$output" != *LOCAL-EDIT* ]] && cmp -s "$skill/sync-manifest.yaml" "$tmp/selection"; then ok fitted-selection; else no fitted-selection; fi
+reset_skill
+printf '# update\n' > "$up/templates/skill/scripts/payload.sh"
+run
+if [[ $status -eq 0 ]] && cmp -s "$skill/scripts/payload.sh" "$up/templates/skill/scripts/payload.sh"; then ok unmodified-update; else no unmodified-update; fi
+printf '# local\n' > "$skill/scripts/payload.sh"
+run
+if [[ $status -eq 1 && "$output" == *'LOCAL-EDIT scripts/payload.sh'* && "$(cat "$skill/scripts/payload.sh")" == '# local' ]]; then ok local-edit; else no local-edit; fi
+reset_skill
+cp "$up/templates/skill/sync-manifest.yaml" "$tmp/catalog"
+printf 'vendor:\n  - sync-manifest.yaml\n  - scripts/extra.sh\n' > "$up/templates/skill/sync-manifest.yaml"
+run
+if [[ $status -eq 1 && "$output" == *'DROPPED    scripts/payload.sh'* ]]; then ok removed-catalog; else no removed-catalog; fi
+cp "$tmp/catalog" "$up/templates/skill/sync-manifest.yaml"
+reset_skill
+printf '  - scripts/later.sh\n' >> "$skill/sync-manifest.yaml"
+printf '  - scripts/later.sh\n' >> "$up/templates/skill/sync-manifest.yaml"
+printf '# later\n' > "$up/templates/skill/scripts/later.sh"
+mkdir "$skill/scripts/later.sh"
+run
+if [[ $status -eq 2 && "$(cat "$skill/scripts/payload.sh")" == '# base' && "$output" == *FAIL:* ]]; then ok preflight-collision; else no preflight-collision; fi
+reset_skill
+mkdir -p "$tmp/outside"; rm -rf "$skill/scripts"; ln -s "$tmp/outside" "$skill/scripts"
+run
+if [[ $status -eq 2 && ! -e "$tmp/outside/payload.sh" ]]; then ok target-symlink; else no target-symlink; fi
+reset_skill
+mv "$up/templates/skill/scripts/payload.sh" "$tmp/payload"; ln -s "$tmp/payload" "$up/templates/skill/scripts/payload.sh"
+run
+if [[ $status -eq 2 && "$(cat "$skill/scripts/payload.sh")" == '# base' ]]; then ok source-symlink; else no source-symlink; fi
+rm "$up/templates/skill/scripts/payload.sh"; mv "$tmp/payload" "$up/templates/skill/scripts/payload.sh"
+reset_skill
+printf '  - scripts/../escape\n' >> "$skill/sync-manifest.yaml"
+run
+if [[ $status -eq 2 && ! -e "$skill/escape" && "$(cat "$skill/scripts/payload.sh")" == '# base' ]]; then ok unsafe-selection; else no unsafe-selection; fi
+reset_skill
+mkdir "$tmp/bin"
+cat > "$tmp/bin/cp" <<'MOCK'
+#!/usr/bin/env bash
+echo 'fixture: write denied' >&2
+exit 1
+MOCK
+chmod +x "$tmp/bin/cp"
+output="$(PATH="$tmp/bin:$PATH" bash "$script" "$skill" --upstream "$up" --apply 2>&1)"; status=$?
+if [[ $status -eq 2 && "$output" == *FAIL:* && "$output" != *'vendor sync (applied)'* && "$(cat "$skill/scripts/payload.sh")" == '# base' ]]; then ok failed-write; else no failed-write; fi
+cat > "$tmp/bin/cp" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+output="$(PATH="$tmp/bin:$PATH" bash "$script" "$skill" --upstream "$up" --apply 2>&1)"; status=$?
+if [[ $status -eq 2 && "$output" == *FAIL:* && "$output" != *'vendor sync (applied)'* ]]; then ok failed-readback; else no failed-readback; fi
+rm "$tmp/bin/cp"
+cat > "$tmp/bin/mkdir" <<'MOCK'
+#!/usr/bin/env bash
+echo 'fixture: mkdir denied' >&2
+exit 1
+MOCK
+chmod +x "$tmp/bin/mkdir"
+rm "$skill/scripts/payload.sh"
+output="$(PATH="$tmp/bin:$PATH" bash "$script" "$skill" --upstream "$up" --apply 2>&1)"; status=$?
+if [[ $status -eq 2 && "$output" == *FAIL:* && "$output" != *'vendor sync (applied)'* ]]; then ok failed-mkdir; else no failed-mkdir; fi
+rm "$tmp/bin/mkdir"
+reset_skill
+rm "$skill/sync-manifest.yaml" "$skill/scripts/payload.sh"
+run
+if [[ $status -eq 0 && -f "$skill/scripts/extra.sh" && -f "$skill/protocol-blocks/extra.md" && -f "$skill/sync-manifest.yaml" ]]; then ok legacy-bootstrap; else no legacy-bootstrap; fi
+reset_skill
+git -C "$up" worktree add --detach -q "$tmp/worktree" HEAD || exit 2
+up="$tmp/worktree"; run
+if [[ $status -eq 0 && "$output" != *LOCAL-EDIT* ]]; then ok linked-worktree; else no linked-worktree; fi
+printf 'vendor regression: %s passed, %s failed\n' "$pass" "$fail"
+[[ $fail -eq 0 ]]
+
+)
+
+check_fitted_upgrade_lifecycle() (
+  set -euo pipefail
+  local tmp up project skill manifest candidate checker output
+  tmp="$(mktemp -d)"
+  trap "$(printf 'rm -rf -- %q' "$tmp")" EXIT
+  export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_TERMINAL_PROMPT=0
+  up="$tmp/upstream"; project="$tmp/project"; skill="$project/skills/fixture"
+  candidate="$tmp/current-fitted.yaml"
+  checker="$ROOT/templates/skill/scripts/check-version-conformance.sh"
+  mkdir -p "$up/scripts" "$project"
+  cp -R "$ROOT/templates" "$up/templates"
+  cp "$ROOT/scripts/scaffold-downstream.sh" "$ROOT/scripts/render-fitted-conformance.sh" "$up/scripts/"
+  git -C "$up" init -q
+  git -C "$up" config user.name Fixture
+  git -C "$up" config user.email fixture@example.invalid
+  git -C "$up" add .
+  git -C "$up" commit -qm baseline
+  cat > "$tmp/evidence.json" <<'JSON'
+{"version":1,"tasks":[{"id":"fix-bug","trigger_examples":["fix a fixture bug"]},{"id":"change-managed","trigger_examples":["change fixture behavior"]},{"id":"update-upstream","trigger_examples":["refresh fixture rules"]}],"maintenance_pressure":{"upstream":true,"validation":true}}
+JSON
+  bash "$up/scripts/scaffold-downstream.sh" --target "$project" --name fixture \
+    --summary 'Upgrade lifecycle fixture' --evidence "$tmp/evidence.json" --apply >/dev/null
+  manifest="$skill/conformance.yaml"
+  cmp "$skill/workflows/update-upstream.md" "$up/templates/skill/workflows/update-upstream.md"
+  bash "$checker" "$skill" >/dev/null
+  bash "$up/scripts/render-fitted-conformance.sh" "$manifest" > "$candidate"
+  cmp "$manifest" "$candidate"
+  bash "$checker" "$skill" --conformance "$candidate" >/dev/null
+  # The complete scaffold is deliberately not this project's adopted contract.
+  if bash "$checker" "$skill" --conformance "$up/templates/skill/conformance.yaml" >"$tmp/full.log" 2>&1; then
+    echo "lifecycle fixture unexpectedly adopted the complete scaffold" >&2; return 1
+  fi
+  git -C "$project" init -q
+  git -C "$project" config user.name Fixture
+  git -C "$project" config user.email fixture@example.invalid
+  git -C "$project" add .
+  git -C "$project" commit -qm generated
+  output="$(bash "$up/templates/skill/scripts/sync-vendor.sh" "$skill" --upstream "$up" --apply)"
+  [[ -z "$(git -C "$project" status --porcelain)" && "$output" != *LOCAL-EDIT* ]] || {
+    echo "same-version fitted upgrade changed the generated result" >&2; printf '%s\n' "$output" >&2; return 1;
+  }
+  cp "$skill/sync-manifest.yaml" "$tmp/selection.before"
+  printf '\n# Preserve project-owned knowledge\n' >> "$skill/rules/project-rules.md"
+  cp "$skill/rules/project-rules.md" "$tmp/project-rules.before"
+  printf '\n# Upstream fixture update\n' >> "$up/templates/skill/scripts/route-health.sh"
+  printf '# Not selected\n' > "$up/templates/skill/scripts/not-selected.sh"
+  printf '  - scripts/not-selected.sh\n' >> "$up/templates/skill/sync-manifest.yaml"
+  # Change the actual upstream check owner; a stale local contract must not
+  # make this new applicable requirement disappear during refresh.
+  python3 - "$up/scripts/render-fitted-conformance.sh" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+old = 'section("SKILL.md", must_contain=["## Common Tasks", "routing.yaml"])'
+assert old in s
+p.write_text(s.replace(old, 'section("SKILL.md", must_contain=["## Common Tasks", "routing.yaml", "fixture-upstream-requirement"])'))
+PY
+  git -C "$up" add .
+  git -C "$up" commit -qm upgrade
+  bash "$up/templates/skill/scripts/sync-vendor.sh" "$skill" --upstream "$up" --apply >/dev/null
+  cmp "$skill/scripts/route-health.sh" "$up/templates/skill/scripts/route-health.sh"
+  cmp "$skill/sync-manifest.yaml" "$tmp/selection.before"
+  cmp "$skill/rules/project-rules.md" "$tmp/project-rules.before"
+  [[ ! -e "$skill/scripts/not-selected.sh" && ! -d "$skill/protocol-blocks" ]]
+  bash "$up/scripts/render-fitted-conformance.sh" "$manifest" > "$candidate"
+  bash "$checker" "$skill" --conformance "$manifest" >/dev/null
+  if bash "$checker" "$skill" --conformance "$candidate" >"$tmp/new-check.log" 2>&1; then
+    echo "fresh fitted check failed to require the upstream update" >&2; return 1
+  fi
+  grep -qF 'fixture-upstream-requirement' "$tmp/new-check.log"
+  printf '\nfixture-upstream-requirement\n' >> "$skill/SKILL.md"
+  bash "$checker" "$skill" --conformance "$candidate" >/dev/null
+  # Regeneration cannot silently drop a deleted declared owner.
+  rm "$skill/workflows/change-managed.md"
+  bash "$up/scripts/render-fitted-conformance.sh" "$manifest" > "$candidate"
+  if bash "$checker" "$skill" --conformance "$candidate" >"$tmp/missing.log" 2>&1; then
+    echo "refresh hid a missing declared workflow" >&2; return 1
+  fi
+  grep -qF 'workflows/change-managed.md' "$tmp/missing.log"
+  # A project-specific assertion must not accidentally adopt external-write policy.
+  cp "$manifest" "$tmp/custom.yaml"
+  printf '\n  - file: rules/project-rules.md\n    must_contain:\n      - "Keep project knowledge"\n' >> "$tmp/custom.yaml"
+  bash "$up/scripts/render-fitted-conformance.sh" "$tmp/custom.yaml" > "$tmp/custom-current.yaml"
+  if grep -qF 'Task scope does not automatically grant external write authority' "$tmp/custom-current.yaml"; then
+    echo "custom project-rule assertion expanded the adopted responsibilities" >&2; return 1
+  fi
+  # Unsafe/custom declaration shapes are rejected rather than silently fitted.
+  cp "$manifest" "$tmp/unsafe.yaml"
+  printf '\nrequired_files:\n  - path: ../escape\n' >> "$tmp/unsafe.yaml"
+  if bash "$up/scripts/render-fitted-conformance.sh" "$tmp/unsafe.yaml" >"$tmp/unsafe.out" 2>/dev/null; then
+    echo "renderer accepted ambiguous declared owners" >&2; return 1
+  fi
+  [[ ! -s "$tmp/unsafe.out" ]]
+  echo "OK: fitted generation, same-version sync, selective upgrade, and current checks"
+)
+
+check_upstream_status_contract() (
+  set +e
+  set -uo pipefail
+  local script="$ROOT/templates/skill/scripts/upstream-status.sh"
+script="$(cd "$(dirname "$script")" && pwd)/$(basename "$script")"
+tmp="$(mktemp -d)"
+trap "$(printf 'rm -rf -- %q' "$tmp")" EXIT
+export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_TERMINAL_PROMPT=0
+passed=0; failed=0
+ok() { printf 'PASS %s\n' "$1"; passed=$((passed+1)); }
+fail() { printf 'FAIL %s\n%s\n' "$1" "${output:-}"; failed=$((failed+1)); }
+init_repo() {
+  git init -q "$1" && git -C "$1" checkout -qb main &&
+  git -C "$1" config user.name 'SBA fixture' && git -C "$1" config user.email fixture@example.invalid
+}
+commit() { git -C "$1" add . && git -C "$1" commit -qm "$2"; }
+point() { printf 'upstream: fixture\nsynced_sha: %s\n' "$1" > "$tmp/skill/.upstream-sync"; }
+run_status() {
+  output="$(cd "$tmp/skill" && bash "$script" "$tmp/skill" --upstream "$1" 2>&1)"; result=$?
+}
+mkdir -p "$tmp/skill"
+printf '# Fixture\n' > "$tmp/skill/SKILL.md"
+init_repo "$tmp/source" || exit 1
+printf '# Updates\n\n## 2026-01-01 - baseline\n- Guidance: baseline\n' > "$tmp/source/UPSTREAM-CHANGES.md"
+commit "$tmp/source" base || exit 1
+base="$(git -C "$tmp/source" rev-parse HEAD)"
+point "$base"
+printf '\n## 2026-01-02 - added then archived\n- Guidance: apply new mechanism\n' >> "$tmp/source/UPSTREAM-CHANGES.md"
+commit "$tmp/source" added || exit 1
+printf '# Archive\n\n## 2026-01-02 - added then archived\n- Guidance: apply new mechanism\n' > "$tmp/source/UPSTREAM-CHANGES-archive.md"
+printf '# Updates\n\n## 2026-01-01 - baseline\n- Guidance: baseline\n' > "$tmp/source/UPSTREAM-CHANGES.md"
+commit "$tmp/source" archived || exit 1
+run_status "$tmp/source"
+if [[ "$result" == 1 && "$output" == *'2026-01-02 - added then archived'* && "$output" == *'UPSTREAM-CHANGES-archive.md'* ]]; then ok 'new note remains visible after archival'; else fail 'new note remains visible after archival'; fi
+archive_sha="$(git -C "$tmp/source" rev-parse HEAD)"
+point "$archive_sha"
+printf '\n## 2026-01-01 - baseline\n- Guidance: baseline\n' >> "$tmp/source/UPSTREAM-CHANGES-archive.md"
+printf '# Updates\n' > "$tmp/source/UPSTREAM-CHANGES.md"
+commit "$tmp/source" move-baseline || exit 1
+run_status "$tmp/source"
+if [[ "$result" == 0 && "$output" == *'No new UPSTREAM-CHANGES entries'* ]]; then ok 'moving existing headings is not a new note'; else fail 'moving existing headings is not a new note'; fi
+point "$(git -C "$tmp/source" rev-parse HEAD)"
+run_status "$tmp/source"
+if [[ "$result" == 0 && "$output" == *'local snapshot'* ]]; then ok 'no-remote checkout is explicitly a local snapshot'; else fail 'no-remote checkout is explicitly a local snapshot'; fi
+git clone -q --bare "$tmp/source" "$tmp/origin.git" || exit 1
+git clone -q "$tmp/origin.git" "$tmp/stale" || exit 1
+stale_sha="$(git -C "$tmp/stale" rev-parse HEAD)"
+point "$stale_sha"
+printf '# Updates\n\n## 2026-01-03 - remote advancement\n- Guidance: new target\n' > "$tmp/source/UPSTREAM-CHANGES.md"
+commit "$tmp/source" remote-update || exit 1
+git -C "$tmp/source" push -q "$tmp/origin.git" main || exit 1
+latest="$(git -C "$tmp/source" rev-parse HEAD)"
+run_status "$tmp/stale"
+if [[ "$result" == 1 && "$output" == *'2026-01-03 - remote advancement'* && "$output" == *"$latest"* && "$(git -C "$tmp/stale" rev-parse HEAD)" == "$stale_sha" ]]; then ok 'fetch compares tracked target while preserving stale checkout'; else fail 'fetch compares tracked target while preserving stale checkout'; fi
+point "$latest"
+run_status "$tmp/stale"
+if [[ "$result" == 0 && "$output" == *"$latest"* && "$output" == *'refs/remotes/origin/main'* ]]; then ok 'current status identifies fetched comparison revision'; else fail 'current status identifies fetched comparison revision'; fi
+run_status "file://$tmp/origin.git"
+if [[ "$result" == 0 && "$output" == *"$latest"* && "$output" == *'refs/remotes/origin/main'* ]]; then ok 'temporary clone resolves its fetched tracking revision'; else fail 'temporary clone resolves its fetched tracking revision'; fi
+point '<set on first refresh>'
+run_status "$tmp/source"
+if [[ "$result" == 1 && "$output" == *'2026-01-03 - remote advancement'* && "$output" == *'2026-01-02 - added then archived'* ]]; then ok 'first refresh lists active and archived notes'; else fail 'first refresh lists active and archived notes'; fi
+point 0000000000000000000000000000000000000001
+run_status "$tmp/source"
+if [[ "$result" == 1 && "$output" == *'not found upstream'* && "$output" == *'2026-01-02 - added then archived'* ]]; then ok 'missing baseline reports attention with archive fallback'; else fail 'missing baseline reports attention with archive fallback'; fi
+point "$latest"
+git -C "$tmp/stale" remote set-url origin "$tmp/missing-origin.git"
+run_status "$tmp/stale"
+if [[ "$result" == 2 && "$output" != *'Up to date'* && "$output" != *'No new UPSTREAM-CHANGES entries'* ]]; then ok 'fetch failure cannot claim current'; else fail 'fetch failure cannot claim current'; fi
+git -C "$tmp/stale" remote set-url origin "$tmp/origin.git"
+git -C "$tmp/stale" checkout -q --detach
+run_status "$tmp/stale"
+if [[ "$result" == 2 ]]; then ok 'detached remote checkout cannot choose latest'; else fail 'detached remote checkout cannot choose latest'; fi
+git -C "$tmp/stale" checkout -q main
+git -C "$tmp/stale" branch --unset-upstream
+run_status "$tmp/stale"
+if [[ "$result" == 2 ]]; then ok 'untracked remote checkout cannot choose latest'; else fail 'untracked remote checkout cannot choose latest'; fi
+git -C "$tmp/stale" branch --set-upstream-to=origin/main main >/dev/null
+git -C "$tmp/stale" worktree add -q -b worktree-check "$tmp/worktree" main || exit 1
+git -C "$tmp/worktree" branch --set-upstream-to=origin/main worktree-check >/dev/null
+point "$stale_sha"
+run_status "$tmp/worktree"
+if [[ "$result" == 1 && "$output" == *"$latest"* && "$output" == *'2026-01-03 - remote advancement'* ]]; then ok 'worktree git file uses configured tracked target'; else fail 'worktree git file uses configured tracked target'; fi
+# Bound the historical failed-shift loop in the process running the script.
+output="$(cd "$tmp/skill" && perl -e 'alarm shift; exec @ARGV' 3 bash "$script" "$tmp/skill" --upstream 2>&1)"; result=$?
+if [[ "$result" == 2 ]]; then ok 'missing upstream option value exits 2'; else fail 'missing upstream option value exits 2'; fi
+printf 'Result: %s passed; %s failed\n' "$passed" "$failed"
+[[ "$failed" == 0 ]]
+
+)
+
+check_live_agent_harness_contract() (
+  set -euo pipefail
+  local tmp script stub output status run_dir
+  tmp="$(mktemp -d)"
+  trap "$(printf 'rm -rf -- %q' "$tmp")" EXIT
+  script="$ROOT/scripts/check-live-agent-journey.sh"
+  stub="$tmp/codex-stub"
+  mkdir -p "$tmp/unrelated"
+  printf '9.9.9\n' > "$tmp/unrelated/VERSION"
+  cat > "$stub" <<'STUB'
+#!/usr/bin/env bash
+set -euo pipefail
+project=""
+[[ "${1:-}" == exec ]] || exit 2
+shift
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --cd)
+      [[ $# -ge 2 ]] || exit 2
+      project="$2"
+      shift 2
+      ;;
+    *) shift ;;
+  esac
+done
+[[ -n "$project" && -f "$project/VERSION" ]] || exit 2
+case "${SBA_LIVE_STUB_CASE:-correct}" in
+  correct) printf '1.2.4\n' > "$project/VERSION" ;;
+  wrong-version) printf '1.2.5\n' > "$project/VERSION" ;;
+  changed-instructions)
+    printf '1.2.4\n' > "$project/VERSION"
+    printf '\nUnexpected instruction change\n' >> "$project/AGENTS.md"
+    ;;
+  *) exit 2 ;;
+esac
+STUB
+  chmod +x "$stub"
+
+  for run_dir in "$tmp/unrelated" "$ROOT"; do
+    if ! output="$(cd "$run_dir" && SBA_CODEX_BIN="$stub" SBA_LIVE_STUB_CASE=correct bash "$script" --mode single-file 2>&1)"; then
+      printf 'live harness rejected the correct fixture VERSION from %s:\n%s\n' "$run_dir" "$output" >&2
+      return 1
+    fi
+    [[ "$output" == *'PASS: fresh-project natural-language journey updated VERSION'* ]] || {
+      echo "live harness did not report the expected successful terminal check" >&2
+      return 1
+    }
+  done
+
+  if output="$(cd "$tmp/unrelated" && SBA_CODEX_BIN="$stub" SBA_LIVE_STUB_CASE=wrong-version bash "$script" --mode single-file 2>&1)"; then
+    echo "live harness accepted an incorrect fixture VERSION" >&2
+    return 1
+  else
+    status=$?
+  fi
+  [[ "$status" -eq 1 && "$output" == *'expected VERSION=1.2.4, got 1.2.5'* ]] || {
+    printf 'live harness rejected an incorrect VERSION for the wrong reason (status=%s):\n%s\n' "$status" "$output" >&2
+    return 1
+  }
+
+  if output="$(cd "$tmp/unrelated" && SBA_CODEX_BIN="$stub" SBA_LIVE_STUB_CASE=changed-instructions bash "$script" --mode single-file 2>&1)"; then
+    echo "live harness accepted an unrelated instruction change" >&2
+    return 1
+  else
+    status=$?
+  fi
+  [[ "$status" -eq 1 && "$output" == *'Live Agent changed AGENTS.md outside the requested task'* ]] || {
+    printf 'live harness rejected an unrelated instruction change for the wrong reason (status=%s):\n%s\n' "$status" "$output" >&2
+    return 1
+  }
+)
+
+
 check_overlay_owner_contract() (
   set -euo pipefail
   local tmp root skill script output
@@ -946,6 +1308,10 @@ run "existing-project first-migration journey" check_existing_project_scaffold_j
 run "single-root + two-root integrity contracts" check_two_root_integrity
 run "conformance option-like phrase contract" check_conformance_option_like_phrases
 run "vendor owner + path guards" check_vendor_sync_guards
+run "vendor selection and write-failure contract" check_vendor_selection_and_io_contract
+run "fitted generation and upstream upgrade lifecycle" check_fitted_upgrade_lifecycle
+run "upstream revision and archived-note status" check_upstream_status_contract
+run "live harness terminal-check isolation (stub)" check_live_agent_harness_contract
 run "task route + domain overlay and cross-owner guards" check_overlay_owner_contract
 run "code-root domain materialization + nested-owner guards" check_code_root_domain_contract
 run "recursive business-reference integrity" check_recursive_knowledge_integrity
