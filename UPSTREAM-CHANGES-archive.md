@@ -4,6 +4,193 @@ Older entries that have aged out of the active [`UPSTREAM-CHANGES.md`](UPSTREAM-
 
 Downstream refresh agents do **not** need to read this file in routine refreshes. Read it on demand when investigating a specific historical change. `scripts/check-upstream-changes.sh` only enforces same-diff entries in the active file.
 
+## 2026-08-14 - Keep Markdown link labels out of inline-path validation
+
+- Upstream commit: the commit containing this entry
+- Changed areas:
+  - `templates/skill/scripts/smoke-test.sh` records same-line Markdown link
+    label ranges and does not reinterpret backticked presentation text inside a
+    label as a second standalone path dependency.
+  - Local-reference scanning retains its original per-line context boundary;
+    a reference cue on one line cannot activate an otherwise non-binding
+    inline-code example on the next line.
+  - `scripts/check-validation-contract.sh` protects the valid label shape while
+    still proving that a missing standalone inline-code target and a renamed
+    heading fragment fail independently.
+- Why it matters: downstream workflows commonly display a backticked
+  `rule-update/business-truth.md` path inside a Requirement Decision Source
+  link label. The target already resolves relative to its source file;
+  treating the label as another workspace-root path creates a false
+  broken-reference failure.
+- Downstream refresh guidance: port the scanner change into project-customized
+  `smoke-test.sh` copies without replacing their path-root or workspace logic.
+  Rerun the fitted local-reference phase and confirm both valid backticked-link
+  labels and genuinely missing standalone inline targets retain opposite
+  outcomes.
+
+## 2026-08-13 - Separate Requirement Definition from implementation planning
+
+- Upstream commit: the commit containing this entry
+- Changed areas:
+  - Added `workflows/define-requirement.md` as the independently selectable
+    interaction owner for desired goal, scope/preservation, decision-bearing
+    model/flow, rules/constraints, and observable acceptance. Clear sources may
+    return `requirement-ready` without another confirmation; incomplete sources
+    return current understanding, real risk/conflict, and only the minimum
+    normative question.
+  - `change-contract.md` remains the sole runtime semantic owner and now exposes
+    the complete progression from `requirement-ready`, through source
+    localization and Implementation Binding, to `implementation-ready`.
+    Repository facts stay Agent-discoverable; code may prove Current behavior or
+    contradict a premise but cannot choose desired product meaning.
+  - `plan-feature.md` is now a strict consumer of a ready Requirement and proven
+    Implementation Binding. It owns Current -> Target technical design, options
+    that preserve the Requirement, Task Interfaces/order, risks/recovery, and
+    acceptance-to-proof mapping. Normative gaps return to Requirement
+    Definition, and tests or proof commands cannot invent acceptance.
+  - Requirement Definition and Plan Feature now apply independent Artifact
+    Pressure Gates. A requested Requirement-only PRD may finish at
+    `requirement-ready`; when both durable owners exist, `prd.md` owns only
+    normative Requirement meaning and `design.md` links it one way while owning
+    Current -> Target, tasks, proof, and lifecycle. Technical evidence may
+    rebind/replan directly only while Requirement meaning and Task Anchor remain
+    unchanged.
+  - Task Execution, Change Managed, Fix Bug, review/closure, business-model, and
+    durable Plan consumers now preserve the order `requirement-ready -> Task
+    Anchor -> implementation-ready -> Native Plan -> mutation`. The Anchor is a
+    Session projection of Goal/Done When/Boundaries; neither Anchor nor Plan can
+    become a second Requirement owner.
+  - Self-hosting routing and fitted downstream materialization distinguish
+    explicit Requirement discussion from implementation planning while keeping
+    direct feature requests automatic. Single-file, Folder-light, routed, and
+    broad carriers preserve the same boundary without adding a mandatory PRD,
+    Requirement file, question log, or second runtime ledger.
+  - Conformance, representative scenarios, and independent deletion mutations
+    protect Requirement dimensions, no-guess handoff, Current-versus-desired
+    authority, Anchor projection, `implementation-ready` ordering, Plan return
+    behavior, proof subordination, and the absence of Plan owner inversion.
+  - External delivery derives artifacts and requested terminal states only from
+    the current user request and Governing Requirement as projected into the
+    Task Anchor. Plans may identify, order, and read back only already-bound
+    artifacts. Composite execution likewise reads Component meaning,
+    boundaries, and acceptance from Requirements while Plans own only technical
+    interfaces, adapters, ordering, risk, proof, and delivery mechanics; Task
+    Execution alone projects the Integrating Anchor and later derives its
+    Native Plan.
+  - Rule Update names Requirement implementation handoff as the normative
+    source and separates frozen Requirement provenance from frozen Plan
+    technical provenance. Controlled owner-inversion mutations reject the old
+    delivery and Composite Plan authority claims independently.
+- Why it matters: the earlier requirement-first rule still left requirement
+  brainstorming and implementation design inside one Plan workflow. That made
+  it possible for a Plan or test to silently complete missing product meaning,
+  and made “只讨论需求” indistinguishable from “根据确认需求制定实现计划”. The
+  split gives each deliverable one owner without imposing author machinery on
+  ordinary users.
+- Downstream refresh guidance: port `define-requirement.md`, Change Contract,
+  Plan Feature, Task Execution/Change Managed, routing, and fitted validation as
+  one lifecycle change. Preserve project-specific workflows and business
+  owners. Clear requests should remain zero-question; incomplete normative
+  meaning must return upstream; technical owner discovery stays with the Agent.
+  Do not add a durable Requirement or Plan artifact unless the downstream has an
+  independent review, handoff, recovery, conflict, or lifecycle reason.
+
+## 2026-08-13 - Requirement-first planning and bounded deterministic execution
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - The SBA Bible, Change Contract, Plan Feature, Task Execution, Change Managed,
+    Plan archive guidance, and generated entry shells now treat a requirement as
+    the target and a Plan as its revisable means. Any addition or change to
+    user-visible behavior, a business flow/state, or an external contract must
+    become `requirement-ready` and establish at least a concise Native Plan
+    before mutation, even when the request is clear or appears local.
+  - Clear requests retain the efficient path: they may reach
+    `requirement-ready` without questions or expanded ceremony. A durable Plan
+    file remains conditional on explicit user request or real recovery,
+    handoff, review, conflict, or lifecycle pressure; logical planning does not
+    imply one repository artifact per requirement.
+  - Task Execution now reserves Simple for one read-only or fixed-contract
+    maintenance action with no new desired behavior. If evidence exposes new
+    behavior, dependent owners, contract fan-out, diagnosis, or drift risk, the
+    task is reclassified in place and preserves the evidence already gathered.
+  - Executable architecture and project profiling now downshift an operation
+    only when low freedom and repeated or demonstrated high-error pressure both
+    exist. The Agent retains goals, semantic parameters, target and authority
+    choices, exception interpretation, alternatives, and escalation; structured
+    APIs, existing CLIs, and existing scripts precede any new minimal script.
+  - Long-running, asynchronous, backgrounded, noisy, or terminal-truncated work
+    now requires authoritative re-readable evidence for the current execution:
+    run identity, provenance, freshness, completeness/semantic validity, and the
+    requested terminal state. File existence or an intermediate status cannot
+    stand in for the requested outcome.
+  - Fitted conformance and self-scenarios protect the clear-but-requirement-
+    bearing status-grouped defect-filter journey. Independent mutations delete
+    requirement authority, Simple exclusion, readiness ordering, Native-versus-
+    durable Plan separation, in-place reclassification, both deterministic
+    downshift gates, Agent judgment, the one-off direct path, and each readback
+    dimension separately.
+- Why it matters: a feature request could previously look small and explicit,
+  bypass visible planning, then expand across state, count, pagination, and UI
+  owners during implementation. Separately, repeated precision work could stay
+  fragile, while indiscriminate script creation would reduce the Agent's
+  judgment and adaptability. The new contract closes both failures without
+  forcing questions, files, or scripts onto every task.
+- Downstream refresh guidance: port the entry-shell/Task Execution boundary,
+  Change Contract readiness semantics, Plan Feature target/means rule, Change
+  Managed trigger, and fitted conformance together. Keep clear requirements on
+  the no-question path but never on a no-Plan path. Adopt deterministic carriers
+  operation by operation only after both gates pass, and require domain-owned
+  current-run terminal evidence for admitted long-running operations. Do not
+  copy the self-hosting Bible or author-only mutation harness into ordinary
+  downstream Skills unless their own readers and validation pressure admit them.
+
+## 2026-08-12 - Pre-command runtime preconditions and ordered conformance
+
+- Upstream commit: pending in this working tree
+- Changed areas:
+  - Verified Failure and protocol owners now require stable project tool,
+    runtime, or configuration preconditions to live in the nearest downstream
+    testing/build owner and activate before the first protected command. The
+    owner selects the environment and reads back what the command will actually
+    use; an unavailable precondition stops the check instead of producing a
+    tool-initialization false red.
+  - Verified Failure now classifies two independent boundaries. An activation
+    failure means applicable prevention was already stored but did not change
+    the protected action in time. A learning-closure failure means the first
+    proven stable prevention was not reconciled and activated during that task.
+    Stored or post-failure-written knowledge cannot prove pre-action activation,
+    and one correct run cannot prove durable learning for the next task.
+  - `check-version-conformance.sh` and `conformance.yaml` add
+    `must_contain_in_order`, so fitted manifests can distinguish an active
+    preflight from the same phrases moved after the protected action.
+  - `scripts/check-validation-contract.sh` mutation-protects the contract by
+    deleting activation, selection, and effective-runtime readback separately,
+    then moving the complete preflight after the protected command and requiring
+    an explicit `OUT OF ORDER` failure. It also rejects empty/flow-style ordered
+    groups, proves mapping-key order and quoted YAML scalars cannot erase an
+    assertion, and requires target decode failures to produce a stable failed
+    summary rather than a traceback or zero-assertion pass. Separate mutations
+    also delete activation failure, learning-closure failure, and their
+    non-substitution boundary so retaining one cannot make the other look done.
+  - Installed-reference validation now derives the active `skills/` registry
+    from the formal Skill path, so `skills/<sibling>/...` resolves identically
+    whether smoke starts at the harness registry root or, as downstream update
+    workflows require, inside the installed Skill root.
+- Why it matters: compatibility prose and presence-only conformance could both
+  be green while an Agent still inherited an incompatible machine default for
+  its first test command, paid for a predictable infrastructure failure, and
+  only selected the project runtime on retry.
+- Downstream refresh guidance: port `must_contain_in_order` only when an
+  admitted fitted manifest needs action-order protection. Keep exact versions,
+  selectors, readback commands, tool symptoms, and stop behavior in the
+  downstream project's testing/build owner; activate that owner before its
+  first protected command and add project-specific ordered assertions. Diagnose
+  and close stored-but-not-activated prevention separately from first-proven-but-
+  not-persisted learning. Do not copy a concrete JDK version into the generic SBA
+  template, change a user's machine default, or treat tool initialization as
+  business red/green evidence.
+
 ## 2026-08-11 - Code-first first use and fitted validator hardening
 
 - Upstream commit: pending in this working tree

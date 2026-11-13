@@ -24,12 +24,12 @@ During Fix Bug, the only source eligible for a `references/business/<module>.md`
 
 1. Restate the observed behavior, affected scope, and expected result. Before the first mutation, read [`change-discipline.md`](../rules/change-discipline.md).
 2. Classify with the Design-or-defect gate.
-3. Reproduce the defect with a failing automated check for the reported reason; if automation is impossible, give repeatable manual steps and why.
+3. Reproduce the defect with a failing automated check for the reported reason; if automation is impossible, give repeatable manual steps and why. If the current artifact may already contain a fix, run the original acceptance scenario before deciding whether any edit is needed.
 4. Trace the real root cause. Identify the violated invariant, state ownership/provenance, producer-to-consumer call chain, and every affected full/incremental/read/write path. If several independent hypotheses survive and delegation has positive Net Benefit, use `subagent-auxiliary.md`; synthesis stays with the main agent.
 5. Apply the **Repair-depth gate** — default to Product Development and repair the invariant-owning boundary, including coordinated multi-layer changes when required. Use Operational Stabilization only for an explicit production/availability/frozen-scope constraint; containment must be reversible and leave the structural repair visibly unresolved.
 6. Implement the smallest semantically complete repair; dependency count increases validation duty but cannot veto the correct boundary. Avoid unrelated cleanup.
 7. Inspect direct and indirect consumers plus changed contracts, data compatibility, shared state/config, events, and async ordering. Resolve any unknown that could invalidate the fix.
-8. Run the same acceptance check to green and the smallest relevant regression across every affected path. Escalate to runtime/release evidence only when the changed behavior requires it.
+8. Run the same acceptance check to green and the smallest relevant regression across every affected path. If the reported defect depends on a user interaction, entry-point wiring, or a later effect that the lower-level check cannot observe, replay the original scenario through that entry and verify its reported effect on the current artifact. If the required runtime, identity, or data is unavailable, report that scenario as unverified. Escalate to broader runtime or release evidence only when the changed behavior requires it.
 9. For each verified engineering failure, run Verified Failure Input now and re-verify any deliverable changed by its canonical write or activation path.
 10. Run the [Task Closure Protocol](task-closure.md). Its final AAR handles only additional lessons; it does not defer the verified-failure write.
 
@@ -38,7 +38,7 @@ After three failed approaches, stop and report the attempts and false premise in
 ## Completion Check
 
 - Classification and design basis are explicit.
-- The failing check reproduced the real defect before code changed and passes afterward.
+- The failing check reproduced the real defect before code changed and passes afterward. If no repair was needed, report what the original scenario actually did on the current artifact.
 - Invariant ownership, call chain, all affected paths, direct/indirect impact, compatibility, and residual uncertainty were inspected.
 - Product Development vs Operational Stabilization was selected from task evidence, not implementation convenience.
 - No type/flow/state/invariant change was smuggled through Bug Fix.

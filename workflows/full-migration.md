@@ -236,6 +236,7 @@ Copy the checklist below into your PR description or a tracking note while runni
 
 - [ ] `skills/<name>/SKILL.md` exists within the dual budget (description ≤ 25, body ≤ 90)
 - [ ] Every detected/declared harness has its fitted entry or registration; Cursor's entry is required only when Cursor is admitted
+- [ ] If an entry moved between roots, replay actual discovery and verify prior entry surfaces using [Quick Start Step 4](../WORKFLOW.md#quick-start)
 - [ ] All important rules migrated out of old locations
 - [ ] Detected `.cursor/` and `.claude/` surfaces contain only thin shells, hooks, or registration stubs
 - [ ] If `.claude/skills/<name>/SKILL.md` exists, it only points to `skills/<name>/` and uses a project-specific name that avoids likely user-level collisions
